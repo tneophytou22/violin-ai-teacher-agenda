@@ -1,0 +1,31 @@
+name: Restore known-working V12
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore V12 files
+        run: |
+          git checkout 39cf93eccb19d93e74a033a367cb19f1c13f7720 -- index.html manifest.json sw.js
+          rm -f .github/workflows/restore-v12-final.yml
+
+      - name: Commit restored V12
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html manifest.json sw.js .github/workflows/restore-v12-final.yml
+          git commit -m "Restore known-working V12 agenda" || exit 0
+          git push
