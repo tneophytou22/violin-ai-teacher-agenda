@@ -1,0 +1,31 @@
+name: Restore working V12
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: contains(github.event.head_commit.message, 'Restore working V12')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore known working index
+        run: |
+          git fetch origin a073a4e4b45139e1cd3e1752b1f4648a3231b13d
+          git checkout a073a4e4b45139e1cd3e1752b1f4648a3231b13d -- index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm .github/workflows/restore-working-v12.yml
+          git commit -m "Restore working V12 agenda"
+          git push origin HEAD:main
