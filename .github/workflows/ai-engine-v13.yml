@@ -1,0 +1,122 @@
+name: Violin AI adaptive lesson planner
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upgrade agenda AI engine
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          marker = '/* V13_AI_ENGINE */'
+          if marker in text:
+              print('V13 AI engine already installed; nothing to do.')
+              raise SystemExit(0)
+
+          lesson = r'''function lessonAssessmentCard(s,items){
+          let a=s.assessments||{};
+          let all=items.filter(x=>x.title);
+          const cats=[['Technique','🧩'],['Intonation','🎯'],['Rhythm','🥁'],['Bow Control','🏹'],['Musicality','🎵'],['Repertoire','🎼'],['Scales & Études','📚'],['Practice / Preparation','🏠']];
+          return `<section class="section ai-box"><h3>🤖 QUICK LESSON ASSESSMENT · /20</h3><p class="small">Δώσε γρήγορα βαθμούς /20 στα βασικά στοιχεία του μαθήματος και, αν θέλεις, δίπλα σε κάθε κομμάτι ή άσκηση. Το Violin AI χρησιμοποιεί τους βαθμούς για να προσαρμόσει το επόμενο Daily Planner.</p><h4 style="margin:12px 0 7px">Lesson overview</h4><div class="assessment-grid">${cats.map(([k,icon])=>`<div class="assessment-row"><span><b>${icon} ${k}</b></span><input class="grade20" type="number" min="0" max="20" value="${a['category:'+k]??''}" placeholder="/20" onchange="setCategoryAssessment('${s.id}','${k}',this.value)"></div>`).join('')}</div><h4 style="margin:14px 0 7px">Today’s pieces / studies</h4><div class="assessment-grid">${all.map(x=>`<div class="assessment-row"><span><b>${esc(x.title)}</b><br><small>${esc(x.category)}</small></span><input class="grade20" type="number" min="0" max="20" value="${a[x.category+':'+x.id]??''}" placeholder="/20" onchange="setItemAssessment('${s.id}','${x.id}',this.value)"></div>`).join('')||'<div class="empty">Πρόσθεσε πρώτα repertoire, scales, études ή technical studies στον συγκεκριμένο μαθητή.</div>'}</div><div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap"><button class="btn purple" onclick="showAISuggestions('${s.id}')">✨ Violin AI — Analyse & Suggest</button><button class="btn mint" onclick="generateAIPlanner('${s.id}')">🤖 Generate AI Daily Planner</button></div></section>`}
+          '''
+
+          text, n = re.subn(r'function lessonAssessmentCard\(s,items\)\{.*?\n?function setItemAssessment', lesson + 'function setItemAssessment', text, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('Could not locate lessonAssessmentCard')
+
+          helper = r'''/* V13_AI_ENGINE */
+          function setCategoryAssessment(sid,category,value){let s=data.students.find(x=>x.id===sid);if(!s)return;s.assessments??={};let n=Math.max(0,Math.min(20,+value||0));s.assessments['category:'+category]=n;save()}
+          function getCategoryScore(s,category){let v=s.assessments?.['category:'+category];return Number.isFinite(+v)&&+v>0?+v:null}
+          function getItemScore(s,x){let v=s.assessments?.[x.category+':'+x.id];return Number.isFinite(+v)&&+v>0?+v:null}
+          function aiProfile(s){
+            let items=data.repertoire.filter(x=>x.studentId===s.id).map(x=>({x,score:getItemScore(s,x)})).filter(o=>o.score!==null);
+            let cats=['Technique','Intonation','Rhythm','Bow Control','Musicality','Repertoire','Scales & Études','Practice / Preparation'].map(k=>({k,score:getCategoryScore(s,k)})).filter(o=>o.score!==null);
+            let weakItems=items.filter(o=>o.score<13).sort((a,b)=>a.score-b.score);
+            let strongItems=items.filter(o=>o.score>=17).sort((a,b)=>b.score-a.score);
+            let weakCats=cats.filter(o=>o.score<13).sort((a,b)=>a.score-b.score);
+            let strongCats=cats.filter(o=>o.score>=17).sort((a,b)=>b.score-a.score);
+            return {items,cats,weakItems,strongItems,weakCats,strongCats};
+          }
+          function generateAIPlanner(sid){
+            let s=data.students.find(x=>x.id===sid);if(!s)return;
+            let prof=aiProfile(s), items=data.repertoire.filter(x=>x.studentId===sid), c=curriculum[s.level]||{s:[],e:[],t:[],p:[]};
+            let plan=[]; const uid=()=>crypto.randomUUID?.()||String(Date.now()+Math.random());
+            const add=(title,category,minutes,sourceId=null,reason='')=>plan.push({id:uid(),sourceId,title,category,minutes:Math.max(3,Math.round(minutes)),done:false,aiReason:reason});
+            const weakTechnique=prof.weakCats.find(x=>['Technique','Bow Control'].includes(x.k));
+            const weakIntonation=prof.weakCats.find(x=>x.k==='Intonation');
+            const weakRhythm=prof.weakCats.find(x=>x.k==='Rhythm');
+            const warm=automaticWarmup(s.level);
+            add(warm[0],'Warm Up',7,null,'Activation adapted to level');
+            if(weakTechnique||weakIntonation) add(warm[1],'Warm Up',6,null,'Targets the weakest technical area'); else add(warm[1],'Warm Up',5,null,'Level-appropriate activation');
+            let scales=items.filter(x=>x.category==='Scales');let etudes=items.filter(x=>x.category==='Études');let tech=items.filter(x=>x.category==='Technical Studies');let pieces=items.filter(x=>x.category==='Pieces');
+            const ordered=(arr)=>[...arr].sort((a,b)=>(getItemScore(s,a)??15)-(getItemScore(s,b)??15));
+            ordered(scales).slice(0,2).forEach(x=>add(x.title,'Scales',weakIntonation?12:10,x.id,`Current score: ${getItemScore(s,x)??'not rated'}/20`));
+            if(!scales.length)add(c.s[0]||'Level scale work','Scales',10,null,'Level curriculum suggestion');
+            ordered(tech).slice(0,2).forEach(x=>add(x.title,'Technique',weakTechnique?13:10,x.id,`Current score: ${getItemScore(s,x)??'not rated'}/20`));
+            if(!tech.length) c.t.slice(0,2).forEach(x=>add(x,'Technique Focus',8,null,'Automatic level technique')); 
+            ordered(etudes).slice(0,2).forEach(x=>add(x.title,'Études',weakRhythm?18:15,x.id,`Current score: ${getItemScore(s,x)??'not rated'}/20`));
+            if(!etudes.length)add(c.e[0]||'Level étude work','Études',15,null,'Level curriculum suggestion');
+            ordered(pieces).slice(0,3).forEach(x=>add(x.title,'Repertoire',12+(getItemScore(s,x)!==null&&getItemScore(s,x)<13?8:0),x.id,`Current score: ${getItemScore(s,x)??'not rated'}/20`));
+            if(!pieces.length)add(c.p[0]||'Level repertoire work','Repertoire',18,null,'Level curriculum suggestion');
+            let target=practiceTarget(s),sum=plan.reduce((a,x)=>a+x.minutes,0);
+            while(sum>target&&plan.length>3){let idx=plan.findIndex(x=>x.minutes>8&&x.category!=='Warm Up');if(idx<0)break;plan[idx].minutes-=3;sum-=3}
+            while(sum<target){let m=Math.min(5,target-sum);add(weakRhythm?'Rhythm review / clapping and subdivision':'Review weakest point from the lesson','AI Review',m,null,'Generated from lesson assessment');sum+=m}
+            s.daily??={};s.daily[todayKey()]=plan;save();state.sid=sid;state.page='student';render();
+          }
+          function showAISuggestions(sid){
+            let s=data.students.find(x=>x.id===sid);if(!s)return;let p=aiProfile(s),c=curriculum[s.level]||{s:[],e:[],t:[],p:[]};
+            let lines=[];
+            lines.push(`🤖 VIOLIN AI — ${s.name} · Level ${s.level}`,'');
+            if(p.weakCats.length)lines.push('🎯 PRIORITY AREAS',...p.weakCats.slice(0,4).map(x=>`• ${x.k}: ${x.score}/20`),'');
+            if(p.weakItems.length)lines.push('🔧 ITEMS TO REVISIT',...p.weakItems.slice(0,4).map(x=>`• ${x.x.title}: ${x.score}/20`),'');
+            lines.push('✨ LEVEL-APPROPRIATE SUGGESTIONS',`• Technique: ${c.t.slice(0,2).join(' · ')}`,`• Scales: ${c.s.slice(0,2).join(' · ')}`,`• Étude: ${c.e.slice(0,1).join(' · ')}`,`• Repertoire: ${c.p.slice(0,2).join(' · ')}`,'');
+            if(p.strongCats.length)lines.push('💪 KEEP DEVELOPING',...p.strongCats.slice(0,3).map(x=>`• ${x.k}: ${x.score}/20`),'');
+            lines.push(`⏱ Home-practice target: ${practiceTarget(s)}+ min`,'','Το επόμενο Daily Planner μπορεί να δημιουργηθεί αυτόματα με βάση αυτά τα δεδομένα.');
+            alert(lines.join('\n'));
+          }
+          '''
+
+          text = text.replace('<script>', '<script>\n'+helper, 1)
+
+          planner = r'''function generateDailyPlanner(sid){generateAIPlanner(sid)}
+          '''
+          # Replace the final (active) duplicate planner definition.
+          matches=list(re.finditer(r'function generateDailyPlanner\(sid\)\{.*?\n?function regenerateDailyPlanner', text, flags=re.S))
+          if not matches:
+              raise SystemExit('Could not locate active generateDailyPlanner')
+          m=matches[-1]
+          text=text[:m.start()]+planner+'function regenerateDailyPlanner'+text[m.end():]
+          text=text.replace("function regenerateDailyPlanner(sid){generateDailyPlanner(sid)}", "function regenerateDailyPlanner(sid){let s=data.students.find(x=>x.id===sid);if(!s)return;if(confirm('Generate a NEW AI Daily Planner for today? The current plan will be replaced.'))generateAIPlanner(sid)}", 1)
+
+          path.write_text(text,encoding='utf-8')
+          print('V13 AI engine installed.')
+          PY
+
+      - name: Commit upgraded agenda
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Upgrade Violin AI adaptive lesson planner"
+            git push
+          fi
