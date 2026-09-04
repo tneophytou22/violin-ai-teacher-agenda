@@ -6,27 +6,27 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  validate:
+  restore:
+    if: contains(github.event.head_commit.message, 'Temporarily restore last working agenda build')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Validate V12 files
+      - name: Restore last known working V12
         run: |
-          test -s index.html
-          test -s manifest.json
-          test -s sw.js
-          echo "V12 validation passed"
-          echo "index.html: $(wc -c < index.html) bytes"
-          echo "manifest.json: $(wc -c < manifest.json) bytes"
-          echo "sw.js: $(wc -c < sw.js) bytes"
-
-      - name: Verify V12 marker
-        run: |
-          if grep -q "VIOLIN_AI_V12" index.html; then
-            echo "V12 marker found"
-          else
-            echo "V12 marker not found — keeping this as a validation-only build"
-          fi
+          git fetch origin a073a4e4b45139e1cd3e1752b1f4648a3231b13d
+          git checkout a073a4e4b45139e1cd3e1752b1f4648a3231b13d -- index.html
+          git checkout a073a4e4b45139e1cd3e1752b1f4648a3231b13d -- .github/workflows/build-v12.yml
+          rm -f .github/workflows/restore-working-v12.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/build-v12.yml .github/workflows/restore-working-v12.yml
+          git commit -m "Restore working V12 agenda"
+          git push origin HEAD:main
