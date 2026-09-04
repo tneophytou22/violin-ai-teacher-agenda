@@ -1,0 +1,62 @@
+name: Build V12
+on:
+  push:
+    branches: [main]
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, '[v12-built]')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch V11 into V12
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          marker='<!-- VIOLIN_AI_V12 -->'
+          if marker in s:
+              raise SystemExit('V12 patch already present')
+          js=r'''<!-- VIOLIN_AI_V12 -->
+<script>
+(function(){
+const V12CSS=`.v12-school{border-left:7px solid #4aa3df!important;background:linear-gradient(90deg,#eef8ff,#fff)!important}.v12-private{border-left:7px solid #e78b5f!important;background:linear-gradient(90deg,#fff5ef,#fff)!important}.v12-ai{background:linear-gradient(135deg,#fff,#f1edff);border:1px solid #dcd1ff}.v12-score{width:76px!important;text-align:center;font-weight:800}.v12-row{display:grid;grid-template-columns:1fr 90px 80px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #eee}.v12-chip{display:inline-block;border-radius:99px;padding:5px 9px;font-size:11px;font-weight:800;margin:2px}.v12-green{background:#dff6eb;color:#176747}.v12-orange{background:#fff0df;color:#8a4b13}.v12-red{background:#ffe5e8;color:#9b2d3a}.v12-purple{background:#eee8ff;color:#5b3db2}.v12-ai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}.v12-report{white-space:pre-wrap;line-height:1.55;background:#fff;border:1px solid #e7e1ff;border-radius:13px;padding:14px}.v12-small{font-size:12px;color:#667085}.v12-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}`;
+document.head.insertAdjacentHTML('beforeend','<style>'+V12CSS+'</style>');
+function studentById(){return data.students.find(s=>String(s.id)===String(state.sid))||data.students.find(s=>String(s._id)===String(state.sid))||data.students[state.sid]}
+function ensureV12(s){if(!s)return;s.assessments=s.assessments||[];s.viber=s.viber||'';s.progressReports=s.progressReports||[];s.aiNotes=s.aiNotes||[];s.practicePlan=s.practicePlan||{};}
+function itemsFor(s,cat){
+ const a=(data.repertoire||[]).filter(x=>String(x.studentId)===String(s.id));
+ return a.filter(x=>{
+   const c=String(x.category||x.type||x.kind||'Pieces').toLowerCase();
+   if(cat==='Pieces')return !/scale|étude|etude|techni|exercise/.test(c);
+   if(cat==='Scales')return /scale/.test(c);
+   if(cat==='Études')return /étude|etude/.test(c);
+   return /techni|exercise/.test(c);
+ });
+}
+function scoreFor(s,name){let a=(s.assessments||[]).slice().reverse().find(x=>x.item===name);return a?a.score:''}
+function setScore(id,name){let s=studentById();ensureV12(s);let v=document.getElementById(id).value;if(v==='')return;v=Math.max(1,Math.min(20,Number(v)));s.assessments.push({date:new Date().toISOString(),item:name,score:v});save();}
+window.v12SaveViber=function(){let s=studentById();ensureV12(s);s.viber=document.getElementById('v12viber').value.trim();save();alert('Viber number saved for this student.');}
+window.v12SendViber=function(){let s=studentById();ensureV12(s);let n=(s.viber||'').replace(/[^+\d]/g,'');if(!n){alert('Add the Viber number for this student first.');return}let text=document.getElementById('v12message').value.trim();if(!text){alert('Generate or write the homework message first.');return}let url='viber://chat?number='+encodeURIComponent(n);try{navigator.clipboard&&navigator.clipboard.writeText(text)}catch(e){}window.location.href=url;}
+window.v12Voice=function(){let out=document.getElementById('v12message');let R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R){alert('Voice input is not supported by this browser. Try Chrome on Android.');return}let r=new R();r.lang='el-GR';r.interimResults=false;r.continuous=false;r.onresult=e=>{out.value=(out.value?out.value+'\n':'')+e.results[0][0].transcript};r.onerror=e=>alert('Voice error: '+e.error);r.start();}
+window.v12AI=function(){let s=studentById();ensureV12(s);let scores=s.assessments||[];let avg={};scores.forEach(x=>{avg[x.item]=(avg[x.item]||[]).concat(Number(x.score))});let ranked=Object.entries(avg).map(([k,v])=>[k,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>a[1]-b[1]);let weak=ranked.slice(0,3);let strong=ranked.slice(-2).reverse();let level=Number(s.level)||1;let cur=curriculum[level]||curriculum[1];let rec=[];if(weak.length)rec.push('Priority: '+weak.map(x=>x[0]+' ('+x[1].toFixed(1)+'/20)').join(', '));rec.push('Technique focus: '+cur.t.slice(0,Math.min(3,cur.t.length)).join(', '));rec.push('Scale focus: '+cur.s.slice(0,2).join(', '));rec.push('Étude options: '+cur.e.slice(0,2).join(', '));rec.push('Repertoire options: '+cur.p.slice(0,3).join(', '));let msg='VIOLIN AI — '+(s.name||'Student')+'\n\n'+rec.join('\n');document.getElementById('v12aiout').textContent=msg;s.aiNotes.push({date:new Date().toISOString(),text:msg});save();}
+window.v12Planner=function(){let s=studentById();ensureV12(s);let level=Number(s.level)||1,cur=curriculum[level]||curriculum[1];let scores=(s.assessments||[]).slice(-20);let weak=scores.reduce((o,x)=>(o[x.item]=(o[x.item]||[]).concat(+x.score),o),{});let ordered=Object.entries(weak).sort((a,b)=>(a[1].reduce((x,y)=>x+y,0)/a[1].length)-(b[1].reduce((x,y)=>x+y,0)/b[1].length));let focus=ordered.slice(0,2).map(x=>x[0]);let plan=[['Warm-up',5],['Technique',10],['Scales',10],['Étude',15],['Repertoire',25],['Review / focus',10]];if(focus.length)plan[1][0]='Technique · '+focus[0];s.practicePlan[todayKey()]={date:todayKey(),items:plan,focus:focus};save();let el=document.getElementById('v12planner');el.innerHTML=plan.map(x=>'<div class="todaybox"><div class="line"><b>'+esc(x[0])+'</b><span>'+x[1]+' min</span></div></div>').join('')+'<div class="practice-total"><b>Total suggested home practice: '+plan.reduce((a,x)=>a+x[1],0)+' min</b><br><span class="v12-small">Lesson length remains '+(s.type==='Private'?'30':'40')+' min; this is separate home practice.</span></div>';}
+window.v12Quarter=function(){let s=studentById();ensureV12(s);let scores=s.assessments||[];let overall=scores.length?Math.round(scores.reduce((a,x)=>a+Number(x.score),0)/scores.length):0;let grouped={};scores.forEach(x=>(grouped[x.item]??=[]).push(+x.score));let ranked=Object.entries(grouped).map(([k,v])=>[k,v.reduce((a,b)=>a+b,0)/v.length]).sort((a,b)=>b[1]-a[1]);let progress=ranked.slice(0,4).map(x=>'• '+x[0]+' — '+x[1].toFixed(1)+'/20');let attention=ranked.slice(-4).reverse().map(x=>'• '+x[0]+' — '+x[1].toFixed(1)+'/20');let report='Quarterly Progress — '+(s.name||'Student')+'\n\nOverall grade: '+(overall||'—')+'/20\n\nProgress\n'+(progress.join('\n')||'• Continue building consistent evidence of progress.')+'\n\nFocus for next term\n'+(attention.join('\n')||'• Continue consolidating current level skills.')+'\n\nNext term plan\n• Consolidate the weakest technical area.\n• Continue current repertoire with clear weekly goals.\n• Develop scales and étude work appropriate to Level '+(s.level||'—')+'.\n\nThis report is a supportive teacher draft and should be reviewed before sending.';document.getElementById('v12report').textContent=report;document.getElementById('v12grade').value=overall||'';}
+window.v12SaveQuarter=function(){let s=studentById();ensureV12(s);let g=Number(document.getElementById('v12grade').value);if(!g||g<1||g>20){alert('Enter a grade from 1 to 20.');return}s.progressReports.push({date:new Date().toISOString(),grade:g,report:document.getElementById('v12report').textContent});save();alert('Quarterly progress saved to this student.');}
+window.student=function(){let s=studentById();if(!s){nav('students');return}ensureV12(s);let level=Number(s.level)||1,cur=curriculum[level]||curriculum[1];let school=s.type==='Μουσικό Σχολείο', all=[];['Pieces','Scales','Études','Technical Studies'].forEach(cat=>{let its=itemsFor(s,cat);if(!its.length){let base=cat==='Pieces'?cur.p:cat==='Scales'?cur.s:cat==='Études'?cur.e:cur.t;its=base.map(name=>({name,category:cat,studentId:s.id,template:true}));}its.forEach(x=>all.push({...x,cat}))});let rows=all.map((x,i)=>{let name=x.name||x.title||x.piece||'Item';let sid='v12sc'+i;return '<div class="v12-row"><span><b>'+esc(name)+'</b><br><span class="v12-small">'+esc(x.cat)+'</span></span><input id="'+sid+'" class="v12-score" type="number" min="1" max="20" placeholder="/20" value="'+esc(scoreFor(s,name))+'" onchange="setScore(\''+sid+'\',\''+esc(name).replace(/'/g,"\\'")+'\')"><span class="v12-chip v12-purple">'+(scoreFor(s,name)?'Saved':'Rate')+'</span></div>'}).join('');let cls=school?'v12-school':'v12-private';shell('<div class="title"><h2>🎻 '+esc(s.name||'Student')+'</h2><button class="btn ghost" onclick="nav(\'students\')">← Students</button></div><div class="card '+cls+'"><span class="pill">'+esc(s.type||'Student')+'</span><span class="pill">Level '+esc(level)+'</span><h3>Student Profile</h3><div class="form"><div><label>Viber number</label><input id="v12viber" value="'+esc(s.viber||'')+'" placeholder="+357..."><button class="btn viber" onclick="v12SaveViber()">Save Viber</button></div><div><label>Current level</label><input value="'+esc(level)+'" disabled><p class="v12-small">Lesson: '+(school?'40':'30')+' min · Home practice is separate.</p></div></div></div><div class="tabs"><button class="tab active">Daily Student Dashboard</button></div><div class="v12-ai-grid"><section class="card"><h3>📋 Lesson Assessment /20</h3>'+rows+'</section><section class="card v12-ai"><h3>🤖 Violin AI</h3><p class="v12-small">Uses this student’s level and saved assessment history to suggest priorities. Suggestions do not change the student automatically.</p><div class="v12-actions"><button class="btn purple" onclick="v12AI()">✨ Analyse & Recommend</button><button class="btn mint" onclick="v12Planner()">📅 Generate Daily Planner</button><button class="btn gold" onclick="v12Quarter()">📋 Quarterly Progress</button></div><div id="v12aiout" class="v12-report" style="margin-top:10px">Press Analyse & Recommend.</div><div id="v12planner"></div></section></div><section class="card" style="margin-top:14px"><h3>🏠 Homework</h3><textarea id="v12message" rows="7" placeholder="Write or generate the homework message for this student..."></textarea><div class="v12-actions"><button class="btn ghost mic" onclick="v12Voice()">🎙️ Speak</button><button class="btn viber" onclick="v12SendViber()">💬 Send to Viber</button></div><p class="v12-small">Voice input uses a single final result to avoid the repeated-word problem caused by appending interim transcription.</p></section><section class="card quarter-card" style="margin-top:14px"><h3>📋 Quarterly Progress · /20</h3><div class="form"><div><label>Teacher grade</label><input id="v12grade" class="v12-score" type="number" min="1" max="20" placeholder="/20"></div></div><div id="v12report" class="v12-report" style="margin-top:10px">Press Quarterly Progress to generate a supportive draft.</div><button class="btn mint" onclick="v12SaveQuarter()">Save Progress Report</button></section>');}
+window.render=render;
+const oldSave=window.save;window.save=function(){oldSave();};
+})();
+</script>'''
+          s=s.replace('</body>',js+'</body>')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit V12
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'feat: build VIOLIN AI Teacher Agenda V12 [v12-built]' || exit 0
+          git push
