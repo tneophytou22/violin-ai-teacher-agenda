@@ -1,0 +1,74 @@
+{
+  "id": "VIOLIN_AI_MASTER_SCALE_ARPEGGIO_CURRICULUM_V1",
+  "title": "VIOLIN AI — MASTER SCALE & ARPEGGIO CURRICULUM V1",
+  "levels": {
+    "1": {
+      "name": "Foundation / 1st Position",
+      "terms": {
+        "1": {"major_scales":["G major","D major","A major"],"minor_scales":[],"octaves":"1","tonic_arpeggios":["G major","D major","A major"],"dominant_7th":[],"diminished_7th":[],"chromatic_scales":[],"double_stops":[],"scales_on_one_string":[],"position_requirements":["1st position"],"bowing_patterns":["separate bows","1 note/bow","2 notes/bow"],"articulation":["détaché"],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"♩=50–60","technical_objective":"clean intonation, finger placement, straight bow","mastery_criteria":[]},
+        "2": {"major_scales":["C major","D major","A major","G major"],"minor_scales":["E minor — introduction"],"octaves":"1","tonic_arpeggios":["C major","D major","G major","A major","E minor"],"dominant_7th":[],"diminished_7th":[],"chromatic_scales":[],"double_stops":[],"scales_on_one_string":[],"position_requirements":["1st position"],"bowing_patterns":["1 note/bow","2 notes/bow","4 notes/bow","2+2"],"articulation":["détaché","legato"],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"♩=60–70","technical_objective":"bow distribution","mastery_criteria":[]}
+      }
+    },
+    "2": {
+      "name": "Foundation → Developing",
+      "terms": {
+        "1": {"major_scales":["G major","D major","A major","C major","F major"],"minor_scales":["E natural minor","A natural minor"],"octaves":"1","tonic_arpeggios":["major tonic triads","minor tonic triads"],"dominant_7th":[],"diminished_7th":[],"chromatic_scales":[],"double_stops":[],"scales_on_one_string":[],"position_requirements":["1st position"],"bowing_patterns":["1 note/bow","2 notes/bow","4 notes/bow"],"articulation":["détaché","legato"],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"♩=70–80","technical_objective":"secure basic scale and arpeggio coordination","mastery_criteria":[]},
+        "2": {"major_scales":[],"minor_scales":["E harmonic minor","A harmonic minor","D harmonic minor","melodic minor — introduction"],"octaves":"1","tonic_arpeggios":["major/minor tonic triads"],"dominant_7th":[],"diminished_7th":[],"chromatic_scales":["1 octave"],"double_stops":[],"scales_on_one_string":[],"position_requirements":["1st position"],"bowing_patterns":["2+2","4+4","8 notes/bow"],"articulation":["light martelé","hooked bow — introduction"],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"♩=75–85","technical_objective":"developed bow distribution and articulation control","mastery_criteria":[]}
+      }
+    },
+    "3": {
+      "name": "2 Octaves + Dominant 7 Introduction",
+      "terms": {
+        "1": {"major_scales":["G major","D major","A major","C major","F major","Bb major"],"minor_scales":["A minor","E minor","D minor","harmonic minor","melodic minor"],"octaves":"2","tonic_arpeggios":["major tonic","minor tonic"],"dominant_7th":[],"diminished_7th":[],"chromatic_scales":[],"double_stops":[],"scales_on_one_string":[],"position_requirements":["developing 2-octave position work"],"bowing_patterns":["1","2","4","8 notes/bow"],"articulation":[],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"♩≈80","technical_objective":"secure 2-octave intonation and coordination","mastery_criteria":[]},
+        "2": {"major_scales":["major tonalities up to 3 sharps / 3 flats"],"minor_scales":["harmonic","melodic"],"octaves":"2","tonic_arpeggios":["major tonic","minor tonic"],"dominant_7th":["G7","D7","A7"],"diminished_7th":[],"chromatic_scales":["2 octaves"],"double_stops":["thirds — introduction","sixths — introduction"],"scales_on_one_string":[],"position_requirements":["position changes within 2-octave work"],"bowing_patterns":["détaché","legato","martelé","hooked"],"articulation":["détaché","legato","martelé","hooked"],"rhythmic_variations":["2+2","3+3","4+4"],"accent_patterns":["accent every 4"],"dynamics":[],"target_tempo":"","technical_objective":"introduce dominant 7th, controlled bow patterns and double-stop preparation","mastery_criteria":[]}
+      }
+    },
+    "4": {
+      "name": "Intermediate Technique",
+      "terms": {
+        "1": {"major_scales":["G major","A major","Bb major","C major","D major","E major"],"minor_scales":["G minor","A minor","B minor","C minor","harmonic minor","melodic minor"],"octaves":"2–3","tonic_arpeggios":["major","minor"],"dominant_7th":["D7","G7","A7"],"diminished_7th":[],"chromatic_scales":[],"double_stops":[],"scales_on_one_string":[],"position_requirements":["intermediate position work"],"bowing_patterns":["1","2","4","8","12 notes/bow"],"articulation":["détaché","legato","martelé","hooked"],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"","technical_objective":"intermediate scale coordination and bow control","mastery_criteria":[]},
+        "2": {"major_scales":[],"minor_scales":[],"octaves":"2–3","tonic_arpeggios":["major","minor"],"dominant_7th":["systematic"],"diminished_7th":["introduction"],"chromatic_scales":[],"double_stops":["thirds","sixths","octave preparation"],"scales_on_one_string":["D","G","A"],"position_requirements":["position work supporting 2–3 octave scales"],"bowing_patterns":["2/2","4/4","3/3","4+4"],"articulation":["détaché","legato","martelé","hooked"],"rhythmic_variations":[],"accent_patterns":["accent every 4"],"dynamics":[],"target_tempo":"♩≈90","technical_objective":"systematic dominant 7th, diminished 7th introduction and double-stop preparation","mastery_criteria":[]}
+      }
+    },
+    "5": {
+      "name": "Advanced Intermediate",
+      "terms": {
+        "1": {"major_scales":["G major","A major","Bb major","B major","C major"],"minor_scales":["G minor","A minor","B minor","C minor","harmonic minor","melodic minor"],"octaves":"3","tonic_arpeggios":["major","minor","3 octaves where appropriate"],"dominant_7th":["G7","A7","C7","D7"],"diminished_7th":[],"chromatic_scales":["2–3 octaves"],"double_stops":[],"scales_on_one_string":[],"position_requirements":["3-octave position work"],"bowing_patterns":["1","2","3","4","6","8 notes/bow"],"articulation":["martelé — systematic introduction"],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"","technical_objective":"advanced-intermediate 3-octave coordination and systematic martelé","mastery_criteria":[]},
+        "2": {"major_scales":[],"minor_scales":[],"octaves":"3 where appropriate","tonic_arpeggios":["major","minor"],"dominant_7th":[],"diminished_7th":["A","B","C","D"],"chromatic_scales":[],"double_stops":["thirds","sixths","octave introduction"],"scales_on_one_string":["D major"],"position_requirements":["3-octave shifting"],"bowing_patterns":["détaché","martelé","hooked","legato","accented détaché"],"articulation":["détaché","martelé","hooked","legato","accented détaché"],"rhythmic_variations":["dotted","reverse dotted","triplets","groups of 4"],"accent_patterns":[],"dynamics":[],"target_tempo":"","technical_objective":"diminished 7th, double stops and rhythmic transformation","mastery_criteria":[]}
+      }
+    },
+    "6": {
+      "name": "Advanced",
+      "terms": {
+        "1": {"major_scales":["all major scales"],"minor_scales":["all minor scales — harmonic","all minor scales — melodic"],"octaves":"3","tonic_arpeggios":["major","minor"],"dominant_7th":["dominant 7"],"diminished_7th":[],"chromatic_scales":["3 octaves"],"double_stops":[],"scales_on_one_string":[],"position_requirements":["full 3-octave position system"],"bowing_patterns":["1","2","3","4","6","8","12","16 notes/bow"],"articulation":[],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"♩=90–110","technical_objective":"full 3-octave tonal system with speed and bow-control development","mastery_criteria":[]},
+        "2": {"major_scales":[],"minor_scales":[],"octaves":"3","tonic_arpeggios":["major","minor"],"dominant_7th":["all major tonal centres","resolution: dominant 7 → tonic"],"diminished_7th":["complete system"],"chromatic_scales":[],"double_stops":["thirds","sixths","octaves"],"scales_on_one_string":[],"position_requirements":["full position system"],"bowing_patterns":["mixed bowings"],"articulation":[],"rhythmic_variations":["long-short","short-long","triplets","groups of 4","groups of 6"],"accent_patterns":[],"dynamics":[],"target_tempo":"","technical_objective":"complete 7th-chord systems, resolution, double stops and rhythmic transformation","mastery_criteria":[]}
+      }
+    },
+    "7": {
+      "name": "Pre-Advanced / Pre-Professional",
+      "terms": {
+        "1": {"major_scales":["complete 3-octave system"],"minor_scales":["major + minor"],"octaves":"3","tonic_arpeggios":["major","minor"],"dominant_7th":["dominant 7"],"diminished_7th":["diminished 7"],"chromatic_scales":["3 octaves"],"double_stops":[],"scales_on_one_string":["major tonalities"],"position_requirements":["1","3","5","7"],"bowing_patterns":["7 notes/bow","9 notes/bow","12 notes/bow"],"articulation":[],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"","technical_objective":"complete 3-octave architecture, expanded bow groupings and positional fluency","mastery_criteria":[]},
+        "2": {"major_scales":[],"minor_scales":[],"octaves":"3","tonic_arpeggios":[],"dominant_7th":[],"diminished_7th":[],"chromatic_scales":[],"double_stops":["thirds","sixths","octaves","tenths — introduction"],"scales_on_one_string":[],"position_requirements":["1–3","1–5","1–7","1–9 shifts"],"bowing_patterns":["hooked","martelé","détaché","legato","mixed"],"articulation":["hooked","martelé","détaché","legato","mixed"],"rhythmic_variations":[],"accent_patterns":["every 3","every 4","every 5","every 6","every 7"],"dynamics":[],"target_tempo":"","technical_objective":"advanced shifting, double-stop development and accent displacement","mastery_criteria":[]}
+      }
+    },
+    "8": {
+      "name": "Advanced / Conservatoire Preparation",
+      "terms": {
+        "1": {"major_scales":["all 12 tonal centres"],"minor_scales":["harmonic","melodic"],"octaves":"3","tonic_arpeggios":["major","minor"],"dominant_7th":["dominant 7"],"diminished_7th":["diminished 7"],"chromatic_scales":["3 octaves"],"double_stops":["thirds","sixths","octaves"],"scales_on_one_string":[],"position_requirements":["full 3-octave system"],"bowing_patterns":["1","2","3","4","6","8","12","16 notes/bow"],"articulation":[],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"","technical_objective":"full tonal system and advanced double-stop preparation","mastery_criteria":[]},
+        "2": {"major_scales":[],"minor_scales":[],"octaves":"3","tonic_arpeggios":[],"dominant_7th":[],"diminished_7th":[],"chromatic_scales":[],"double_stops":["thirds","sixths","octaves","tenths","scales in double stops"],"scales_on_one_string":["3 octaves"],"position_requirements":["full positional range"],"bowing_patterns":["advanced mixed bowings","spiccato introduction where appropriate"],"articulation":["spiccato — introduction where appropriate"],"rhythmic_variations":["groups of 3","4","5","6","7"],"accent_patterns":[],"dynamics":["pp → ff","ff → pp","crescendo","diminuendo"],"target_tempo":"","technical_objective":"advanced double stops, one-string scales, rhythm and dynamic control","mastery_criteria":[]}
+      }
+    },
+    "9": {
+      "name": "Pre-Professional / Diploma Preparation",
+      "terms": {
+        "1": {"major_scales":["all 12 tonal centres"],"minor_scales":["all 12 — harmonic","all 12 — melodic"],"octaves":"3","tonic_arpeggios":["major","minor"],"dominant_7th":["dominant 7"],"diminished_7th":["diminished 7"],"chromatic_scales":["3 octaves"],"double_stops":["thirds","sixths","octaves","tenths"],"scales_on_one_string":["scales on one string"],"position_requirements":["full position system"],"bowing_patterns":["1 note/bow","2","3","4","6","8","12","16","mixed","hooked","martelé","détaché","legato","spiccato where appropriate"],"articulation":["mixed","hooked","martelé","détaché","legato","spiccato where appropriate"],"rhythmic_variations":[],"accent_patterns":[],"dynamics":[],"target_tempo":"","technical_objective":"complete scale architecture and full bowing laboratory","mastery_criteria":[]},
+        "2": {"major_scales":[],"minor_scales":[],"octaves":"3","tonic_arpeggios":[],"dominant_7th":[],"diminished_7th":[],"chromatic_scales":[],"double_stops":["thirds","sixths","octaves","fingered octaves","tenths"],"scales_on_one_string":["advanced one-string scales"],"position_requirements":["advanced positional fluency"],"bowing_patterns":["full bowing system"],"articulation":[],"rhythmic_variations":["straight","groups of 3","groups of 4","groups of 6","octave displacement","sequences","rhythmic transformations"],"accent_patterns":["accent displacement"],"dynamics":["pp → ff","ff → pp","crescendo","diminuendo"],"target_tempo":"","technical_objective":"performance mastery and transfer to repertoire","mastery_criteria":[]}
+      }
+    }
+  },
+  "progression": ["Pitch","Range","Positions","Bow control","Articulation","Rhythm","Speed","Double stops","Advanced patterns","Transfer to repertoire"],
+  "maintenance_principle": "Previous scales remain active through maintenance/review; progression is not based only on adding more scales.",
+  "mastery_matrix": {
+    "Intonation": {"min":1,"max":5},"Rhythm":{"min":1,"max":5},"Bow control":{"min":1,"max":5},"Tone":{"min":1,"max":5},"Coordination":{"min":1,"max":5},"Shifting":{"min":1,"max":5},"Relaxation":{"min":1,"max":5},"Speed":{"min":1,"max":5},"Articulation":{"min":1,"max":5},"Memory":{"min":1,"max":5}
+  }
+}
