@@ -1,0 +1,12 @@
+(function(){'use strict';
+function read(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
+function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function num(v){var m=String(v==null?'':v).match(/\d+/);return m?+m[0]:null}
+function currentScale(win,level,term){var c=win&&win.VIOLIN_SCALE_CURRICULUM_V1;if(!c)return null;if(typeof c.getTerm==='function')return c.getTerm(num(level),num(term)||1);return c[num(level)]&&c[num(level)][num(term)||1]}
+function fieldFor(cat){var m={'Major Scales':'major','Minor Scales':'minor','Tonic Arpeggios':'arpeggios','Dominant 7th':'dominant7','Diminished 7th':'diminished7','Chromatic Scales':'chromatic','Double Stops':'doubleStops','Scales on One String':'oneString'};return m[cat]||null}
+function octave(title,detail){var s=String(title||'')+' '+String(detail||'');var m=s.match(/(\d+)[–-]?(\d+)?\s*octaves?/i);if(m)return m[2]?m[1]+'–'+m[2]+' octaves':m[1]+' octave'+(m[1]==='1'?'':'s');return ''}
+function enrich(win){var p=read('VIOLIN_AI_LESSON_SELECTION_V1')||read('VIOLIN_AI_CURRENT_SELECTION_V1');if(!p||!Array.isArray(p.items))return;var c=currentScale(win,p.level,p.term);if(!c)return;var base={tempo:c.tempo||'',bowing:c.bowing||[],articulation:c.articulation||[],rhythmicGroups:c.rhythm||[],accents:c.accents||[],dynamics:c.dynamics||[],positions:c.positions||'',objective:c.objective||'',mastery:c.mastery||''};p.items=p.items.map(function(x){var key=fieldFor(x.cat||x.category);var vals=key?c[key]:null;var o=Object.assign({},x);o.requirements=Object.assign({},base,{octaves:octave(x.title,x.detail),curriculumCategory:x.cat||x.category||'',curriculumField:key||'',specificRequirement:vals||''});return o});write('VIOLIN_AI_LESSON_SELECTION_V1',p);write('VIOLIN_AI_CURRENT_SELECTION_V1',p)}
+function findLesson(){var f=document.getElementById('app');if(!f)return null;var d=f.contentDocument;try{var inner=d&&d.querySelector('iframe');return inner&&inner.contentDocument?inner:null}catch(e){return null}}
+function hook(){var lf=findLesson();if(!lf)return;var btn=lf.getElementById('v13fixaddlesson');if(btn&&!btn.dataset.reqHook){btn.dataset.reqHook='1';btn.addEventListener('click',function(){setTimeout(function(){enrich(lf.defaultView)},60)},true)}}
+setInterval(hook,500);hook();
+})();
