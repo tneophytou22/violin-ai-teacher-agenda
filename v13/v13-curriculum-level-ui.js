@@ -1,5 +1,5 @@
 (function(){'use strict';
-/* V13: Technique Exercise card only. Scale UI is owned by final-fixed.html. */
+/* V13: Technique Exercise card + explicit Scales-tab visibility bridge. */
 var root=document.getElementById('app');
 function txt(x){return String(x||'').replace(/\s+/g,' ').trim()}
 function inject(doc){
@@ -10,7 +10,30 @@ function inject(doc){
   var parent=technique.parentElement;if(!parent||parent.querySelector('#v13-tech-ex-card'))return;
   var card=doc.createElement('div');card.id='v13-tech-ex-card';card.className='v13-tech-ex-card';card.innerHTML='<h3>🎯 Technique Exercises</h3><div class="v13-tech-ex-sub">Exercises for focused technical development, organised separately from the Technical Curriculum.</div><span class="v13-tech-ex-badge">Exercise Library</span>';parent.appendChild(card);
 }
-function walk(doc){try{inject(doc);[...doc.querySelectorAll('iframe')].forEach(function(f){try{walk(f.contentDocument)}catch(e){}})}catch(e){}}
+function bindScaleTab(doc){
+  if(!doc||!doc.body||doc.documentElement.dataset.v13ScaleTabBound==='1')return;
+  var buttons=[...doc.querySelectorAll('.tabs button')];
+  if(!buttons.length)return;
+  var scaleBtn=buttons.find(function(b){return /^\s*SCALES\s*$/i.test(txt(b.textContent))});
+  if(!scaleBtn)return;
+  doc.documentElement.dataset.v13ScaleTabBound='1';
+  buttons.forEach(function(b){b.addEventListener('click',function(){
+    var isScale=b===scaleBtn;
+    buttons.forEach(function(x){if(x===scaleBtn){if(isScale)x.classList.add('active');else x.classList.remove('active')}});
+    setTimeout(function(){
+      if(isScale)scaleBtn.classList.add('active');
+      else scaleBtn.classList.remove('active');
+      var card=doc.getElementById('v13fixscale');
+      if(card)card.style.display=isScale?'':'none';
+    },0);
+  },true)});
+  var observer=new MutationObserver(function(){
+    var card=doc.getElementById('v13fixscale');
+    if(card&&!scaleBtn.classList.contains('active'))card.style.display='none';
+  });
+  observer.observe(scaleBtn,{attributes:true,attributeFilter:['class','aria-current','aria-selected','data-active']});
+}
+function walk(doc){try{inject(doc);bindScaleTab(doc);[...doc.querySelectorAll('iframe')].forEach(function(f){try{walk(f.contentDocument)}catch(e){}})}catch(e){}}
 function run(){try{walk(root&&root.contentDocument)}catch(e){}}
 if(root){root.addEventListener('load',function(){setTimeout(run,100);setTimeout(run,500);setTimeout(run,1200);setTimeout(run,2500)});setInterval(run,600);run()}
 })();
