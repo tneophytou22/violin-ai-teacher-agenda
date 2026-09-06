@@ -17,4 +17,5 @@ function inject(doc){
 function walk(doc){try{inject(doc);[...doc.querySelectorAll('iframe')].forEach(function(f){try{walk(f.contentDocument)}catch(e){}})}catch(e){}}
 function run(){try{walk(root&&root.contentDocument)}catch(e){}}
 if(root){root.addEventListener('load',function(){setTimeout(run,100);setTimeout(run,500);setTimeout(run,1200);setTimeout(run,2500)});setInterval(run,600);run()}
+(function loadScaleRequirements(){if(document.getElementById('v13-scale-requirements-loader'))return;var s=document.createElement('script');s.id='v13-scale-requirements-loader';s.src='./scale-requirements-fix.js?v=2';document.head.appendChild(s)})();
 })();
