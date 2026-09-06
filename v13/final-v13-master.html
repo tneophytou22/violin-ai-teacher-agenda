@@ -48,11 +48,11 @@
     return /active|selected|current/i.test(c);
   }
   function isStudentScales(doc){
-    var h=[].slice.call(doc.querySelectorAll('h1,h2')).find(function(x){return /^🎵?\s*SCALES\s*·/i.test(text(x.textContent))});
+    var h=[].slice.call(doc.querySelectorAll('h1,h2')).find(function(x){return /^🎵?\s*SCALES\s*[·—-]/i.test(text(x.textContent))});
     return !!h;
   }
   function isLesson(doc){
-    var h=[].slice.call(doc.querySelectorAll('h1,h2')).find(function(x){return /^🎓\s*Lesson\s*·/i.test(text(x.textContent))});
+    var h=[].slice.call(doc.querySelectorAll('h1,h2')).find(function(x){return /^🎓\s*Lesson\s*[·—-]/i.test(text(x.textContent))});
     return !!h;
   }
   function removeOld(doc){var x=doc.getElementById('v13fixscale');if(x)x.remove()}
