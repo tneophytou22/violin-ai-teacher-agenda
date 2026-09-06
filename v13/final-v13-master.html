@@ -7,12 +7,12 @@
 <style>html,body{margin:0;height:100%;background:#f5f7fb}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style>
 </head>
 <body>
-<iframe id="app" src="../index.html?v=v13-master-base-2"></iframe>
+<iframe id="app" src="../index.html?v=v13-master-base-3"></iframe>
 <script src="./v13/core/state.js?v=1"></script>
 <script src="./v13/core/navigation.js?v=1"></script>
 <script src="./v13/core/curriculum-contract.js?v=1"></script>
 <script src="./v13/curriculum/scales-data.js?v=1"></script>
-<script src="./v13/core/scales-adapter.js?v=2"></script>
+<script src="./v13/core/scales-adapter.js?v=3"></script>
 <script src="./v13/ui/scales-ui.js?v=3"></script>
 <script src="./v13-master-fixes.js?v=4"></script>
 <script src="./v13-curriculum-level-ui.js?v=1"></script>
@@ -28,7 +28,8 @@
   function studentFromDoc(doc){
     try{
       var a=JSON.parse(localStorage.getItem('VIOLIN_AI_AGENDA_V10')||'{}').students||[];
-      var body=text(doc.body&&doc.body.innerText), head=text(doc.querySelector('h1,h2')&&doc.querySelector('h1,h2').textContent);
+      var body=text(doc.body&&doc.body.innerText), heads=[].slice.call(doc.querySelectorAll('h1,h2'));
+      var head=heads.length?text(heads[0].textContent):'';
       for(var i=0;i<a.length;i++){
         var s=a[i],n=text(s.name||s.studentName);
         if(n&&(body.indexOf(n)>=0||head.indexOf(n)>=0))return s;
@@ -47,17 +48,19 @@
     return /active|selected|current/i.test(c);
   }
   function isStudentScales(doc){
-    var h=doc.querySelector('h1,h2');
-    return !!(h&&/^🎵?\s*SCALES\s*·/i.test(text(h.textContent)));
+    var h=[].slice.call(doc.querySelectorAll('h1,h2')).find(function(x){return /^🎵?\s*SCALES\s*·/i.test(text(x.textContent))});
+    return !!h;
   }
   function removeOld(doc){var x=doc.getElementById('v13fixscale');if(x)x.remove()}
   function render(doc,s,mode){
     var C=window.VIOLIN_AI_CURRICULUM;
     if(!C||!C.scales||!C.scalesUI)return;
-    var items=C.scales.list(level(s),term(s));
+    var lv=level(s),tm=term(s),key=mode+'|'+lv+'|'+tm+'|'+String(s.id||s.studentId||'');
+    var items=C.scales.list(lv,tm);
     if(!items.length)return;
     removeOld(doc);
     var host=doc.getElementById('v13scalesuimount');
+    if(host&&host.dataset.key===key)return;
     if(!host){
       host=doc.createElement('section');
       host.id='v13scalesuimount';
@@ -74,7 +77,8 @@
         }
       }
     }
-    C.scalesUI.render(host,items,{id:s.id||s.studentId,name:s.name||s.studentName,level:level(s),term:term(s)});
+    host.dataset.key=key;
+    C.scalesUI.render(host,items,{id:s.id||s.studentId,name:s.name||s.studentName,level:lv,term:tm});
   }
   function run(){
     try{
