@@ -1,14 +1,11 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VIOLIN AI — V13 MASTER</title><style>html,body{margin:0;height:100%;background:#f5f7fb}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style></head><body><iframe id="app" src="./final-fixed.html?v=master-11"></iframe><script>(function(){'use strict';var root=document.getElementById('app'),timer;
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VIOLIN AI — V13 MASTER</title><style>html,body{margin:0;height:100%;background:#f5f7fb}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style><script src="./scale-requirements-patch.js"></script></head><body><iframe id="app" src="./final-fixed.html?v=master-11"></iframe><script>(function(){'use strict';var root=document.getElementById('app'),timer;
 function txt(x){return ((x&&x.textContent)||'').replace(/\s+/g,' ').trim()}
 function loadTech(d){if(d.getElementById('v13techdata'))return;var s=d.createElement('script');s.id='v13techdata';s.src='./technical-skills-curriculum-data.js?v=master-11';d.head.appendChild(s)}
 function style(d){if(d.getElementById('v13mastercss'))return;var s=d.createElement('style');s.id='v13mastercss';s.textContent=`
-/* MASTER visual language */
 .v13master-tech{margin:14px 0!important;padding:14px!important;border:1px solid #dce5ef!important;border-radius:16px!important;background:#f8fbff!important}
 .v13master-tech h3{margin:0 0 3px!important;font-size:20px!important}.v13master-sub{font-size:12px!important;color:#687487!important;margin-bottom:10px!important}
 .v13master-term{border:1px solid #e3e7ee;border-radius:11px;background:#fff;margin:7px 0;overflow:hidden}.v13master-term button{width:100%;border:0;background:#fff;padding:9px 11px;text-align:left;font-weight:800;cursor:pointer;display:flex;justify-content:space-between}.v13master-term-body{display:none;padding:8px 10px 10px;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.v13master-term.open .v13master-term-body{display:grid}.v13master-skill{border:1px solid #edf0f4;border-radius:8px;padding:6px 8px;font-size:12px;background:#fff}.v13master-domain{font-size:10px;color:#687487;text-transform:uppercase;font-weight:800;letter-spacing:.04em;margin-bottom:2px}
-/* Timetable: clearly distinguish Music School and Private */
 .v13music-school{box-shadow:inset 4px 0 0 #7451d9!important;background:#f7f3ff!important}.v13private{box-shadow:inset 4px 0 0 #64a98f!important;background:#f2fbf7!important}.v13schedule-legend{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0;font-size:11px;font-weight:800}.v13schedule-legend span{padding:4px 8px;border-radius:99px}.v13legend-school{background:#f0e8ff}.v13legend-private{background:#e5f6ee}
-/* Keep curriculum data out of non-scale tabs if the injected scale card is present */
 @media(max-width:650px){.v13master-term-body{grid-template-columns:1fr!important}}
 ` ;d.head.appendChild(s)}
 function isTab(b,name){var t=txt(b).toUpperCase();return t===name||t.includes(name)&&!t.includes('CURRICULUM')}
