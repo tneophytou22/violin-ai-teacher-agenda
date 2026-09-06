@@ -1,29 +1,22 @@
 (function(){'use strict';
-/* V13: Technique Exercise card + stable Scales-tab visibility. */
+/* V13: stable Scales visibility + restore full curriculum requirement details in selection UI. */
 var root=document.getElementById('app');
 function txt(x){return String(x||'').replace(/\s+/g,' ').trim()}
 function isScaleButton(b){return /^.*\bSCALES\b\s*$/i.test(txt(b.textContent))}
 function isActive(b){return b.getAttribute('aria-selected')==='true'||b.getAttribute('aria-current')==='page'||b.getAttribute('data-active')==='true'||/(^|\s)(active|selected|current)(\s|$)/i.test(txt(b.className))}
-function setVisibility(doc,scaleBtn){var card=doc.getElementById('v13fixscale');if(card)card.style.display=isActive(scaleBtn)?'':'none'}
-function bindScaleTab(doc){
-  if(!doc||!doc.body||doc.documentElement.dataset.v13ScaleTabBound==='1')return;
-  var buttons=[...doc.querySelectorAll('.tabs button,[role="tab"]')];
-  var scaleBtn=buttons.find(isScaleButton);if(!scaleBtn)return;
-  doc.documentElement.dataset.v13ScaleTabBound='1';
-  buttons.forEach(function(b){b.addEventListener('click',function(){setTimeout(function(){setVisibility(doc,scaleBtn)},0)},true)});
-  setVisibility(doc,scaleBtn);
-}
-function inject(doc){
-  if(!doc||!doc.body)return;
-  if(!doc.getElementById('v13-tech-ex-css')){var s=doc.createElement('style');s.id='v13-tech-ex-css';s.textContent='.v13-tech-ex-card{background:#fff;border:1px solid #e6e9ef;border-radius:18px;padding:16px;box-shadow:0 7px 24px #14233d0d;min-height:120px}.v13-tech-ex-card h3{margin:0 0 10px;font-size:18px}.v13-tech-ex-card .v13-tech-ex-sub{font-size:12px;font-weight:700;color:#687487;line-height:1.45}.v13-tech-ex-card .v13-tech-ex-badge{display:inline-block;margin-top:12px;padding:5px 9px;border-radius:99px;background:#edf0f5;color:#526174;font-size:11px;font-weight:800}@media(max-width:700px){.v13-tech-ex-card{min-height:0}}';doc.head.appendChild(s)}
-  var levelHead=[...doc.querySelectorAll('h1,h2')].find(function(h){return /^Level\s+\d+$/i.test(txt(h.textContent))});
-  if(!levelHead)return;
-  var technique=[...doc.querySelectorAll('.card,.section')].find(function(x){var h=x.querySelector('h3,h2');return h&&/^🎻?\s*Techniques?$/i.test(txt(h.textContent))});
-  if(!technique)return;
-  var parent=technique.parentElement;if(!parent||parent.querySelector('#v13-tech-ex-card'))return;
-  var card=doc.createElement('div');card.id='v13-tech-ex-card';card.className='v13-tech-ex-card';card.innerHTML='<h3>🎯 Technique Exercises</h3><div class="v13-tech-ex-sub">Exercises for focused technical development, organised separately from the Technical Curriculum.</div><span class="v13-tech-ex-badge">Exercise Library</span>';parent.appendChild(card);
-}
-function walk(doc){try{inject(doc);bindScaleTab(doc);[...doc.querySelectorAll('iframe')].forEach(function(f){try{walk(f.contentDocument)}catch(e){}})}catch(e){}}
+function getScaleData(doc){try{var w=doc&&doc.defaultView&&doc.defaultView.VIOLIN_SCALE_CURRICULUM_V1;if(w)return w}catch(e){}return null}
+function getStudentLevelTerm(doc){var body=txt(doc&&doc.body&&doc.body.innerText),m=body.match(/Level\s+(\d+)/i),t=body.match(/Term\s+(\d+)/i);return {level:m?+m[1]:1,term:t?+t[1]:1}}
+function getTermData(doc){var d=getScaleData(doc),lt=getStudentLevelTerm(doc);if(!d)return null;try{return typeof d.getTerm==='function'?d.getTerm(lt.level,lt.term):(d[lt.level]&&d[lt.level][lt.term])||null}catch(e){return null}}
+function norm(x){return String(x==null?'':x).trim().toLowerCase()}
+function findRequirement(termData,title,cat){if(!termData)return null;var map=[['major','Major Scales'],['minor','Minor Scales'],['arpeggios','Tonic Arpeggios'],['dominant7','Dominant 7th'],['diminished7','Diminished 7th'],['chromatic','Chromatic Scales'],['doubleStops','Double Stops'],['oneString','One-String Scales']];for(var i=0;i<map.length;i++){if(map[i][1]!==cat)continue;var v=termData[map[i][0]];var arr=Array.isArray(v)?v:[v];for(var j=0;j<arr.length;j++){var item=arr[j];if(item&&norm(typeof item==='string'?item:item.name||item.title||item.scale)===norm(title))return item;if(item&&typeof item==='object'&&norm(item.displayName)===norm(title))return item}}return null}
+function val(x){if(x===undefined||x===null||x==='')return 'Not specified in curriculum';if(Array.isArray(x))return x.join(' · ');if(typeof x==='object')return x.value||x.name||x.label||JSON.stringify(x);return String(x)}
+function enrich(doc){var card=doc.getElementById('v13fixscale');if(!card)return;var termData=getTermData(findOuterFixed(doc));var picks=[...card.querySelectorAll('.v13fixpick')];picks.forEach(function(p){if(p.querySelector('.v13fixdetails'))return;var b=p.querySelector('b'),small=p.querySelector('small');if(!b||!small)return;var req=findRequirement(termData,txt(b.textContent),txt(small.textContent));if(!req||typeof req!=='object')return;var d=doc.createElement('div');d.className='v13fixdetails';var fields=[['Octaves',req.octaves??req.octave??req.octaveCount],['Tempo',req.tempo],['1. Bowing',req.bowing],['2. Articulation',req.articulation],['3. Rhythmic groups',req.rhythmicGroups??req.rhythmic_groups??req.rhythm],['4. Accents',req.accents],['5. Dynamics',req.dynamics],['6. Positions',req.positions],['7. Objective',req.objective],['8. Mastery',req.mastery]];d.innerHTML=fields.map(function(f){return '<div><strong>'+f[0]+':</strong> '+escapeHtml(val(f[1]))+'</div>'}).join('');p.appendChild(d)})}
+function escapeHtml(x){return String(x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function findOuterFixed(doc){try{var w=doc.defaultView;while(w&&w.parent&&w!==w.parent){var p=w.parent;if(p.VIOLIN_SCALE_CURRICULUM_V1)return p.document;w=p}return doc}catch(e){return doc}}
+function style(doc){if(doc.getElementById('v13-scale-details-style'))return;var s=doc.createElement('style');s.id='v13-scale-details-style';s.textContent='.v13fixdetails{margin-top:9px;padding:9px 10px;border-top:1px solid #e7e2f4;font-size:12px;line-height:1.55;color:#526174}.v13fixdetails strong{color:#24344c}';doc.head.appendChild(s)}
+function setVisibility(doc){var card=doc.getElementById('v13fixscale');if(!card)return;var buttons=[...doc.querySelectorAll('.tabs button,[role="tab"]')];var scaleBtn=buttons.find(isScaleButton);card.style.display=scaleBtn&&isActive(scaleBtn)?'':'none'}
+function bind(doc){if(!doc||!doc.body)return;style(doc);setVisibility(doc);enrich(doc);var tabs=doc.querySelector('.tabs');if(tabs&&!tabs.dataset.v13ScaleVisibilityBound){tabs.dataset.v13ScaleVisibilityBound='1';tabs.addEventListener('click',function(){setTimeout(function(){setVisibility(doc);enrich(doc)},0)},true)}var card=doc.getElementById('v13fixscale');if(card&&!card.dataset.v13EnrichWatch){card.dataset.v13EnrichWatch='1';new MutationObserver(function(){setVisibility(doc);enrich(doc)}).observe(card,{childList:true,subtree:true})}}
+function walk(doc){try{if(!doc||!doc.body)return;bind(doc);[...doc.querySelectorAll('iframe')].forEach(function(f){try{walk(f.contentDocument)}catch(e){}})}catch(e){}}
 function run(){try{walk(root&&root.contentDocument)}catch(e){}}
 if(root){root.addEventListener('load',function(){setTimeout(run,100);setTimeout(run,500);setTimeout(run,1200);setTimeout(run,2500)});run()}
 })();
