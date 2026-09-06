@@ -1,0 +1,10 @@
+(function(){'use strict';
+var root=document.getElementById('app');
+function norm(x){return String(x||'').replace(/\s+/g,' ').trim().toLowerCase()}
+function findStudent(doc,target){if(!target)return null;var els=[...doc.querySelectorAll('button,.card,.student,.level,[data-student-id]')];var exact=els.find(function(x){return norm(x.textContent)===target});if(exact)return exact;return els.find(function(x){return norm(x.textContent).indexOf(target)>=0})||null}
+function clickStudents(doc,target){var nav=[...doc.querySelectorAll('.nav button,button')].find(function(x){return norm(x.textContent)==='students'||norm(x.textContent).indexOf('students')>=0});if(nav){try{nav.click()}catch(e){}}var tries=0;var timer=setInterval(function(){tries++;var el=findStudent(doc,target);if(el){try{el.click()}catch(e){}clearInterval(timer)}if(tries>20)clearInterval(timer)},150)}
+function handle(name){var fd=root&&root.contentDocument;if(!fd)return;var frame=fd.getElementById('app');if(!frame)return;frame.src='../index.html?v=v13-student-back';frame.addEventListener('load',function(){var doc=frame.contentDocument;if(!doc)return;var target=norm(name);var direct=findStudent(doc,target);if(direct){try{direct.click();return}catch(e){}}clickStudents(doc,target)}, {once:true})}
+/* Capture the old master's message listener before it is registered, so Back never falls through to the old Home navigation. */
+var originalAdd=window.addEventListener.bind(window);window.addEventListener=function(type,listener,options){if(type==='message'&&typeof listener==='function'){var wrapped=function(e){if(e&&e.data&&e.data.type==='V13_LESSON_BACK')return listener.__v13Skipped=true;return listener(e)};return originalAdd(type,wrapped,options)}return originalAdd(type,listener,options)};
+originalAdd('message',function(e){if(e.data&&e.data.type==='V13_LESSON_BACK')handle(e.data.studentName||'')});
+})();
