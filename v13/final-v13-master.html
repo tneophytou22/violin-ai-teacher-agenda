@@ -1,1 +1,95 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VIOLIN AI — V13 MASTER</title><style>html,body{margin:0;height:100%;background:#f5f7fb}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style></head><body><iframe id="app" src="../index.html?v=v13-master-base-1"></iframe><script src="./v13/core/state.js?v=1"></script><script src="./v13/core/navigation.js?v=1"></script><script src="./v13/core/curriculum-contract.js?v=1"></script><script src="./v13/curriculum/scales-data.js?v=1"></script><script src="./v13/core/scales-adapter.js?v=1"></script><script src="./v13/ui/scales-ui.js?v=2"></script><script src="./v13-master-fixes.js?v=4"></script><script src="./v13-curriculum-level-ui.js?v=1"></script><script src="./v13-student-scale-isolation.js?v=2"></script><script src="./v13-scale-selection-fix.js?v=3"></script><script src="./v13-lesson-scale-requirements.js?v=1"></script><script src="./v13-scale-detail-display.js?v=2"></script><script>(function(){'use strict';var frame=document.getElementById('app');function getStudent(doc){try{var a=JSON.parse(localStorage.getItem('VIOLIN_AI_AGENDA_V10')||'{}').students||[];var body=doc.body.innerText||'';for(var i=0;i<a.length;i++){var n=String(a[i].name||a[i].studentName||'').trim();if(n&&body.indexOf(n)>=0)return a[i]}}catch(e){}return null}function active(doc){var b=[].slice.call(doc.querySelectorAll('.tabs button')).find(function(x){return /SCALES\s*$/i.test((x.textContent||'').trim())});return b&&/active|selected|current/i.test((b.className||'')+' '+(b.getAttribute('aria-current')||'')+' '+(b.getAttribute('aria-selected')||'')+' '+(b.getAttribute('data-active')||''))}function run(){try{var doc=frame.contentDocument;if(!doc||!doc.body||!window.VIOLIN_AI_CURRICULUM||!window.VIOLIN_AI_CURRICULUM.scales||!window.VIOLIN_AI_CURRICULUM.scalesUI)return;if(!active(doc))return;var s=getStudent(doc);if(!s)return;var level=+(s.level||s.Level||s.currentLevel||s.grade||1),term=+(s.term||s.Term||s.currentTerm||1);var items=window.VIOLIN_AI_CURRICULUM.scales.list(level,term);var legacy=doc.getElementById('v13fixscale');if(legacy)legacy.remove();var anchor=doc.querySelector('.tabs');if(!anchor)return;var host=doc.getElementById('v13scalesuimount');if(!host){host=doc.createElement('section');host.id='v13scalesuimount';anchor.parentElement.insertBefore(host,anchor.nextSibling)}window.VIOLIN_AI_CURRICULUM.scalesUI.render(host,items,{id:s.id||s.studentId,name:s.name||s.studentName,level:level,term:term})}catch(e){console.log('V13 SCALES UI',e)}}frame.addEventListener('load',function(){setTimeout(run,150);setTimeout(run,700);setTimeout(run,1500);setTimeout(run,3000)});setInterval(run,700)})();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VIOLIN AI — V13 MASTER</title>
+<style>html,body{margin:0;height:100%;background:#f5f7fb}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style>
+</head>
+<body>
+<iframe id="app" src="../index.html?v=v13-master-base-2"></iframe>
+<script src="./v13/core/state.js?v=1"></script>
+<script src="./v13/core/navigation.js?v=1"></script>
+<script src="./v13/core/curriculum-contract.js?v=1"></script>
+<script src="./v13/curriculum/scales-data.js?v=1"></script>
+<script src="./v13/core/scales-adapter.js?v=2"></script>
+<script src="./v13/ui/scales-ui.js?v=3"></script>
+<script src="./v13-master-fixes.js?v=4"></script>
+<script src="./v13-curriculum-level-ui.js?v=1"></script>
+<script src="./v13-student-scale-isolation.js?v=2"></script>
+<script src="./v13-scale-selection-fix.js?v=3"></script>
+<script src="./v13-lesson-scale-requirements.js?v=1"></script>
+<script src="./v13-scale-detail-display.js?v=2"></script>
+<script>
+(function(){
+  'use strict';
+  var frame=document.getElementById('app');
+  function text(x){return String(x==null?'':x).replace(/\s+/g,' ').trim()}
+  function studentFromDoc(doc){
+    try{
+      var a=JSON.parse(localStorage.getItem('VIOLIN_AI_AGENDA_V10')||'{}').students||[];
+      var body=text(doc.body&&doc.body.innerText), head=text(doc.querySelector('h1,h2')&&doc.querySelector('h1,h2').textContent);
+      for(var i=0;i<a.length;i++){
+        var s=a[i],n=text(s.name||s.studentName);
+        if(n&&(body.indexOf(n)>=0||head.indexOf(n)>=0))return s;
+      }
+      var lm=body.match(/Level\s+(\d+)/i),tm=body.match(/Term\s+(\d+)/i);
+      if(lm)return {name:(head.split('·')[1]||'Student').trim(),level:+lm[1],term:tm?+tm[1]:1};
+    }catch(e){}
+    return null;
+  }
+  function level(s){return +(s&&(s.level||s.Level||s.currentLevel||s.grade)||1)}
+  function term(s){return +(s&&(s.term||s.Term||s.currentTerm)||1)}
+  function isPlannerScales(doc){
+    var b=[].slice.call(doc.querySelectorAll('.tabs button')).find(function(x){return /SCALES\s*$/i.test(text(x.textContent))});
+    if(!b)return false;
+    var c=(b.className||'')+' '+(b.getAttribute('aria-current')||'')+' '+(b.getAttribute('aria-selected')||'')+' '+(b.getAttribute('data-active')||'');
+    return /active|selected|current/i.test(c);
+  }
+  function isStudentScales(doc){
+    var h=doc.querySelector('h1,h2');
+    return !!(h&&/^🎵?\s*SCALES\s*·/i.test(text(h.textContent)));
+  }
+  function removeOld(doc){var x=doc.getElementById('v13fixscale');if(x)x.remove()}
+  function render(doc,s,mode){
+    var C=window.VIOLIN_AI_CURRICULUM;
+    if(!C||!C.scales||!C.scalesUI)return;
+    var items=C.scales.list(level(s),term(s));
+    if(!items.length)return;
+    removeOld(doc);
+    var host=doc.getElementById('v13scalesuimount');
+    if(!host){
+      host=doc.createElement('section');
+      host.id='v13scalesuimount';
+      if(mode==='planner'){
+        var tabs=doc.querySelector('.tabs');
+        if(!tabs)return;
+        tabs.parentElement.insertBefore(host,tabs.nextSibling);
+      }else{
+        var add=[].slice.call(doc.querySelectorAll('button')).find(function(b){return /add\s+scales/i.test(text(b.textContent))});
+        if(add&&add.parentElement) add.parentElement.parentElement.insertBefore(host,add.parentElement.nextSibling);
+        else{
+          var main=doc.querySelector('.wrap')||doc.body;
+          main.insertBefore(host,main.firstChild);
+        }
+      }
+    }
+    C.scalesUI.render(host,items,{id:s.id||s.studentId,name:s.name||s.studentName,level:level(s),term:term(s)});
+  }
+  function run(){
+    try{
+      var doc=frame.contentDocument;
+      if(!doc||!doc.body)return;
+      var s=studentFromDoc(doc);
+      if(!s)return;
+      if(isPlannerScales(doc))render(doc,s,'planner');
+      else if(isStudentScales(doc))render(doc,s,'student');
+      else{var old=doc.getElementById('v13scalesuimount');if(old)old.remove()}
+    }catch(e){console.log('V13 CURRICULUM',e)}
+  }
+  frame.addEventListener('load',function(){setTimeout(run,150);setTimeout(run,700);setTimeout(run,1500);setTimeout(run,3000)});
+  setInterval(run,700);
+})();
+</script>
+</body>
+</html>
