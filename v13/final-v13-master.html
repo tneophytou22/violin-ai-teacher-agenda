@@ -51,6 +51,10 @@
     var h=[].slice.call(doc.querySelectorAll('h1,h2')).find(function(x){return /^🎵?\s*SCALES\s*·/i.test(text(x.textContent))});
     return !!h;
   }
+  function isLesson(doc){
+    var h=[].slice.call(doc.querySelectorAll('h1,h2')).find(function(x){return /^🎓\s*Lesson\s*·/i.test(text(x.textContent))});
+    return !!h;
+  }
   function removeOld(doc){var x=doc.getElementById('v13fixscale');if(x)x.remove()}
   function render(doc,s,mode){
     var C=window.VIOLIN_AI_CURRICULUM;
@@ -68,13 +72,17 @@
         var tabs=doc.querySelector('.tabs');
         if(!tabs)return;
         tabs.parentElement.insertBefore(host,tabs.nextSibling);
-      }else{
+      }else if(mode==='student'){
         var add=[].slice.call(doc.querySelectorAll('button')).find(function(b){return /add\s+scales/i.test(text(b.textContent))});
         if(add&&add.parentElement) add.parentElement.parentElement.insertBefore(host,add.parentElement.nextSibling);
         else{
           var main=doc.querySelector('.wrap')||doc.body;
           main.insertBefore(host,main.firstChild);
         }
+      }else if(mode==='lesson'){
+        var anchor=doc.getElementById('plan')||doc.querySelector('.plan-card')||doc.querySelector('.card');
+        if(anchor&&anchor.parentElement) anchor.parentElement.insertBefore(host,anchor.nextSibling);
+        else (doc.querySelector('.wrap')||doc.body).appendChild(host);
       }
     }
     host.dataset.key=key;
@@ -88,6 +96,7 @@
       if(!s)return;
       if(isPlannerScales(doc))render(doc,s,'planner');
       else if(isStudentScales(doc))render(doc,s,'student');
+      else if(isLesson(doc))render(doc,s,'lesson');
       else{var old=doc.getElementById('v13scalesuimount');if(old)old.remove()}
     }catch(e){console.log('V13 CURRICULUM',e)}
   }
