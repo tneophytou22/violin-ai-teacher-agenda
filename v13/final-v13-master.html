@@ -1,1 +1,33 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><title>VIOLIN AI — V13 MASTER</title><style>html,body{margin:0;height:100%;background:#f5f7fb}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style></head><body><iframe id="app" src="../index.html?v=v13-master-single-owner-26"></iframe><script src="./core/state.js?v=5"></script><script src="./core/navigation.js?v=4"></script><script src="./core/curriculum-contract.js?v=10"></script><script src="./core/curriculum-controller.js?v=12"></script><script src="./curriculum/scales-data.js?v=11"></script><script src="./scale-curriculum-data.js?v=13"></script><script src="./core/scales-adapter.js?v=15"></script><script src="./scales-single-owner-v24.js?v=27.0"></script></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><title>VIOLIN AI — V13 MASTER</title><style>html,body{margin:0;height:100%;background:#f5f7fb}iframe{position:fixed;inset:0;width:100%;height:100%;border:0}</style></head><body><iframe id="app" src="../index.html?v=v13-master-single-owner-26"></iframe><script src="./core/state.js?v=5"></script><script src="./core/navigation.js?v=4"></script><script src="./core/curriculum-contract.js?v=10"></script><script src="./core/curriculum-controller.js?v=12"></script><script src="./curriculum/scales-data.js?v=11"></script><script src="./scale-curriculum-data.js?v=13"></script><script src="./core/scales-adapter.js?v=15"></script><script src="./scales-single-owner-v24.js?v=27.0"></script><script>
+(function(){
+'use strict';
+/* V13 CENTRAL HOMEWORK ROUTER
+   The existing app remains the single owner of student/curriculum state.
+   This layer only changes where the HOMEWORK navigation button goes.
+   It deliberately does NOT touch lesson, scale or homework data.
+*/
+var frame=document.getElementById('app');
+var CENTER='./homework-center-v13.html?v=central-1';
+function isHomeworkNav(el){
+  if(!el)return false;
+  var nav=el.closest&&el.closest('.nav');
+  if(!nav)return false;
+  var t=String(el.textContent||'').replace(/\s+/g,' ').trim();
+  return /^🏠?\s*HOMEWORK$/i.test(t)||/^HOMEWORK$/i.test(t)||/\bHOMEWORK\b/i.test(t);
+}
+function install(){
+  try{
+    var doc=frame.contentDocument;if(!doc||doc.__v13HomeworkRouter)return;
+    doc.__v13HomeworkRouter=true;
+    doc.addEventListener('click',function(e){
+      var el=e.target&&e.target.closest?e.target.closest('button,a,[role="button"]'):null;
+      if(!isHomeworkNav(el))return;
+      e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+      frame.src=CENTER;
+    },true);
+  }catch(e){}
+}
+frame.addEventListener('load',function(){setTimeout(install,50);setTimeout(install,300);setTimeout(install,900)});
+setInterval(install,1000);
+})();
+</script></body></html>
