@@ -1,8 +1,9 @@
 (function(){'use strict';
-/* V13 CURRICULUM BRIDGE — transport only. The selected curriculum payload is written
-   directly to the canonical V2 store before navigation. This removes iframe/controller
-   timing as a dependency for Scales -> Lesson. */
+/* V13 CURRICULUM BRIDGE — canonical transport layer.
+   Scales selection is committed to the V2 store BEFORE navigation.
+   Navigation is explicit to lesson-v13.html so no legacy wrapper can interfere. */
 const frame=document.getElementById('app');let bound=null,observer=null,lastKey='';
+const STORE='VIOLIN_AI_CURRICULUM_SELECTION_V2';
 function students(){try{const x=JSON.parse(localStorage.getItem('VIOLIN_AI_AGENDA_V10')||'{}');return Array.isArray(x.students)?x.students:[]}catch(e){return[]}}
 function currentStudent(doc){const h=doc.querySelector('.title h2');if(!h)return null;const m=(h.textContent||'').match(/^\s*🎵\s*SCALES\s*·\s*(.+?)\s*$/i);if(!m)return null;const n=m[1].trim();return students().find(s=>String(s.name||s.studentName||'').trim()===n)||null}
 function curriculumItems(s){
@@ -15,18 +16,34 @@ function curriculumItems(s){
 }
 function remove(d){d.getElementById('v13-curriculum-scales')?.remove();lastKey=''}
 function saveCanonical(p){
- const key='VIOLIN_AI_CURRICULUM_SELECTION_V2';let db={};try{db=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){db={}}
+ let db={};try{db=JSON.parse(localStorage.getItem(STORE)||'{}')||{}}catch(e){db={}}
  const id=String(p.studentId),old=db[id]&&typeof db[id]==='object'?db[id]:{};
  old.lesson=old.lesson&&typeof old.lesson==='object'?old.lesson:{};old.homework=old.homework&&typeof old.homework==='object'?old.homework:{};
- if(p.kind==='lesson')old.lesson[p.curriculum]={studentId:id,studentName:p.studentName,level:p.level,term:p.term,kind:'lesson',curriculum:p.curriculum,items:p.items,updatedAt:new Date().toISOString()};
- else old.homework[p.curriculum]={studentId:id,studentName:p.studentName,level:p.level,term:p.term,kind:'homework',curriculum:p.curriculum,items:p.items,updatedAt:new Date().toISOString()};
- db[id]=old;localStorage.setItem(key,JSON.stringify(db));
+ if(p.kind==='lesson')old.lesson.scales={studentId:id,studentName:p.studentName,level:p.level,term:p.term,kind:'lesson',curriculum:'scales',items:Array.isArray(p.items)?p.items:[],updatedAt:new Date().toISOString()};
+ else old.homework.scales={studentId:id,studentName:p.studentName,level:p.level,term:p.term,kind:'homework',curriculum:'scales',items:Array.isArray(p.items)?p.items:[],updatedAt:new Date().toISOString()};
+ db[id]=old;localStorage.setItem(STORE,JSON.stringify(db));
+ return db[id];
+}
+function navigateToLesson(s){
+ const url=new URL('./lesson-v13.html',window.location.href);
+ url.searchParams.set('studentId',String(s.id));
+ url.searchParams.set('v','curriculum-v13-'+Date.now());
+ window.location.assign(url.href);
 }
 function save(kind,s,it,host){
  const chosen=it.filter((x,i)=>host.querySelector('[data-i="'+i+'"]')?.checked);if(!chosen.length)return alert('Select at least one scale.');
- const p={studentId:String(s.id),studentName:s.name,level:Number(s.level)||1,term:Number(s.term)||1,kind,curriculum:'scales',items:chosen,createdAt:new Date().toISOString()};
- try{saveCanonical(p);const C=window.parent.VIOLIN_AI_CURRICULUM?.controller;if(C&&typeof C.select==='function')C.select(p);localStorage.setItem('VIOLIN_AI_CURRENT_SELECTION_V1',JSON.stringify(p));localStorage.setItem(kind==='lesson'?'VIOLIN_AI_LESSON_SELECTION_V1':'VIOLIN_AI_HOMEWORK_SELECTION_V1',JSON.stringify(p));}catch(e){console.error('[V13 Scales] selection save failed',e);return alert('Could not save the scale selection. Please refresh and try again.');}
- if(kind==='lesson')window.location.href=new URL('./lesson.html?studentId='+encodeURIComponent(String(s.id))+'&v=curriculum-v11',window.location.href).href;else alert('Selected scales added to Homework.');
+ const p={studentId:String(s.id),studentName:String(s.name||s.studentName||'Student'),level:Number(s.level)||1,term:Number(s.term)||1,kind,curriculum:'scales',items:chosen,createdAt:new Date().toISOString()};
+ try{
+   saveCanonical(p);
+   const C=window.parent.VIOLIN_AI_CURRICULUM?.controller;if(C&&typeof C.select==='function')C.select(p);
+   localStorage.setItem('VIOLIN_AI_CURRENT_SELECTION_V1',JSON.stringify(p));
+   localStorage.setItem('VIOLIN_AI_LESSON_SELECTION_V1',JSON.stringify(p));
+   /* Last-write verification: if this fails, do NOT navigate to an empty Lesson. */
+   const db=JSON.parse(localStorage.getItem(STORE)||'{}');
+   const saved=db[String(s.id)]?.lesson?.scales;
+   if(!saved||!Array.isArray(saved.items)||saved.items.length!==chosen.length)throw new Error('Canonical selection verification failed');
+   if(kind==='lesson')navigateToLesson(s);else alert('Selected scales added to Homework.');
+ }catch(e){console.error('[V13 Scales] selection save failed',e);alert('Could not save the scale selection. Please refresh and try again.');}
 }
 function render(d){const s=currentStudent(d);if(!s){remove(d);return}const it=curriculumItems(s);if(!it.length){remove(d);return}const key=String(s.id||s.name)+'|'+String(s.level)+'|'+String(Number(s.term)||1);let host=d.getElementById('v13-curriculum-scales');if(host&&lastKey===key)return;if(!host){const tabs=d.querySelector('.tabs');if(!tabs)return;host=d.createElement('section');host.id='v13-curriculum-scales';tabs.insertAdjacentElement('afterend',host)}lastKey=key;
  let h='<div class="v13-scale-box"><h3>🎼 Curriculum Scales</h3><div class="v13-scale-sub">Level '+String(s.level)+' · Term '+String(Number(s.term)||1)+'</div><div class="v13-scale-grid">';const groups={};it.forEach((x,i)=>(groups[x.category]??=[]).push([x,i]));Object.entries(groups).forEach(([cat,a])=>{h+='<div class="v13-scale-cat"><b>'+cat+'</b>';a.forEach(([x,i])=>h+='<label><input type="checkbox" data-i="'+i+'"><span>'+String(x.title||x.name||x)+'</span></label>');h+='</div>'});h+='</div><div class="v13-scale-actions"><button type="button" data-a="lesson">🎓 Add selected to Lesson</button><button type="button" data-a="homework">🏠 Add selected to Homework</button></div></div>';host.innerHTML=h;
@@ -34,5 +51,5 @@ function render(d){const s=currentStudent(d);if(!s){remove(d);return}const it=cu
  host.querySelector('[data-a="lesson"]').onclick=()=>save('lesson',s,it,host);host.querySelector('[data-a="homework"]').onclick=()=>save('homework',s,it,host);
 }
 function bind(){const d=frame?.contentDocument;if(!d?.body||bound===d)return;bound=d;if(observer)observer.disconnect();observer=new MutationObserver(()=>{const s=currentStudent(d);if(s)render(d);else remove(d)});observer.observe(d.body,{childList:true,subtree:true});render(d)}
-frame?.addEventListener('load',()=>{bound=null;lastKey='';bind()});if(frame?.contentDocument)bind();window.VIOLIN_AI_CURRICULUM_BRIDGE={version:'11.0',sync:bind};
+frame?.addEventListener('load',()=>{bound=null;lastKey='';bind()});if(frame?.contentDocument)bind();window.VIOLIN_AI_CURRICULUM_BRIDGE={version:'12.0',sync:bind};
 })();
