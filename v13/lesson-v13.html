@@ -13,7 +13,28 @@ const q=new URLSearchParams(location.search),studentId=String(q.get('studentId')
 function read(k,f){try{const x=JSON.parse(localStorage.getItem(k)||'null');return x==null?f:x}catch(e){return f}}
 function agenda(){const x=read('VIOLIN_AI_AGENDA_V10',{});return Array.isArray(x.students)?x.students:Array.isArray(x)?x:[]}
 function sid(s){return String(s&&(s.id??s.studentId??s.uid)??'')}
-const students=agenda(),student=students.find(x=>sid(x)===studentId);
+const students=agenda();
+/* STUDENT RESOLUTION CONTRACT
+   The Lesson must not depend exclusively on the legacy agenda array. A valid
+   lesson handoff/canonical selection is itself authoritative enough to carry
+   the student context. This prevents a valid selection from rendering as a
+   blank Lesson merely because the legacy agenda store has a different shape.
+*/
+function resolveStudent(){
+  let s=students.find(x=>sid(x)===studentId); if(s)return s;
+  const hdb=read('VIOLIN_AI_LESSON_HANDOFF_V1',{}),h=handoffToken&&hdb&&hdb[handoffToken];
+  if(h&&String(h.studentId)===studentId)return{id:studentId,studentId,name:h.studentName||'Student',studentName:h.studentName||'Student',level:h.level,term:h.term};
+  const db=read('VIOLIN_AI_CURRICULUM_SELECTION_V2',{}),v=db&&db[studentId];
+  const candidates=[];
+  if(v&&v.lesson&&v.lesson.scales)candidates.push(v.lesson.scales);
+  if(v&&v.lesson&&typeof v.lesson==='object')Object.keys(v.lesson).forEach(k=>candidates.push(v.lesson[k]));
+  const cur=read('VIOLIN_AI_CURRENT_SELECTION_V1',null),leg=read('VIOLIN_AI_LESSON_SELECTION_V1',null);
+  candidates.push(cur,leg);
+  const p=candidates.find(x=>x&&String(x.studentId||'')===studentId&&(x.studentName||x.name||x.level||Array.isArray(x.items)));
+  if(p)return{id:studentId,studentId,name:p.studentName||p.name||'Student',studentName:p.studentName||p.name||'Student',level:p.level||1,term:p.term||1};
+  return null;
+}
+const student=resolveStudent();
 if(!student){document.body.innerHTML='<div class="wrap"><div class="card empty">Student not found. Open the Lesson from the student profile.</div></div>';return}
 const level=Number(String(student.level??student.Level??student.currentLevel??1).match(/\d+/)?.[0]||1),term=Number(String(student.term??student.Term??student.currentTerm??1).match(/\d+/)?.[0]||1),name=student.name||student.studentName||'Student';
 document.getElementById('title').textContent='🎓 Lesson — '+name;document.getElementById('meta').textContent='Level '+level+' · Term '+term;
