@@ -62,7 +62,7 @@ A selected Scale item in Lesson must retain and display the technical informatio
 
 It also displays the curriculum `Objective` and `Mastery` statements when present. Empty/unavailable fields are omitted rather than fabricated.
 
-The source curriculum data currently defines these fields in `v13/curriculum/scales-data.js`, including bowing, articulation, rhythm, accents, dynamics, tempo, positions, objective and mastery. fileciteturn1110file0L2-L5
+The source curriculum data defines these fields in `v13/curriculum/scales-data.js`, including bowing, articulation, rhythm, accents, dynamics, tempo, positions, objective and mastery.
 
 ### Future curricula
 
