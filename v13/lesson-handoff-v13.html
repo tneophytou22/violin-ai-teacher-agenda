@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VIOLIN AI — Lesson V13</title><style>html,body,iframe{margin:0;width:100%;height:100%;border:0}body{overflow:hidden}</style></head><body><iframe id="lesson" title="VIOLIN AI Lesson V13"></iframe><script>
+(function(){'use strict';
+const q=new URLSearchParams(location.search),studentId=String(q.get('studentId')||''),raw=String(q.get('selection')||'');
+function decode(s){try{let x=s.replace(/-/g,'+').replace(/_/g,'/');while(x.length%4)x+='=';return JSON.parse(decodeURIComponent(escape(atob(x))))}catch(e){return null}}
+function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){console.error('[V13 Handoff]',e);return false}}
+const p=decode(raw);
+if(!p||String(p.studentId)!==studentId||p.kind!=='lesson'||!Array.isArray(p.items)||!p.items.length){document.body.innerHTML='<div style="font-family:Arial;padding:40px">Invalid Lesson handoff. Please return to Scales and select the scale again.</div>';return}
+/* Write every canonical/compatibility location before the real Lesson loads. */
+const db=(()=>{try{return JSON.parse(localStorage.getItem('VIOLIN_AI_CURRICULUM_SELECTION_V2')||'{}')}catch(e){return{}}})();
+db[studentId]=db[studentId]&&typeof db[studentId]==='object'?db[studentId]:{lesson:{},homework:{}};
+db[studentId].lesson=db[studentId].lesson&&typeof db[studentId].lesson==='object'?db[studentId].lesson:{};
+db[studentId].homework=db[studentId].homework&&typeof db[studentId].homework==='object'?db[studentId].homework:{};
+db[studentId].lesson.scales=p;write('VIOLIN_AI_CURRICULUM_SELECTION_V2',db);
+write('VIOLIN_AI_LESSON_SELECTION_V1',p);write('VIOLIN_AI_CURRENT_SELECTION_V1',p);write('VIOLIN_AI_LESSON_ACTIVE_V13',p);
+const token='v21-'+studentId+'-'+Date.now();const hdb=(()=>{try{return JSON.parse(localStorage.getItem('VIOLIN_AI_LESSON_HANDOFF_V1')||'{}')}catch(e){return{}}})();hdb[token]=p;write('VIOLIN_AI_LESSON_HANDOFF_V1',hdb);
+const u=new URL('./lesson-v13.html',location.href);u.searchParams.set('studentId',studentId);u.searchParams.set('handoff',token);u.searchParams.set('v','21-'+Date.now());document.getElementById('lesson').src=u.href;
+})();</script></body></html>
