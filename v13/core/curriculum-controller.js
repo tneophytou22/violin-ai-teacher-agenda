@@ -1,18 +1,21 @@
 (function(w){'use strict';
+/* V13 Curriculum Controller — one selection store for all curricula.
+   { studentId: { lesson: {scales: payload,...}, homework: {scales: payload,...} } }
+   Legacy single-record V2 entries remain readable. */
 var C=w.VIOLIN_AI_CURRICULUM=w.VIOLIN_AI_CURRICULUM||{};
-C.VERSION=C.VERSION||'1.0';
-C.registry=C.registry||{};
-C.register=C.register||function(name,adapter){if(name&&adapter)C.registry[name]=adapter};
-C.get=C.get||function(name){return C.registry[name]||null};
+C.VERSION='1.1'; C.registry=C.registry||{};
+C.register=function(name,adapter){if(name&&adapter)C.registry[name]=adapter};
+C.get=function(name){return C.registry[name]||null};
 var KEY='VIOLIN_AI_CURRICULUM_SELECTION_V2';
 function read(){try{var x=JSON.parse(w.localStorage.getItem(KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return{}}}
 function write(x){w.localStorage.setItem(KEY,JSON.stringify(x));return x}
-function studentKey(studentId){return String(studentId==null?'':studentId)}
-function select(payload){payload=payload||{};var x=read(),sid=studentKey(payload.studentId);if(!sid)return null;x[sid]=Object.assign({},payload,{studentId:sid,items:Array.isArray(payload.items)?payload.items:[],updatedAt:new Date().toISOString()});write(x);return x[sid]}
-function getSelection(studentId,kind,curriculum){var x=read()[studentKey(studentId)];if(!x)return null;if(kind&&x.kind!==kind)return null;if(curriculum&&x.curriculum!==curriculum)return null;return x}
-function clear(studentId,kind){var x=read(),sid=studentKey(studentId);if(x[sid]&&(!kind||x[sid].kind===kind)){delete x[sid];write(x)}}
-function list(curriculum,level,term){var a=C.get(curriculum);return a&&typeof a.list==='function'?a.list(level,term):[]}
-function normalize(curriculum,item,meta){var a=C.get(curriculum);return a&&typeof a.normalize==='function'?a.normalize(item,meta||{}):(C.normalize?C.normalize(item,Object.assign({},meta,{curriculum:curriculum})):item)}
-C.controller={version:'1.0',list:list,normalize:normalize,select:select,getSelection:getSelection,clear:clear,selectionKey:KEY};
+function sid(v){return String(v==null?'':v)}
+function isNew(x){return x&&x.lesson&&x.homework&&typeof x.lesson==='object'&&typeof x.homework==='object'}
+function select(p){p=p||{};var id=sid(p.studentId);if(!id)return null;var x=read(),b=isNew(x[id])?x[id]:{lesson:{},homework:{}};var k=p.kind==='homework'?'homework':'lesson',c=p.curriculum||'scales';b[k][c]=Object.assign({},p,{studentId:id,kind:k,curriculum:c,items:Array.isArray(p.items)?p.items:[],updatedAt:new Date().toISOString()});x[id]=b;write(x);return b[k][c]}
+function getSelection(id,k,c){var v=read()[sid(id)];if(!v)return null;k=k==='homework'?'homework':'lesson';c=c||'scales';if(isNew(v))return v[k]&&v[k][c]||null;if(v.kind===k&&(!c||v.curriculum===c))return v;return null}
+function clear(id,k,c){var x=read(),v=x[sid(id)];if(!v)return;if(isNew(v)){k=k==='homework'?'homework':'lesson';c=c||'scales';if(v[k])delete v[k][c];if(!Object.keys(v.lesson).length&&!Object.keys(v.homework).length)delete x[sid(id)]}else if(!k||v.kind===k)delete x[sid(id)];write(x)}
+function list(c,l,t){var a=C.get(c);return a&&typeof a.list==='function'?a.list(l,t):[]}
+function normalize(c,item,meta){var a=C.get(c);return a&&typeof a.normalize==='function'?a.normalize(item,meta||{}):(C.normalize?C.normalize(item,Object.assign({},meta,{curriculum:c})):item)}
+C.controller={version:'1.1',list:list,normalize:normalize,select:select,getSelection:getSelection,clear:clear,selectionKey:KEY};
 w.VIOLIN_AI_CURRICULUM=C;
 })(window);
