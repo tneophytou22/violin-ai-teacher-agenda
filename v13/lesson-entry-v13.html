@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VIOLIN AI — Lesson</title></head><body><p style="font-family:Arial,sans-serif;padding:24px;color:#24344c">Opening Lesson…</p><script>(function(){'use strict';
+/* V13 Lesson Entry Guard — one-time compatibility/migration boundary.
+   It runs before lesson-v13.html so selections from any legacy/current scale UI
+   are promoted to the canonical V2 Lesson store. */
+var q=new URLSearchParams(location.search),id=String(q.get('studentId')||'');
+function read(k,f){try{var x=JSON.parse(localStorage.getItem(k)||'null');return x==null?f:x}catch(e){return f}}
+function write(k,v){localStorage.setItem(k,JSON.stringify(v))}
+function student(){var a=read('VIOLIN_AI_AGENDA_V10',{});a=Array.isArray(a)?a:(Array.isArray(a.students)?a.students:[]);return a.find(function(s){return String(s.id??s.studentId??s.uid)===id})||{}}
+function promote(){if(!id)return;var legacy=read('VIOLIN_AI_SCALE_SELECTION_STUDENT_V1_'+id,[]);if(!Array.isArray(legacy)||!legacy.length)return;var db=read('VIOLIN_AI_CURRICULUM_SELECTION_V2',{}),v=db[id]&&typeof db[id]==='object'?db[id]:{};v.lesson=v.lesson&&typeof v.lesson==='object'?v.lesson:{};var cur=v.lesson.scales;if(!cur||!Array.isArray(cur.items)||!cur.items.length){var s=student();var level=Number(String(s.level??s.Level??s.currentLevel??1).match(/\d+/)?.[0]||1),term=Number(String(s.term??s.Term??s.currentTerm??1).match(/\d+/)?.[0]||1);v.lesson.scales={studentId:id,studentName:s.name||s.studentName||'Student',level:level,term:term,kind:'lesson',curriculum:'scales',items:legacy,updatedAt:new Date().toISOString(),source:'V13 Lesson Entry Guard'};db[id]=v;write('VIOLIN_AI_CURRICULUM_SELECTION_V2',db)}}
+try{promote()}finally{location.replace('./lesson-v13.html?studentId='+encodeURIComponent(id)+'&v=lesson-entry-'+Date.now())}
+})();</script></body></html>
