@@ -1,7 +1,7 @@
 (function(){'use strict';
 /* V13 CURRICULUM BRIDGE — canonical transport layer.
-   Scales selection is committed to the V2 store BEFORE navigation.
-   Navigation is explicit to lesson-v13.html so no legacy wrapper can interfere. */
+   One-way rule: UI selection -> canonical V2 Lesson store -> Lesson.
+   Legacy per-student scale storage is mirrored for compatibility only. */
 const frame=document.getElementById('app');let bound=null,observer=null,lastKey='';
 const STORE='VIOLIN_AI_CURRICULUM_SELECTION_V2';
 function students(){try{const x=JSON.parse(localStorage.getItem('VIOLIN_AI_AGENDA_V10')||'{}');return Array.isArray(x.students)?x.students:[]}catch(e){return[]}}
@@ -19,17 +19,14 @@ function saveCanonical(p){
  let db={};try{db=JSON.parse(localStorage.getItem(STORE)||'{}')||{}}catch(e){db={}}
  const id=String(p.studentId),old=db[id]&&typeof db[id]==='object'?db[id]:{};
  old.lesson=old.lesson&&typeof old.lesson==='object'?old.lesson:{};old.homework=old.homework&&typeof old.homework==='object'?old.homework:{};
- if(p.kind==='lesson')old.lesson.scales={studentId:id,studentName:p.studentName,level:p.level,term:p.term,kind:'lesson',curriculum:'scales',items:Array.isArray(p.items)?p.items:[],updatedAt:new Date().toISOString()};
- else old.homework.scales={studentId:id,studentName:p.studentName,level:p.level,term:p.term,kind:'homework',curriculum:'scales',items:Array.isArray(p.items)?p.items:[],updatedAt:new Date().toISOString()};
+ if(p.kind==='lesson')old.lesson.scales={studentId:id,studentName:p.studentName,level:p.level,term:p.term,kind:'lesson',curriculum:'scales',items:Array.isArray(p.items)?p.items:[],updatedAt:new Date().toISOString(),source:'V13 Scales Bridge'};
+ else old.homework.scales={studentId:id,studentName:p.studentName,level:p.level,term:p.term,kind:'homework',curriculum:'scales',items:Array.isArray(p.items)?p.items:[],updatedAt:new Date().toISOString(),source:'V13 Scales Bridge'};
  db[id]=old;localStorage.setItem(STORE,JSON.stringify(db));
+ /* Also mirror the legacy per-student key through the canonical State facade. */
+ if(p.kind==='lesson'&&window.parent.ViolinAI?.State?.scales?.setSelected)window.parent.ViolinAI.State.scales.setSelected(id,p.items);
  return db[id];
 }
-function navigateToLesson(s){
- const url=new URL('./lesson-v13.html',window.location.href);
- url.searchParams.set('studentId',String(s.id));
- url.searchParams.set('v','curriculum-v13-'+Date.now());
- window.location.assign(url.href);
-}
+function navigateToLesson(s){const url=new URL('./lesson-v13.html',window.location.href);url.searchParams.set('studentId',String(s.id));url.searchParams.set('v','curriculum-v13-'+Date.now());window.location.assign(url.href)}
 function save(kind,s,it,host){
  const chosen=it.filter((x,i)=>host.querySelector('[data-i="'+i+'"]')?.checked);if(!chosen.length)return alert('Select at least one scale.');
  const p={studentId:String(s.id),studentName:String(s.name||s.studentName||'Student'),level:Number(s.level)||1,term:Number(s.term)||1,kind,curriculum:'scales',items:chosen,createdAt:new Date().toISOString()};
@@ -38,9 +35,7 @@ function save(kind,s,it,host){
    const C=window.parent.VIOLIN_AI_CURRICULUM?.controller;if(C&&typeof C.select==='function')C.select(p);
    localStorage.setItem('VIOLIN_AI_CURRENT_SELECTION_V1',JSON.stringify(p));
    localStorage.setItem('VIOLIN_AI_LESSON_SELECTION_V1',JSON.stringify(p));
-   /* Last-write verification: if this fails, do NOT navigate to an empty Lesson. */
-   const db=JSON.parse(localStorage.getItem(STORE)||'{}');
-   const saved=db[String(s.id)]?.lesson?.scales;
+   const db=JSON.parse(localStorage.getItem(STORE)||'{}'),saved=db[String(s.id)]?.lesson?.scales;
    if(!saved||!Array.isArray(saved.items)||saved.items.length!==chosen.length)throw new Error('Canonical selection verification failed');
    if(kind==='lesson')navigateToLesson(s);else alert('Selected scales added to Homework.');
  }catch(e){console.error('[V13 Scales] selection save failed',e);alert('Could not save the scale selection. Please refresh and try again.');}
@@ -51,5 +46,5 @@ function render(d){const s=currentStudent(d);if(!s){remove(d);return}const it=cu
  host.querySelector('[data-a="lesson"]').onclick=()=>save('lesson',s,it,host);host.querySelector('[data-a="homework"]').onclick=()=>save('homework',s,it,host);
 }
 function bind(){const d=frame?.contentDocument;if(!d?.body||bound===d)return;bound=d;if(observer)observer.disconnect();observer=new MutationObserver(()=>{const s=currentStudent(d);if(s)render(d);else remove(d)});observer.observe(d.body,{childList:true,subtree:true});render(d)}
-frame?.addEventListener('load',()=>{bound=null;lastKey='';bind()});if(frame?.contentDocument)bind();window.VIOLIN_AI_CURRICULUM_BRIDGE={version:'12.0',sync:bind};
+frame?.addEventListener('load',()=>{bound=null;lastKey='';bind()});if(frame?.contentDocument)bind();window.VIOLIN_AI_CURRICULUM_BRIDGE={version:'13.0',sync:bind};
 })();
