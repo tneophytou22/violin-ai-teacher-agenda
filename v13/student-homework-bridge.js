@@ -1,19 +1,17 @@
 /*
  * VIOLIN AI V13 — Student Homework Bridge
  *
- * Purpose: the HOMEWORK tab inside a student's workspace must show the same
- * curriculum homework queue used by Homework Center / Homework V13.
+ * The student's HOMEWORK tab must show the same curriculum homework queue
+ * used by Homework Center / Homework V13.
  *
- * IMPORTANT: this is a presentation/navigation bridge only.
- * It does NOT write, migrate, clear or replace any curriculum/homework data.
- * The curriculum controller remains the single owner of selected curriculum.
+ * Presentation/navigation only. No curriculum/homework storage is changed.
  */
 (function(){
   'use strict';
   var frame=document.getElementById('app');
   if(!frame) return;
 
-  function clean(v){return String(v==null?'':v).replace(/\\s+/g,' ').trim();}
+  function clean(v){return String(v==null?'':v).replace(/\s+/g,' ').trim();}
   function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]});}
   function studentId(w){return w && w.state ? String(w.state.sid||'') : '';}
   function student(w,id){return w && w.data && Array.isArray(w.data.students) ? w.data.students.find(function(s){return String(s.id)===String(id)}) : null;}
@@ -44,7 +42,7 @@
     if(!s || !id) return false;
     var body='<div class="title"><h2>🏠 HOMEWORK · '+esc(s.name)+'</h2><button class="btn ghost" onclick="student()">← Daily Planner</button></div>'+
       '<div class="tabs"><button class="tab" onclick="openStudentTab(\'Pieces\')">🎼 REPERTOIRE</button><button class="tab" onclick="openStudentTab(\'Scales\')">🎵 SCALES</button><button class="tab" onclick="openStudentTab(\'Études\')">📚 ÉTUDES</button><button class="tab" onclick="openStudentTab(\'Technical Studies\')">🧩 TECHNIQUE</button><button class="tab active">🏠 HOMEWORK</button></div>'+
-      '<div class="card"><div class="section-head"><h3>📚 SELECTED FOR HOMEWORK</h3><span class="pill">'+items.length+' selected</span></div><p class="small">Αυτά είναι τα αντικείμενα που έχεις επιλέξει από το Curriculum για αυτόν τον μαθητή. Είναι η ίδια λίστα που χρησιμοποιεί το Homework Center και το AI Homework Designer.</p>'+
+      '<div class="card"><div class="section-head"><h3>📚 SELECTED FOR HOMEWORK</h3><span class="pill">'+items.length+' selected</span></div><p class="small">Αυτά είναι τα αντικείμενα που έχεις επιλέξει από το Curriculum για αυτόν τον μαθητή. Είναι η ίδια λίστα που χρησιμοποιούν το Homework Center και το AI Homework Designer.</p>'+
       (items.length ? items.map(function(x){return '<div class="repcard mintbg"><b>🎼 '+esc(x.title||x.name||'Selected item')+'</b><div class="small">'+esc(meta(x))+'</div></div>';}).join('') : '<div class="empty">Δεν έχεις επιλέξει ακόμη κάτι για homework από το Curriculum.</div>')+
       '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn purple" id="studentHwDesigner">✨ Open Homework Designer</button><button class="btn ghost" onclick="openStudentTab(\'Scales\')">🎵 Add / Manage Scales</button></div></div>';
     w.shell(body);
@@ -63,10 +61,10 @@
         if(!el) return;
         var t=clean(el.textContent).toUpperCase();
         if(t!=='🏠 HOMEWORK' && t!=='HOMEWORK') return;
-        /* Only intercept the student workspace tab. The top .nav HOMEWORK
-           remains owned by the central Homework Router. */
+        /* Only the student's tab strip is intercepted. The top navigation
+           HOMEWORK remains owned by the central Homework Router. */
         if(!el.closest('.tabs')) return;
-        if(w.state && w.state.page==='student'){
+        if(w.state && w.state.sid){
           e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
           renderHomeworkTab(w);
         }
