@@ -1,7 +1,8 @@
 (function(w,d){'use strict';
-/* V13 SCALES UI — deterministic iframe renderer V8.
-   The visible application lives in #app; curriculum data/state live in the master window.
-   This file deliberately has no dependency on legacy Scales DOM markup. */
+/* V13 SCALES UI — deterministic iframe renderer V9.
+   IMPORTANT: this renderer is page-scoped. It MUST mount only on the canonical
+   student SCALES page, never merely because the word "SCALES" exists in nav/body.
+*/
 var NS=w.VIOLIN_AI_CURRICULUM=w.VIOLIN_AI_CURRICULUM||{};
 function esc(x){return String(x==null?'':x).replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'})[c]})}
 function read(k,f){try{var x=JSON.parse(w.localStorage.getItem(k)||'null');return x==null?f:x}catch(e){return f}}
@@ -9,22 +10,31 @@ function allStudents(){try{var S=w.ViolinAI&&w.ViolinAI.State;if(S&&S.students&&
 function idOf(s){return String(s&&(s.id!=null?s.id:(s.studentId!=null?s.studentId:s.uid))||'')}
 function activeStudent(doc){var a=allStudents(),q='';try{q=new URLSearchParams(w.location.search).get('studentId')||''}catch(e){}
  if(q){var z=a.find(function(s){return idOf(s)===q});if(z)return z}
- var body=String(doc.body&&doc.body.innerText||''),h=String((doc.querySelector('h1')||{}).textContent||'');
- for(var i=0;i<a.length;i++){var n=String(a[i].name||a[i].studentName||'').trim();if(n&&(h.indexOf(n)>=0||body.indexOf(n)>=0))return a[i]}
+ var h=String((doc.querySelector('h1')||{}).textContent||'');
+ for(var i=0;i<a.length;i++){var n=String(a[i].name||a[i].studentName||'').trim();if(n&&h.indexOf(n)>=0)return a[i]}
  var cur=read('VIOLIN_AI_CURRENT_SELECTION_V1',null),cid=cur&&(cur.studentId||cur.id);if(cid){var c=a.find(function(s){return idOf(s)===String(cid)});if(c)return c}
- var lm=body.match(/Level\s*(\d+)/i),tm=body.match(/Term\s*(\d+)/i);if(lm)return{id:'',name:(h.split(/[·•—-]/)[1]||'Student').trim(),level:+lm[1],term:tm?+tm[1]:1};
+ var lm=h.match(/Level\s*(\d+)/i),tm=h.match(/Term\s*(\d+)/i);if(lm)return{id:'',name:(h.split(/[·•—-]/)[1]||'Student').trim(),level:+lm[1],term:tm?+tm[1]:1};
  return a.length===1?a[0]:null}
 function levelTerm(s,doc){var b=String(doc.body&&doc.body.innerText||''),lm=b.match(/Level\s*(\d+)/i),tm=b.match(/Term\s*(\d+)/i);return{level:Number(String(s&&s.level||s&&s.Level||lm&&lm[1]||0).match(/\d+/)||0),term:Number(String(s&&s.term||s&&s.Term||tm&&tm[1]||1).match(/\d+/)||1)}}
 function getData(level,term){var D=w.VIOLIN_SCALE_CURRICULUM_V1;if(!D)return null;return D[level]&&D[level][term]||null}
 function makeItems(level,term){var c=getData(level,term),out=[];if(!c)return out;[['major','Major Scales'],['minor','Minor Scales'],['arpeggios','Tonic Arpeggios'],['dominant7','Dominant 7th'],['diminished7','Diminished 7th'],['chromatic','Chromatic Scales'],['doubleStops','Double Stops'],['oneString','One-String Scales']].forEach(function(g){var v=c[g[0]];(Array.isArray(v)?v:[v]).forEach(function(x){if(x)out.push({id:'scale-'+level+'-'+term+'-'+out.length,curriculum:'scales',category:g[1],title:String(x),level:level,term:term,requirements:{tempo:c.tempo,octaves:c.octaves,bowing:c.bowing,articulation:c.articulation,rhythmicGroups:c.rhythmicGroups||c.rhythm,accents:c.accents,dynamics:c.dynamics,positions:c.positions},objective:c.objective,mastery:c.mastery,source:'scale-curriculum-data.js'})})});return out}
-function isScales(doc){var h=String((doc.querySelector('h1')||{}).textContent||'');var b=String(doc.body&&doc.body.innerText||'').slice(0,900);return /SCALES/i.test(h)||/SCALES/i.test(b)}
+function isScales(doc){
+ var h=String((doc.querySelector('h1')||{}).textContent||'').trim();
+ /* The old implementation used body text. Because every student page contains
+    navigation text such as SCALES, that made Curriculum Scales appear everywhere.
+    Canonical SCALES pages have an H1 beginning with "SCALES". */
+ if(!/^SCALES\s*[·•—-]/i.test(h) && !/^🎼\s*SCALES/i.test(h) && !/^SCALES$/i.test(h))return false;
+ var active=doc.querySelector('.tabs .tab.active');
+ if(active && !/SCALES/i.test(String(active.textContent||'')))return false;
+ return true;
+}
 function css(doc){if(doc.getElementById('v13-scale-css'))return;var s=doc.createElement('style');s.id='v13-scale-css';s.textContent='.v13-scale-wrap{margin:14px 0;padding:12px;border:1px solid #dfd4ff;border-radius:14px;background:#faf8ff;color:#24344c}.v13-scale-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.v13-scale-head h2{margin:0;font-size:19px}.v13-scale-sub{font-size:12px;color:#687487;margin:3px 0 10px}.v13-scale-cat{margin:7px 0 5px;padding:7px 9px;border:1px solid #e4e0ef;border-radius:9px;background:#fff;font-size:12px;font-weight:900}.v13-scale-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.v13-scale-card{display:flex;gap:7px;padding:7px 8px;border:1px solid #e6e8ee;border-radius:9px;background:#fff;cursor:pointer;font-size:12px;font-weight:800}.v13-scale-card input{width:17px!important;height:17px!important;min-width:17px;margin:0}.v13-scale-meta{display:block;font-size:9px;color:#687487;font-weight:500;margin-top:2px}.v13-scale-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.v13-scale-actions button{border:0;border-radius:8px;padding:8px 11px;font-weight:800;cursor:pointer;font-size:11px}.v13-scale-actions .lesson{background:#24344c;color:#fff}.v13-scale-actions .home{background:#64c6a3;color:#12372c}@media(max-width:900px){.v13-scale-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.v13-scale-grid{grid-template-columns:1fr}}';doc.head.appendChild(s)}
 function mount(){try{var frame=d.getElementById('app');if(!frame)return;var doc=frame.contentDocument;if(!doc||!doc.body||!isScales(doc))return;var s=activeStudent(doc);if(!s)return;var lt=levelTerm(s,doc);if(!lt.level)return;var items=makeItems(lt.level,lt.term);if(!items.length)return;var host=doc.getElementById('v13-scale-curriculum');if(!host){host=doc.createElement('section');host.id='v13-scale-curriculum';var tabs=doc.querySelector('.tabs');if(tabs&&tabs.parentElement)tabs.parentElement.insertBefore(host,tabs.nextSibling);else{var title=doc.querySelector('h1,h2');if(title&&title.parentElement)title.parentElement.insertBefore(host,title.nextSibling);else doc.body.insertBefore(host,doc.body.firstChild)}}css(doc);var sig=lt.level+'|'+lt.term+'|'+items.map(function(x){return x.title}).join('§');if(host.dataset.sig===sig)return;host.dataset.sig=sig;var groups={};items.forEach(function(x,i){(groups[x.category]||(groups[x.category]=[])).push([x,i])});var html='<div class="v13-scale-wrap"><div class="v13-scale-head"><h2>🎼 Curriculum Scales</h2><span class="v13-scale-sub">Level '+lt.level+' · Term '+lt.term+'</span></div><div class="v13-scale-sub">Select only what you want to hear today or assign for practice.</div>';Object.keys(groups).forEach(function(cat){html+='<div class="v13-scale-cat">'+esc(cat)+'</div><div class="v13-scale-grid">';groups[cat].forEach(function(z){var r=z[0].requirements||{},meta=[r.octaves,r.tempo,r.positions].filter(Boolean).join(' · ');html+='<label class="v13-scale-card"><input type="checkbox" data-scale-i="'+z[1]+'"><span>'+esc(z[0].title)+(meta?'<span class="v13-scale-meta">'+esc(meta)+'</span>':'')+'</span></label>'});html+='</div>'});html+='<div class="v13-scale-actions"><button class="lesson" data-action="lesson">🎓 Add selected to Lesson</button><button class="home" data-action="home">🏠 Add selected to Homework</button></div></div>';host.innerHTML=html;
  function chosen(){return items.filter(function(x,i){var q=host.querySelector('[data-scale-i="'+i+'"]');return q&&q.checked})}
  function save(kind){var x=chosen();if(!x.length){alert('Select at least one scale.');return}var p={studentId:idOf(s),studentName:s.name||s.studentName||'',level:lt.level,term:lt.term,kind:kind,curriculum:'scales',items:x,createdAt:new Date().toISOString()};try{var ctl=w.VIOLIN_AI_CURRICULUM&&w.VIOLIN_AI_CURRICULUM.controller;if(ctl&&ctl.select)ctl.select(p);else w.localStorage.setItem('VIOLIN_AI_CURRICULUM_SELECTION_V2',JSON.stringify(p))}catch(e){w.localStorage.setItem('VIOLIN_AI_CURRICULUM_SELECTION_V2',JSON.stringify(p))}if(kind==='lesson')frame.src='../v13/lesson-v13.html?studentId='+encodeURIComponent(p.studentId)+'&v=v13-canonical-lesson-4';else alert('Selected scales added to Homework.')}
  host.querySelector('[data-action="lesson"]').onclick=function(){save('lesson')};host.querySelector('[data-action="home"]').onclick=function(){save('homework')};
  }catch(e){console.log('V13 SCALES UI ERROR',e)}}
-NS.scalesUI={version:'8.0',mount:mount};w.VIOLIN_AI_CURRICULUM=NS;
+NS.scalesUI={version:'9.0',mount:mount};w.VIOLIN_AI_CURRICULUM=NS;
 function bind(){var f=d.getElementById('app');if(!f)return;f.addEventListener('load',function(){setTimeout(mount,100);setTimeout(mount,600);setTimeout(mount,1500)});setTimeout(mount,100);setInterval(mount,1000)}
 bind();
 })(window,document);
