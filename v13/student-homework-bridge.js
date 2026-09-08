@@ -9,15 +9,20 @@ function getW(){return frame.contentWindow}
 function controller(){var m=master();return m&&m.VIOLIN_AI_CURRICULUM&&m.VIOLIN_AI_CURRICULUM.controller}
 function agendaStudents(){try{var x=JSON.parse(master().localStorage.getItem('VIOLIN_AI_AGENDA_V10')||'{}');return Array.isArray(x&&x.students)?x.students:Array.isArray(x)?x:[]}catch(e){return []}}
 function items(id){try{var c=controller(),r=c&&c.getHomework&&c.getHomework(id);if(r&&Array.isArray(r.items))return r.items}catch(e){}try{var db=JSON.parse(master().localStorage.getItem('VIOLIN_AI_HOMEWORK_QUEUE_V1')||'{}');return db[String(id)]&&Array.isArray(db[String(id)].items)?db[String(id)].items:[]}catch(e){return []}}
-function resolveStudent(w){
- var d=w.document;
- var h=d&&d.querySelector&&d.querySelector('.title h2');
+function findStudentByHeading(w){
+ var d=w.document,h=d&&d.querySelector&&d.querySelector('.title h2');
  var heading=String(h&&h.textContent||'').replace(/\s+/g,' ').trim();
  var name=heading.replace(/^🏠\s*HOMEWORK\s*[·•—:-]\s*/i,'').trim();
  var list=agendaStudents();
  if(name){var byName=list.find(function(x){return String(x&&x.name||x&&x.studentName||'').trim()===name});if(byName)return byName}
+ return null;
+}
+function resolveStudent(w){
+ var pending=w.__centralHomeworkMirrorStudent;
+ if(pending)return pending;
+ var byHeading=findStudentByHeading(w);if(byHeading)return byHeading;
  var sid=(w.location&&new URL(w.location.href).searchParams.get('studentId'))||'';
- if(sid){var byId=list.find(function(x){return String(x&&x.id)===String(sid)});if(byId)return byId}
+ if(sid){var list=agendaStudents(),byId=list.find(function(x){return String(x&&x.id)===String(sid)});if(byId)return byId}
  return null;
 }
 function render(){var w=getW(),s=resolveStudent(w);if(!s)return false;var id=String(s.id||s.studentId||s.uid||''),a=items(id),c=controller();if(!id)return false;
@@ -27,7 +32,9 @@ var body='<div class="title"><h2>🏠 HOMEWORK · '+esc(s.name||s.studentName||'
 '<div style="margin-top:12px"><button class="btn mint" id="studentCentralAddHW">＋ Add Homework</button></div></div>';w.shell(body);
 var add=w.document.getElementById('studentCentralAddHW');if(add)add.onclick=function(){var text=w.prompt('Homework:');if(!text||!text.trim())return;if(!c||!c.addHomework)return alert('Central Homework controller unavailable.');c.addHomework({studentId:id,studentName:s.name,level:s.level,term:1,items:[{id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())),curriculum:'manual',category:'Homework',title:text.trim(),source:'student-homework'}],source:'student-homework'});render()};
 Array.prototype.forEach.call(w.document.querySelectorAll('[data-hw-key]'),function(b){b.onclick=function(){if(!c||!c.removeHomework)return;if(!w.confirm('Delete this homework from Central Homework?'))return;c.removeHomework(id,b.getAttribute('data-hw-key'));render()}});return true}
-function install(){try{var w=getW();if(!w||!w.document||!w.document.body)return false;if(w.document.__centralHomeworkMirrorClickHook)return true;w.document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('.tabs .tab'):null;if(!b)return;var t=String(b.textContent||'').replace(/\s+/g,' ').trim().toUpperCase();if(t!=='🏠 HOMEWORK'&&t!=='HOMEWORK')return;setTimeout(render,0)},false);w.document.__centralHomeworkMirrorClickHook=true;return true}catch(e){return false}}
+function install(){try{var w=getW();if(!w||!w.document||!w.document.body)return false;if(w.document.__centralHomeworkMirrorClickHook)return true;w.document.addEventListener('click',function(e){var b=e.target&&e.target.closest?e.target.closest('.tabs .tab'):null;if(!b)return;var t=String(b.textContent||'').replace(/\s+/g,' ').trim().toUpperCase();if(t!=='🏠 HOMEWORK'&&t!=='HOMEWORK')return;
+ var s=findStudentByHeading(w);if(s)w.__centralHomeworkMirrorStudent=s;
+ setTimeout(render,0)},false);w.document.__centralHomeworkMirrorClickHook=true;return true}catch(e){return false}}
 function boot(){install();setTimeout(install,100);setTimeout(install,500);setTimeout(install,1200)}
 frame.addEventListener('load',boot);boot();setInterval(install,1000);
 })();
