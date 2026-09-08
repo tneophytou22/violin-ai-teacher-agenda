@@ -7,8 +7,21 @@ function esc(v){return String(v==null?'':v).replace(/[&<>\"']/g,function(c){retu
 function master(){try{return frame.contentWindow.parent||window}catch(e){return window}}
 function getW(){return frame.contentWindow}
 function controller(){var m=master();return m&&m.VIOLIN_AI_CURRICULUM&&m.VIOLIN_AI_CURRICULUM.controller}
+function agendaStudents(){try{var x=JSON.parse(master().localStorage.getItem('VIOLIN_AI_AGENDA_V10')||'{}');return Array.isArray(x&&x.students)?x.students:Array.isArray(x)?x:[]}catch(e){return []}}
 function items(id){try{var c=controller(),r=c&&c.getHomework&&c.getHomework(id);if(r&&Array.isArray(r.items))return r.items}catch(e){}try{var db=JSON.parse(master().localStorage.getItem('VIOLIN_AI_HOMEWORK_QUEUE_V1')||'{}');return db[String(id)]&&Array.isArray(db[String(id)].items)?db[String(id)].items:[]}catch(e){return []}}
-function render(){var w=getW(),id=String(w.state&&w.state.sid||''),s=w.data&&w.data.students&&w.data.students.find(function(x){return String(x.id)===id});if(!id||!s)return false;var a=items(id),c=controller();var body='<div class="title"><h2>🏠 HOMEWORK · '+esc(s.name)+'</h2><button class="btn ghost" onclick="student()">← Daily Planner</button></div><div class="tabs">'+
+function resolveStudent(w){
+ var d=w.document;
+ var h=d&&d.querySelector&&d.querySelector('.title h2');
+ var heading=String(h&&h.textContent||'').replace(/\s+/g,' ').trim();
+ var name=heading.replace(/^🏠\s*HOMEWORK\s*[·•—:-]\s*/i,'').trim();
+ var list=agendaStudents();
+ if(name){var byName=list.find(function(x){return String(x&&x.name||x&&x.studentName||'').trim()===name});if(byName)return byName}
+ var sid=(w.location&&new URL(w.location.href).searchParams.get('studentId'))||'';
+ if(sid){var byId=list.find(function(x){return String(x&&x.id)===String(sid)});if(byId)return byId}
+ return null;
+}
+function render(){var w=getW(),s=resolveStudent(w);if(!s)return false;var id=String(s.id||s.studentId||s.uid||''),a=items(id),c=controller();if(!id)return false;
+var body='<div class="title"><h2>🏠 HOMEWORK · '+esc(s.name||s.studentName||'Student')+'</h2><button class="btn ghost" onclick="student()">← Daily Planner</button></div><div class="tabs">'+
 '<button class="tab" onclick="openStudentTab(\'Pieces\')">🎼 REPERTOIRE</button><button class="tab" onclick="openStudentTab(\'Scales\')">🎵 SCALES</button><button class="tab" onclick="openStudentTab(\'Études\')">📚 ÉΤΥΔΕΣ</button><button class="tab" onclick="openStudentTab(\'Technical Studies\')">🧩 TECHNIQUE</button><button class="tab active">🏠 HOMEWORK</button></div><div class="card"><div class="section-head"><h3>📚 CENTRAL HOMEWORK</h3><span class="pill">'+a.length+' selected</span></div><p class="small">Live mirror — Central Homework is the single source of truth.</p>'+
 (a.length?a.map(function(x){var k=[x.curriculum||'',x.id||'',x.title||''].join('|').toLowerCase();return '<div class="repcard mintbg"><b>🎼 '+esc(x.title||x.name||'Selected item')+'</b><div class="small">'+esc(x.category||'Homework')+(x.curriculum?' · '+esc(x.curriculum):'')+'</div><div class="mini-actions"><button class="btn danger" data-hw-key="'+esc(k)+'">Delete</button></div></div>'}).join(''):'<div class="empty">No homework for this student yet.</div>')+
 '<div style="margin-top:12px"><button class="btn mint" id="studentCentralAddHW">＋ Add Homework</button></div></div>';w.shell(body);
