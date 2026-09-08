@@ -25,10 +25,23 @@ function resolveStudent(w){
  if(sid){var list=agendaStudents(),byId=list.find(function(x){return String(x&&x.id)===String(sid)});if(byId)return byId}
  return null;
 }
+function valueText(v){return Array.isArray(v)?v.join(' · '):String(v==null?'':v)}
+function studyInfo(x){
+ var r=x&&x.requirements||{},a=[];
+ if(r.octaves)a.push('Octaves: '+valueText(r.octaves));
+ if(r.positions)a.push('Positions: '+valueText(r.positions));
+ if(r.bowing)a.push('Bowing: '+valueText(r.bowing));
+ if(r.articulation)a.push('Articulation: '+valueText(r.articulation));
+ if(r.rhythmicGroups||r.rhythm)a.push('Rhythm: '+valueText(r.rhythmicGroups||r.rhythm));
+ if(r.accents)a.push('Accents: '+valueText(r.accents));
+ if(r.dynamics)a.push('Dynamics: '+valueText(r.dynamics));
+ if(r.tempo)a.push('Tempo: '+valueText(r.tempo));
+ return a;
+}
 function render(){var w=getW(),s=resolveStudent(w);if(!s)return false;var id=String(s.id||s.studentId||s.uid||''),a=items(id),c=controller();if(!id)return false;
 var body='<div class="title"><h2>🏠 HOMEWORK · '+esc(s.name||s.studentName||'Student')+'</h2><button class="btn ghost" onclick="student()">← Daily Planner</button></div><div class="tabs">'+
 '<button class="tab" onclick="openStudentTab(\'Pieces\')">🎼 REPERTOIRE</button><button class="tab" onclick="openStudentTab(\'Scales\')">🎵 SCALES</button><button class="tab" onclick="openStudentTab(\'Études\')">📚 ÉΤΥΔΕΣ</button><button class="tab" onclick="openStudentTab(\'Technical Studies\')">🧩 TECHNIQUE</button><button class="tab active">🏠 HOMEWORK</button></div><div class="card"><div class="section-head"><h3>📚 CENTRAL HOMEWORK</h3><span class="pill">'+a.length+' selected</span></div><p class="small">Live mirror — Central Homework is the single source of truth.</p>'+
-(a.length?a.map(function(x){var k=[x.curriculum||'',x.id||'',x.title||''].join('|').toLowerCase();return '<div class="repcard mintbg"><b>🎼 '+esc(x.title||x.name||'Selected item')+'</b><div class="small">'+esc(x.category||'Homework')+(x.curriculum?' · '+esc(x.curriculum):'')+'</div><div class="mini-actions"><button class="btn danger" data-hw-key="'+esc(k)+'">Delete</button></div></div>'}).join(''):'<div class="empty">No homework for this student yet.</div>')+
+(a.length?a.map(function(x){var k=[x.curriculum||'',x.id||'',x.title||''].join('|').toLowerCase(),info=studyInfo(x);return '<div class="repcard mintbg"><b>🎼 '+esc(x.title||x.name||'Selected item')+'</b><div class="small">'+esc(x.category||'Homework')+(x.curriculum?' · '+esc(x.curriculum):'')+'</div>'+(info.length?'<div class="small" style="margin-top:8px;line-height:1.55"><b>Study requirements:</b> '+esc(info.join(' · '))+'</div>':'')+(x.objective?'<div class="small" style="margin-top:5px"><b>Objective:</b> '+esc(x.objective)+'</div>':'')+(x.mastery?'<div class="small" style="margin-top:5px"><b>Mastery:</b> '+esc(x.mastery)+'</div>':'')+'<div class="mini-actions"><button class="btn danger" data-hw-key="'+esc(k)+'">Delete</button></div></div>'}).join(''):'<div class="empty">No homework for this student yet.</div>')+
 '<div style="margin-top:12px"><button class="btn mint" id="studentCentralAddHW">＋ Add Homework</button></div></div>';w.shell(body);
 var add=w.document.getElementById('studentCentralAddHW');if(add)add.onclick=function(){var text=w.prompt('Homework:');if(!text||!text.trim())return;if(!c||!c.addHomework)return alert('Central Homework controller unavailable.');c.addHomework({studentId:id,studentName:s.name,level:s.level,term:1,items:[{id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())),curriculum:'manual',category:'Homework',title:text.trim(),source:'student-homework'}],source:'student-homework'});render()};
 Array.prototype.forEach.call(w.document.querySelectorAll('[data-hw-key]'),function(b){b.onclick=function(){if(!c||!c.removeHomework)return;if(!w.confirm('Delete this homework from Central Homework?'))return;c.removeHomework(id,b.getAttribute('data-hw-key'));render()}});return true}
