@@ -27,6 +27,7 @@
 'use strict';
 const HOME='VIOLIN_AI_HOMEWORK_QUEUE_V1';
 function read(k,f){try{const x=JSON.parse(localStorage.getItem(k)||'null');return x==null?f:x}catch(e){return f}}
+function write(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function sid(s){return String(s?.id??s?.studentId??s?.uid??'')}
 function name(s){return s?.name||s?.studentName||'Student'}
@@ -41,19 +42,31 @@ function renderList(){
  view.innerHTML='<div class="card"><div class="section-title"><h2 style="margin:0">👥 Select a student</h2><span class="muted">'+a.length+' students</span></div><div class="students" style="margin-top:12px">'+a.map((s,i)=>{const q=queue(sid(s));const n=(q.items||[]).length;return '<button class="student" data-i="'+i+'"><div class="student-head"><div><div class="name">'+esc(name(s))+'</div><span class="pill">Level '+esc(s.level??s.currentLevel??'—')+'</span><span class="pill">Term '+esc(s.term??s.currentTerm??1)+'</span></div><span class="pill count">'+n+' homework item'+(n===1?'':'s')+'</span></div></button>'}).join('')+'</div></div>';
  view.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>renderStudent(a[+b.dataset.i]));
 }
+function removeHomeworkItem(id,index,item){
+ const key=itemKey(item);
+ const C=window.VIOLIN_AI_CURRICULUM?.controller;
+ if(C?.removeHomework) C.removeHomework(id,key);
+ let db=read(HOME,{}),rec=db?.[String(id)];
+ if(rec&&Array.isArray(rec.items)){
+   const stillThere=rec.items.some(x=>itemKey(x)===key);
+   if(stillThere) rec.items.splice(index,1);
+   rec.updatedAt=new Date().toISOString();
+   db[String(id)]=rec;
+   write(HOME,db);
+ }
+}
 function renderStudent(s){
  const id=sid(s),q=queue(id),items=Array.isArray(q.items)?q.items:[];
- const C=window.VIOLIN_AI_CURRICULUM?.controller;
  const detail=items.length?items.map((x,i)=>{const r=x.requirements||{};const meta=[];if(x.curriculum)meta.push(x.curriculum);if(x.category)meta.push(x.category);if(r.positions)meta.push('Positions: '+r.positions);if(r.octaves)meta.push('Octaves: '+r.octaves);if(r.bowing)meta.push('Bowing: '+(Array.isArray(r.bowing)?r.bowing.join(' · '):r.bowing));if(r.articulation)meta.push('Articulation: '+(Array.isArray(r.articulation)?r.articulation.join(' · '):r.articulation));if(r.tempo)meta.push('Tempo: '+r.tempo);return '<div class="item"><div class="item-row"><div><div class="item-title">🎼 '+esc(x.title||x.name||'Selected item')+'</div><div class="item-meta">'+esc(meta.join(' · '))+'</div></div><div class="item-actions"><button class="btn danger" data-delete-index="'+i+'" type="button">Delete</button></div></div></div>'}).join(''):'<div class="empty">Nothing has been added to homework for this student yet.</div>';
  view.innerHTML='<div class="card"><div class="backrow"><button class="btn ghost" id="studentsBack">← Students</button><span class="muted">Homework Center</span></div><div class="section-title"><div><h2 style="margin:0">🏠 '+esc(name(s))+'</h2><div class="muted">Level '+esc(s.level??s.currentLevel??q.level??'—')+' · Term '+esc(s.term??s.currentTerm??q.term??1)+'</div></div><span class="pill count">'+items.length+' selected</span></div></div><div class="card"><div class="section-title"><h2 style="margin:0">📚 Homework collection</h2><span class="muted">Everything selected so far</span></div>'+detail+'<div class="actions"><button class="btn purple" id="openDesigner">✨ Open Homework Designer</button><button class="btn mint" id="backToAgenda">← Back to Agenda</button></div></div>';
  document.getElementById('studentsBack').onclick=renderList;
  document.getElementById('openDesigner').onclick=()=>location.href=fullUrl(id);
  document.getElementById('backToAgenda').onclick=()=>history.back();
  view.querySelectorAll('[data-delete-index]').forEach(b=>b.onclick=()=>{
-   const i=Number(b.dataset.deleteIndex), item=items[i];
-   if(!item||!C?.removeHomework)return;
+   const i=Number(b.dataset.deleteIndex),item=items[i];
+   if(!item)return;
    if(!confirm('Delete this homework item for '+name(s)+'?'))return;
-   C.removeHomework(id,itemKey(item));
+   removeHomeworkItem(id,i,item);
    renderStudent(s);
  });
 }
