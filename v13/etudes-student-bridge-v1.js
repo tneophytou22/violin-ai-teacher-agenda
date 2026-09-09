@@ -16,7 +16,7 @@ function byId(id){return students().find(x=>sid(x)===String(id))||null}
 function currentStudent(d){
  try{const u=new URL(frame.contentWindow.location.href),id=u.searchParams.get('studentId')||u.searchParams.get('sid');if(id){const s=byId(id);if(s)return s}}catch(e){}
  const e=d.querySelector('[data-student-id],[data-studentid],[data-sid]');if(e){const s=byId(e.getAttribute('data-student-id')||e.getAttribute('data-studentid')||e.getAttribute('data-sid'));if(s)return s}
- for(const el of d.querySelectorAll('h1,h2,h3,h4,.title,.page-title,.student-title,[class*="title"]')){const m=text(el.textContent).match(/(?:ÉTUDES|ETUDES)\s*[·•—-]\s*(.+)$/i);if(m){const s=students().find(x=>text(x.name||x.studentName).toLowerCase()===text(m[1]).toLowerCase());if(s)return s}}
+ for(const el of d.querySelectorAll('h1,h2,h3,h4,.title,.page-title,.student-title,[class*="title"]')){const m=text(el.textContent).match(/(?:ÉTUDΕS|ÉTUDES|ETUDES)\s*[·•—-]\s*(.+)$/i);if(m){const s=students().find(x=>text(x.name||x.studentName).toLowerCase()===text(m[1]).toLowerCase());if(s)return s}}
  return null;
 }
 function itemsFor(s){
@@ -32,7 +32,7 @@ function save(s,items,kind){
 function ensureCss(d){if(d.getElementById('v13-etude-css'))return;const st=d.createElement('style');st.id='v13-etude-css';st.textContent='.v13-etude-box{display:block!important;visibility:visible!important;margin:12px 0!important;padding:14px!important;border:1px solid #f0d9c8!important;border-radius:16px!important;background:#fffaf6!important;color:#24344c!important;position:relative!important;z-index:20!important}.v13-etude-box h3{margin:0 0 3px;font-size:19px}.v13-etude-sub{font-size:12px;color:#687487;margin-bottom:10px}.v13-etude-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.v13-etude-item{display:flex;gap:8px;align-items:flex-start;background:#fff;border:1px solid #eadfd6;border-radius:10px;padding:10px}.v13-etude-item input{width:18px;height:18px;margin-top:2px}.v13-etude-item b{font-size:13px}.v13-etude-item small{display:block;color:#687487;margin-top:3px}.v13-etude-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.v13-etude-actions button{border:0;border-radius:9px;padding:9px 12px;font-weight:800;cursor:pointer}.v13-etude-actions button:first-child{background:#24344c;color:#fff}.v13-etude-actions button:last-child{background:#64c6a3;color:#12372c}@media(max-width:650px){.v13-etude-grid{grid-template-columns:1fr}}';d.head.appendChild(st)}
 function remove(d){d.getElementById('v13-curriculum-etudes')?.remove();lastKey=''}
 function render(d){
- const title=text(d.querySelector('h1')?.textContent||d.title||'').toUpperCase();if(!/(ÉTUDES|ETUDES)/.test(title)){remove(d);return}
+ const title=text(d.querySelector('h1,h2,h3,h4,.title,.page-title,.student-title,[class*="title"]')?.textContent||d.title||'').toUpperCase();if(!/(ÉTUDΕS|ÉTUDES|ETUDES)/.test(title)){remove(d);return}
  const s=currentStudent(d);if(!s){remove(d);return}const it=itemsFor(s);if(!it.length){remove(d);return}
  const key=sid(s)+'|'+levelOf(s)+'|'+termOf(s);let host=d.getElementById('v13-curriculum-etudes');if(host&&lastKey===key)return;
  if(!host){const tabs=d.querySelector('.tabs'),anchor=tabs||d.querySelector('.wrap')||d.body;host=d.createElement('section');host.id='v13-curriculum-etudes';if(tabs)tabs.insertAdjacentElement('afterend',host);else anchor.appendChild(host)}
