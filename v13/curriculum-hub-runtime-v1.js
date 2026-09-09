@@ -1,0 +1,128 @@
+/* V13 CURRICULUM HUB RUNTIME V1
+   Safe runtime layer for the Level detail page.
+   - Replaces the legacy 4-card summary with the single Curriculum Hub.
+   - Keeps SCALES on the canonical shared Scales Curriculum data.
+   - Puts Global Technical Domains only inside TECHNIQUE.
+   - Hides legacy standalone Global Technical / Scales panels.
+   - Does not touch homework, lesson, student state, or curriculum data.
+*/
+(function(){
+'use strict';
+var frame=document.getElementById('app');
+if(!frame)return;
+
+var MODULES=[
+ {key:'repertoire',icon:'🎼',title:'REPERTOIRE',sub:'Your Repertoire Curriculum'},
+ {key:'scales',icon:'🎵',title:'SCALES',sub:'Scales Curriculum'},
+ {key:'etudes',icon:'📚',title:'ÉTUDES',sub:'Your Études Curriculum'},
+ {key:'technical-exercises',icon:'🏋️',title:'TECHNICAL EXERCISES',sub:'Your Technical Exercises Curriculum'},
+ {key:'technique',icon:'🧩',title:'TECHNIQUE',sub:'Technique Curriculum'}
+];
+
+var DOMAINS=[
+ {icon:'🖐️',title:'LEFT HAND',items:['1st position','Finger placement','Finger independence','Finger release','Finger lift','Finger patterns','Finger strength','Extensions','Frame','Chromatic fingering','Shifting preparation','Shifting','Position changes','High positions','Trills','Vibrato','Double stops','Harmonics','Fingered octaves','Tenths','Advanced left-hand coordination']},
+ {icon:'👍',title:'THUMB',items:['Thumb relaxation','Thumb position','Thumb mobility','Thumb release','Thumb during shifting','Thumb–hand coordination','Thumb in high positions','Thumb during double stops','Thumb/hand unity']},
+ {icon:'🎻',title:'RIGHT HAND / BOW',items:['Bow hold','Relaxed bow hand','Thumb flexibility','Finger flexibility','Straight bow','Bow angle','Bow contact point','Bow speed','Bow weight','Sounding point','Bow distribution','Elbow levels','String crossings','Bow changes','Rapid string crossings','Tone production']},
+ {icon:'🎯',title:'STROKES & ARTICULATION',items:['Détaché','Legato','Simple hooked bow','Martelé','Accented détaché','Advanced hooked bow','Collé','Spiccato','Flying strokes','Sautillé','Advanced mixed bow strokes']}
+];
+
+function clean(v){return String(v==null?'':v).replace(/\s+/g,' ').trim()}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function getDoc(){try{return frame.contentDocument||frame.contentWindow.document}catch(e){return null}}
+function getLevel(doc){
+ var heads=doc.querySelectorAll('.hero h1,h1,h2');
+ for(var i=0;i<heads.length;i++){var m=clean(heads[i].textContent).match(/^LEVEL\s+(\d{1,2})$/i);if(m)return +m[1]}
+ return null;
+}
+function findLegacyGrid(doc){
+ var grids=doc.querySelectorAll('.grid');
+ for(var i=0;i<grids.length;i++){
+  var cards=grids[i].children;if(cards.length!==4)continue;
+  var names=[];
+  for(var j=0;j<cards.length;j++){var h=cards[j].querySelector('h3');names.push(clean(h&&h.textContent).toLowerCase())}
+  if(names.indexOf('pieces')>=0&&names.indexOf('scales')>=0&&names.indexOf('études')>=0&&names.indexOf('techniques')>=0)return grids[i];
+ }
+ return null;
+}
+function hideLegacyPanels(doc){
+ var hub=doc.getElementById('v13-curriculum-hub-runtime-v1');
+ var nodes=doc.querySelectorAll('h1,h2,h3,h4,strong,div');
+ for(var i=0;i<nodes.length;i++){
+  if(hub&&hub.contains(nodes[i]))continue;
+  var t=clean(nodes[i].textContent);
+  if(!t)continue;
+  if(/^GLOBAL TECHNICAL DOMAINS(?:\s*·\s*LEVEL\s*\d+)?$/i.test(t) || /^🧭 GLOBAL TECHNICAL DOMAINS(?:\s*·\s*LEVEL\s*\d+)?$/i.test(t)){
+   var p=nodes[i];
+   for(var k=0;k<6&&p;k++,p=p.parentElement){if(p.classList&&p.classList.contains('section')){p.style.display='none';break}}
+  }
+  if(/^🎵 SCALES CURRICULUM\s*·\s*LEVEL\s*\d+$/i.test(t) || /^SCALES CURRICULUM\s*·\s*LEVEL\s*\d+$/i.test(t)){
+   var q=nodes[i];
+   for(var z=0;z<6&&q;z++,q=q.parentElement){if(q.classList&&q.classList.contains('section')){q.style.display='none';break}}
+  }
+ }
+}
+function style(doc){
+ if(doc.getElementById('v13-hub-runtime-style'))return;
+ var s=doc.createElement('style');s.id='v13-hub-runtime-style';
+ s.textContent='.v13-runtime-hub{margin:0 0 18px;padding:18px;border:1px solid #e1e5ec;border-radius:22px;background:linear-gradient(135deg,#fff,#f8f6ff);box-shadow:0 10px 28px rgba(20,35,61,.07)}'
+ +'.v13-runtime-hub-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.v13-runtime-hub-head h2{margin:0;color:#24344c;font-size:23px}.v13-runtime-hub-head span{font-size:11px;font-weight:800;color:#7451d9}'
+ +'.v13-runtime-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.v13-runtime-tab{border:1px solid #e0e4eb;border-radius:15px;background:#fff;padding:12px 10px;text-align:left;cursor:pointer;min-height:76px;box-shadow:0 5px 15px rgba(20,35,61,.05);font:inherit;color:#24344c}.v13-runtime-tab.active{background:#7451d9;color:#fff;border-color:#7451d9}.v13-runtime-tab .icon{display:block;font-size:19px;margin-bottom:4px}.v13-runtime-tab strong{display:block;font-size:12px}.v13-runtime-tab small{display:block;margin-top:3px;font-size:10px;opacity:.75;font-weight:700}'
+ +'.v13-runtime-body{margin-top:14px}.v13-runtime-empty{border:1px dashed #d6dce5;border-radius:15px;padding:24px;text-align:center;background:#fbfcfe;color:#6f7887}.v13-runtime-empty strong{display:block;color:#24344c;font-size:16px;margin-bottom:6px}'
+ +'.v13-runtime-scales{border:1px solid #e4e7ed;border-radius:17px;background:#fff;padding:15px}.v13-runtime-scales-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.v13-runtime-scales-title{font-size:19px;font-weight:800;color:#24344c}.v13-runtime-terms{display:flex;gap:6px}.v13-runtime-term{border:1px solid #dfe3ea;background:#f4f6f9;color:#465268;border-radius:10px;padding:8px 13px;font-weight:800;cursor:pointer}.v13-runtime-term.active{background:#7451d9;color:#fff;border-color:#7451d9}.v13-runtime-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v13-runtime-group{border:1px solid #e7e9ef;border-radius:14px;padding:12px;background:#fbfcfe}.v13-runtime-group h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;color:#6d7686}.v13-runtime-items{display:flex;flex-wrap:wrap;gap:6px}.v13-runtime-item{padding:6px 9px;border-radius:999px;background:#eef1f5;color:#344258;font-size:11px;font-weight:700}.v13-runtime-meta{margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.v13-runtime-meta>div{border:1px solid #e7e9ef;border-radius:11px;padding:9px;background:#fff}.v13-runtime-meta b{display:block;font-size:10px;color:#7a8494;text-transform:uppercase;margin-bottom:3px}.v13-runtime-meta span{font-size:12px;font-weight:700;color:#344258}'
+ +'.v13-runtime-tech{border:1px solid #e4e7ed;border-radius:17px;background:#fff;padding:15px}.v13-runtime-tech-title{font-size:19px;font-weight:800;color:#24344c}.v13-runtime-tech-sub{font-size:12px;color:#6f7887;margin:4px 0 13px}.v13-runtime-domain-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v13-runtime-domain{border:1px solid #e7e9ef;border-radius:15px;background:#fbfcfe;overflow:hidden}.v13-runtime-domain button{width:100%;border:0;background:transparent;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;font:inherit;color:#24344c;font-weight:800;cursor:pointer}.v13-runtime-domain .left{display:flex;align-items:center;gap:7px}.v13-runtime-chevron{transition:transform .18s ease}.v13-runtime-domain.open .v13-runtime-chevron{transform:rotate(90deg)}.v13-runtime-domain-body{display:none;padding:0 14px 14px}.v13-runtime-domain.open .v13-runtime-domain-body{display:block}.v13-runtime-domain-list{display:flex;flex-wrap:wrap;gap:6px}.v13-runtime-domain-list span{padding:6px 9px;border-radius:999px;background:#eef1f5;color:#465268;font-size:11px;font-weight:700}'
+ +'@media(max-width:1050px){.v13-runtime-nav{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){.v13-runtime-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.v13-runtime-hub-head,.v13-runtime-scales-head{align-items:flex-start;flex-direction:column}.v13-runtime-groups,.v13-runtime-meta,.v13-runtime-domain-grid{grid-template-columns:1fr}}';
+ doc.head.appendChild(s);
+}
+function getScales(doc){try{return frame.contentWindow.parent.VIOLIN_SCALE_CURRICULUM_V1||frame.contentWindow.VIOLIN_SCALE_CURRICULUM_V1||null}catch(e){return null}}
+function asArray(v){return Array.isArray(v)?v:(v==null||v===''?[]:[v])}
+function renderScales(doc,body,level,term){
+ var d=getScales(doc),c=d&&d[level]&&d[level][term];
+ if(!c){body.innerHTML='<div class="v13-runtime-empty"><strong>🎵 SCALES · TERM '+term+'</strong><span>No Scales Curriculum is defined for Level '+level+' · Term '+term+' yet.</span></div>';return}
+ var groups=[['Major',c.major],['Minor',c.minor],['Arpeggios',c.arpeggios],['Dominant 7th',c.dominant7],['Diminished 7th',c.diminished7],['Chromatic',c.chromatic],['Double Stops',c.doubleStops],['One String',c.oneString]];
+ var html='<div class="v13-runtime-groups">';
+ groups.forEach(function(g){var a=asArray(g[1]);if(!a.length)return;html+='<div class="v13-runtime-group"><h4>'+esc(g[0])+'</h4><div class="v13-runtime-items">'+a.map(function(x){return '<span class="v13-runtime-item">'+esc(x)+'</span>'}).join('')+'</div></div>'});
+ html+='</div><div class="v13-runtime-meta">';
+ [['Positions',c.positions],['Bowing',asArray(c.bowing).join(' · ')],['Articulation',asArray(c.articulation).join(' · ')],['Rhythm',asArray(c.rhythm).join(' · ')],['Accents',asArray(c.accents).join(' · ')],['Dynamics / Tempo',asArray(c.dynamics).concat(c.tempo||[]).join(' · ')||'—']].forEach(function(x){html+='<div><b>'+esc(x[0])+'</b><span>'+esc(x[1]||'—')+'</span></div>'});
+ html+='</div>';body.innerHTML=html;
+}
+function renderTechnique(body,level){
+ var html='<div class="v13-runtime-tech"><div class="v13-runtime-tech-title">🧭 GLOBAL TECHNICAL DOMAINS · LEVEL '+level+'</div><div class="v13-runtime-tech-sub">Ο συνολικός τεχνικός χάρτης του curriculum — μέσα στο TECHNIQUE.</div><div class="v13-runtime-domain-grid">';
+ DOMAINS.forEach(function(g){html+='<section class="v13-runtime-domain"><button type="button"><span class="left"><span>'+g.icon+'</span><span>'+esc(g.title)+'</span></span><span class="v13-runtime-chevron">›</span></button><div class="v13-runtime-domain-body"><div class="v13-runtime-domain-list">'+g.items.map(function(x){return '<span>'+esc(x)+'</span>'}).join('')+'</div></div></section>'});
+ html+='</div></div>';body.innerHTML=html;
+ body.querySelectorAll('.v13-runtime-domain button').forEach(function(b){b.addEventListener('click',function(){b.parentNode.classList.toggle('open')})});
+}
+function renderEmpty(body,m,level){body.innerHTML='<div class="v13-runtime-empty"><strong>'+esc(m.icon+' '+m.title)+'</strong><span>Το δικό σου '+esc(m.sub)+' για το Level '+level+' θα εμφανίζεται εδώ. Δεν εισάγεται εξωτερικό curriculum.</span></div>'}
+function activate(hub,key,level,doc){
+ var body=hub.querySelector('.v13-runtime-body');
+ hub.querySelectorAll('.v13-runtime-tab').forEach(function(b){b.classList.toggle('active',b.dataset.module===key)});
+ if(key==='scales'){
+  body.innerHTML='<div class="v13-runtime-scales"><div class="v13-runtime-scales-head"><div class="v13-runtime-scales-title">🎵 SCALES CURRICULUM · LEVEL '+level+'</div><div class="v13-runtime-terms"><button type="button" class="v13-runtime-term active" data-term="1">TERM 1</button><button type="button" class="v13-runtime-term" data-term="2">TERM 2</button></div></div><div class="v13-runtime-scale-content"></div></div>';
+  var content=body.querySelector('.v13-runtime-scale-content');
+  function paint(term){renderScales(doc,content,level,term);body.querySelectorAll('.v13-runtime-term').forEach(function(b){b.classList.toggle('active',b.dataset.term===String(term))})}
+  body.querySelectorAll('.v13-runtime-term').forEach(function(b){b.addEventListener('click',function(){paint(+b.dataset.term)})});paint(1);
+ } else if(key==='technique') renderTechnique(body,level);
+ else renderEmpty(body,MODULES.filter(function(m){return m.key===key})[0],level);
+}
+function mount(){
+ var doc=getDoc();if(!doc)return;
+ var level=getLevel(doc);if(!level)return;
+ var grid=findLegacyGrid(doc);if(!grid)return;
+ style(doc);hideLegacyPanels(doc);
+ var hub=doc.getElementById('v13-curriculum-hub-runtime-v1');
+ if(!hub){
+  hub=doc.createElement('section');hub.id='v13-curriculum-hub-runtime-v1';hub.className='v13-runtime-hub';
+  hub.innerHTML='<div class="v13-runtime-hub-head"><h2>🧭 CURRICULUM HUB · LEVEL '+level+'</h2><span>5 CURRICULUM MODULES</span></div><div class="v13-runtime-nav">'+MODULES.map(function(m){return '<button type="button" class="v13-runtime-tab" data-module="'+m.key+'"><span class="icon">'+m.icon+'</span><strong>'+esc(m.title)+'</strong><small>'+esc(m.sub)+'</small></button>'}).join('')+'</div><div class="v13-runtime-body"></div>';
+  grid.parentNode.insertBefore(hub,grid);
+  grid.style.display='none';
+  hub.querySelectorAll('.v13-runtime-tab').forEach(function(b){b.addEventListener('click',function(){activate(hub,b.dataset.module,level,doc)})});
+  activate(hub,'scales',level,doc);
+ } else grid.style.display='none';
+ hideLegacyPanels(doc);
+}
+function watch(){
+ mount();
+ try{var doc=getDoc();if(doc&&!doc.__v13HubRuntimeObserver){doc.__v13HubRuntimeObserver=true;new MutationObserver(function(){mount()}).observe(doc.documentElement,{childList:true,subtree:true})}}catch(e){}
+}
+frame.addEventListener('load',function(){setTimeout(watch,40);setTimeout(watch,200);setTimeout(watch,700)});
+setInterval(watch,1000);
+})();
