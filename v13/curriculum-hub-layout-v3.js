@@ -1,8 +1,8 @@
-/* V13 CURRICULUM HUB V3 — SAFE ADDITIVE LEVEL SHELL
-   - Uses the canonical Level hero as the page boundary.
-   - Hides only the original 4-card summary on a confirmed Level detail page.
-   - Leaves Global Technical Domains and the existing Level Scales display intact.
-   - SCALES is a read-only mirror of the shared Scales Curriculum data.
+/* V13 CURRICULUM HUB V4 — SINGLE OWNER LEVEL CURRICULUM SHELL
+   - The Hub owns the five Level curriculum modules.
+   - SCALES is a read-only view of the canonical shared Scales Curriculum data.
+   - TECHNIQUE contains the Global Technical Domains; they are no longer rendered
+     as a separate panel below the Hub.
    - No Homework/Lesson/Student state is read or written.
 */
 (function(){
@@ -15,6 +15,12 @@ var MODULES=[
  {key:'etudes',icon:'📚',title:'ÉTUDES',sub:'Études Curriculum'},
  {key:'technical-exercises',icon:'🏋️',title:'TECHNICAL EXERCISES',sub:'Technical Exercises Curriculum'},
  {key:'technique',icon:'🧩',title:'TECHNIQUE',sub:'Technique Curriculum'}
+];
+var DOMAIN_GROUPS=[
+ {key:'left',icon:'🖐️',title:'LEFT HAND',items:['1st position','Finger placement','Finger independence','Finger release','Finger lift','Finger patterns','Finger strength','Extensions','Frame','Chromatic fingering','Shifting preparation','Shifting','Position changes','High positions','Trills','Vibrato','Double stops','Harmonics','Fingered octaves','Tenths','Advanced left-hand coordination']},
+ {key:'thumb',icon:'👍',title:'THUMB',items:['Thumb relaxation','Thumb position','Thumb mobility','Thumb release','Thumb during shifting','Thumb–hand coordination','Thumb in high positions','Thumb during double stops','Thumb/hand unity']},
+ {key:'right',icon:'🎻',title:'RIGHT HAND / BOW',items:['Bow hold','Relaxed bow hand','Thumb flexibility','Finger flexibility','Straight bow','Bow angle','Bow contact point','Bow speed','Bow weight','Sounding point','Bow distribution','Elbow levels','String crossings','Bow changes','Rapid string crossings','Tone production']},
+ {key:'strokes',icon:'🎯',title:'STROKES & ARTICULATION',items:['Détaché','Legato','Simple hooked bow','Martelé','Accented détaché','Advanced hooked bow','Collé','Spiccato','Flying strokes','Sautillé','Advanced mixed bow strokes']}
 ];
 function txt(v){return String(v==null?'':v).replace(/\s+/g,' ').trim()}
 function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -40,15 +46,16 @@ function findSummaryGrid(doc){
 }
 function scaleData(doc){try{return doc.defaultView&&doc.defaultView.parent&&doc.defaultView.parent.VIOLIN_SCALE_CURRICULUM_V1?doc.defaultView.parent.VIOLIN_SCALE_CURRICULUM_V1:null}catch(e){return null}}
 function css(doc){
- if(doc.getElementById('v13-curriculum-hub-v3-style'))return;
- var s=doc.createElement('style');s.id='v13-curriculum-hub-v3-style';
+ if(doc.getElementById('v13-curriculum-hub-v4-style'))return;
+ var s=doc.createElement('style');s.id='v13-curriculum-hub-v4-style';
  s.textContent=''
  +'.v13-hub-v3{margin:0 0 18px;padding:18px;border:1px solid #e1e5ec;border-radius:22px;background:linear-gradient(135deg,#fff,#f8f6ff);box-shadow:0 10px 28px rgba(20,35,61,.07)}'
  +'.v13-hub-v3-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.v13-hub-v3-head h2{margin:0;color:#24344c;font-size:23px}.v13-hub-v3-head span{font-size:11px;font-weight:800;color:#7451d9}'
  +'.v13-hub-v3-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.v13-hub-v3-tab{border:1px solid #e0e4eb;border-radius:15px;background:#fff;padding:12px 10px;text-align:left;cursor:pointer;min-height:76px;box-shadow:0 5px 15px rgba(20,35,61,.05);font:inherit;color:#24344c}.v13-hub-v3-tab:hover{transform:translateY(-1px)}.v13-hub-v3-tab.active{background:#7451d9;color:#fff;border-color:#7451d9}.v13-hub-v3-tab .icon{display:block;font-size:19px;margin-bottom:4px}.v13-hub-v3-tab strong{display:block;font-size:12px}.v13-hub-v3-tab small{display:block;margin-top:3px;font-size:10px;opacity:.75;font-weight:700}'
  +'.v13-hub-v3-body{margin-top:14px}.v13-hub-v3-empty{border:1px dashed #d6dce5;border-radius:15px;padding:22px;text-align:center;background:#fbfcfe;color:#6f7887}.v13-hub-v3-empty strong{display:block;color:#24344c;font-size:16px;margin-bottom:5px}'
  +'.v13-hub-v3-scales{border:1px solid #e4e7ed;border-radius:17px;background:#fff;padding:15px}.v13-hub-v3-scales-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.v13-hub-v3-scales-title{font-size:19px;font-weight:800;color:#24344c}.v13-hub-v3-terms{display:flex;gap:6px}.v13-hub-v3-term{border:1px solid #dfe3ea;background:#f4f6f9;color:#465268;border-radius:10px;padding:8px 13px;font-weight:800;cursor:pointer}.v13-hub-v3-term.active{background:#7451d9;color:#fff;border-color:#7451d9}.v13-hub-v3-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v13-hub-v3-group{border:1px solid #e7e9ef;border-radius:14px;padding:12px;background:#fbfcfe}.v13-hub-v3-group h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;color:#6d7686}.v13-hub-v3-items{display:flex;flex-wrap:wrap;gap:6px}.v13-hub-v3-item{padding:6px 9px;border-radius:999px;background:#eef1f5;color:#344258;font-size:11px;font-weight:700}.v13-hub-v3-meta{margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.v13-hub-v3-meta>div{border:1px solid #e7e9ef;border-radius:11px;padding:9px;background:#fff}.v13-hub-v3-meta b{display:block;font-size:10px;color:#7a8494;text-transform:uppercase;margin-bottom:3px}.v13-hub-v3-meta span{font-size:12px;font-weight:700;color:#344258}'
- +'@media(max-width:1050px){.v13-hub-v3-nav{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){.v13-hub-v3-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.v13-hub-v3-head,.v13-hub-v3-scales-head{align-items:flex-start;flex-direction:column}.v13-hub-v3-groups,.v13-hub-v3-meta{grid-template-columns:1fr}}';
+ +'.v13-hub-v3-tech{border:1px solid #e4e7ed;border-radius:17px;background:#fff;padding:15px}.v13-hub-v3-tech-head{margin-bottom:13px}.v13-hub-v3-tech-title{font-size:19px;font-weight:800;color:#24344c}.v13-hub-v3-tech-sub{font-size:12px;color:#6f7887;margin-top:4px}.v13-hub-v3-domain-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.v13-hub-v3-domain{border:1px solid #e7e9ef;border-radius:15px;background:#fbfcfe;overflow:hidden}.v13-hub-v3-domain-btn{width:100%;border:0;background:transparent;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;font:inherit;color:#24344c;font-weight:800;cursor:pointer}.v13-hub-v3-domain-btn .left{display:flex;align-items:center;gap:7px}.v13-hub-v3-chevron{font-size:14px;transition:transform .18s ease}.v13-hub-v3-domain.open .v13-hub-v3-chevron{transform:rotate(90deg)}.v13-hub-v3-domain-body{display:none;padding:0 14px 14px}.v13-hub-v3-domain.open .v13-hub-v3-domain-body{display:block}.v13-hub-v3-domain-list{display:flex;flex-wrap:wrap;gap:6px}.v13-hub-v3-domain-list span{display:inline-block;padding:6px 9px;border-radius:999px;background:#eef1f5;color:#465268;font-size:11px;font-weight:700}'
+ +'@media(max-width:1050px){.v13-hub-v3-nav{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:700px){.v13-hub-v3-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.v13-hub-v3-head,.v13-hub-v3-scales-head{align-items:flex-start;flex-direction:column}.v13-hub-v3-groups,.v13-hub-v3-meta,.v13-hub-v3-domain-grid{grid-template-columns:1fr}}';
  doc.head.appendChild(s);
 }
 function arr(v){return Array.isArray(v)?v:(v==null||v===''?[]:[v])}
@@ -62,6 +69,12 @@ function renderScales(doc,body,level,term){
  [['Positions',c.positions],['Bowing',arr(c.bowing).join(' · ')],['Articulation',arr(c.articulation).join(' · ')],['Rhythm',arr(c.rhythm).join(' · ')],['Accents',arr(c.accents).join(' · ')],['Dynamics / Tempo',arr(c.dynamics).concat(c.tempo||[]).join(' · ')||'—']].forEach(function(x){html+='<div><b>'+esc(x[0])+'</b><span>'+esc(x[1]||'—')+'</span></div>'});
  html+='</div>';body.innerHTML=html;
 }
+function renderTechnique(body,level){
+ var html='<div class="v13-hub-v3-tech"><div class="v13-hub-v3-tech-head"><div class="v13-hub-v3-tech-title">🧭 GLOBAL TECHNICAL DOMAINS · LEVEL '+level+'</div><div class="v13-hub-v3-tech-sub">Ο συνολικός τεχνικός χάρτης του curriculum — οργανωμένος σε τέσσερις βασικούς άξονες.</div></div><div class="v13-hub-v3-domain-grid">';
+ DOMAIN_GROUPS.forEach(function(g){html+='<section class="v13-hub-v3-domain"><button type="button" class="v13-hub-v3-domain-btn"><span class="left"><span>'+g.icon+'</span><span>'+esc(g.title)+'</span></span><span class="v13-hub-v3-chevron">›</span></button><div class="v13-hub-v3-domain-body"><div class="v13-hub-v3-domain-list">'+g.items.map(function(x){return '<span>'+esc(x)+'</span>'}).join('')+'</div></div></section>'});
+ html+='</div></div>';body.innerHTML=html;
+ body.querySelectorAll('.v13-hub-v3-domain-btn').forEach(function(btn){btn.addEventListener('click',function(){btn.parentNode.classList.toggle('open')})});
+}
 function renderPlaceholder(body,m,level){body.innerHTML='<div class="v13-hub-v3-empty"><strong>'+esc(m.icon+' '+m.title)+'</strong><span>Your own '+esc(m.sub)+' for Level '+level+' will appear here. No external curriculum is inserted.</span></div>'}
 function renderModule(hub,key,level,doc){
  var body=hub.querySelector('.v13-hub-v3-body');if(!body)return;
@@ -71,6 +84,7 @@ function renderModule(hub,key,level,doc){
   function paint(term){renderScales(doc,content,level,term);body.querySelectorAll('.v13-hub-v3-term').forEach(function(b){b.classList.toggle('active',b.dataset.term===String(term))})}
   body.querySelectorAll('.v13-hub-v3-term').forEach(function(b){b.addEventListener('click',function(){paint(+b.dataset.term)})});paint(1);return;
  }
+ if(key==='technique'){renderTechnique(body,level);return;}
  renderPlaceholder(body,MODULES.filter(function(x){return x.key===key})[0],level);
 }
 function mount(doc,grid,level){
@@ -82,12 +96,13 @@ function mount(doc,grid,level){
   grid.parentNode.insertBefore(hub,grid);
   hub.querySelectorAll('.v13-hub-v3-tab').forEach(function(btn){btn.addEventListener('click',function(){hub.querySelectorAll('.v13-hub-v3-tab').forEach(function(b){b.classList.toggle('active',b===btn)});renderModule(hub,btn.dataset.module,level,doc)})});
  }
+ if(hub.dataset.level!==String(level)){hub.dataset.level=String(level);var title=hub.querySelector('.v13-hub-v3-head h2');if(title)title.textContent='🧭 CURRICULUM HUB · LEVEL '+level;}
  if(grid.dataset.v13HubV3Hidden!=='1'){grid.dataset.v13HubV3Hidden='1';grid.style.display='none'}
  var active=hub.querySelector('.v13-hub-v3-tab.active');
  if(active&&hub.querySelector('.v13-hub-v3-body').childElementCount===0)renderModule(hub,active.dataset.module,level,doc);
 }
 function restore(doc){var hub=doc.getElementById('v13-curriculum-hub-v3');if(hub)hub.remove();var grids=doc.querySelectorAll('.grid');for(var i=0;i<grids.length;i++){if(grids[i].dataset&&grids[i].dataset.v13HubV3Hidden==='1'){grids[i].style.display='';delete grids[i].dataset.v13HubV3Hidden}}}
-function tick(){try{var doc=frame.contentDocument;if(!doc||!doc.body)return;var level=levelFromHero(doc),grid=findSummaryGrid(doc);if(level==null||!grid){restore(doc);return}mount(doc,grid,level)}catch(e){console.error('[V13 Curriculum Hub V3]',e)}}
+function tick(){try{var doc=frame.contentDocument;if(!doc||!doc.body)return;var level=levelFromHero(doc),grid=findSummaryGrid(doc);if(level==null||!grid){restore(doc);return}mount(doc,grid,level)}catch(e){console.error('[V13 Curriculum Hub V4]',e)}}
 frame.addEventListener('load',function(){setTimeout(tick,100);setTimeout(tick,400);setTimeout(tick,1000)});
 setInterval(tick,1000);tick();
 })();
