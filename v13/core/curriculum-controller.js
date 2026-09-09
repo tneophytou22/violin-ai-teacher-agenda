@@ -1,9 +1,9 @@
 (function(w){'use strict';
-/* V13 Curriculum Controller — one selection store for all curricula.
+/* V13 Curriculum Controller — one canonical selection store for all curricula.
    { studentId: { lesson: {scales: payload,...}, homework: {scales: payload,...} } }
    Legacy single-record V2 entries remain readable. */
 var C=w.VIOLIN_AI_CURRICULUM=w.VIOLIN_AI_CURRICULUM||{};
-C.VERSION='1.1'; C.registry=C.registry||{};
+C.VERSION='1.2'; C.registry=C.registry||{};
 C.register=function(name,adapter){if(name&&adapter)C.registry[name]=adapter};
 C.get=function(name){return C.registry[name]||null};
 var KEY='VIOLIN_AI_CURRICULUM_SELECTION_V2';
@@ -16,6 +16,12 @@ function getSelection(id,k,c){var v=read()[sid(id)];if(!v)return null;k=k==='hom
 function clear(id,k,c){var x=read(),v=x[sid(id)];if(!v)return;if(isNew(v)){k=k==='homework'?'homework':'lesson';c=c||'scales';if(v[k])delete v[k][c];if(!Object.keys(v.lesson).length&&!Object.keys(v.homework).length)delete x[sid(id)]}else if(!k||v.kind===k)delete x[sid(id)];write(x)}
 function list(c,l,t){var a=C.get(c);return a&&typeof a.list==='function'?a.list(l,t):[]}
 function normalize(c,item,meta){var a=C.get(c);return a&&typeof a.normalize==='function'?a.normalize(item,meta||{}):(C.normalize?C.normalize(item,Object.assign({},meta,{curriculum:c})):item)}
-C.controller={version:'1.1',list:list,normalize:normalize,select:select,getSelection:getSelection,clear:clear,selectionKey:KEY};
+/* Homework API — canonical facade over the same V2 selection store.
+   No parallel homework queue is created. */
+function addHomework(p){p=Object.assign({},p||{},{kind:'homework'});return select(p)}
+function getHomework(id,c){return getSelection(id,'homework',c||'scales')}
+function itemKey(x){return [x&&x.curriculum||'',x&&x.id||'',x&&x.title||x&&x.name||''].join('|').toLowerCase()}
+function removeHomework(id,key,c){var cur=getHomework(id,c||'scales');if(!cur||!Array.isArray(cur.items))return null;var target=String(key||'').toLowerCase();var items=cur.items.filter(function(x){return itemKey(x)!==target});if(items.length===cur.items.length)return cur;if(!items.length){clear(id,'homework',c||cur.curriculum||'scales');return null}return select(Object.assign({},cur,{kind:'homework',items:items}))}
+C.controller={version:'1.2',list:list,normalize:normalize,select:select,getSelection:getSelection,clear:clear,addHomework:addHomework,getHomework:getHomework,removeHomework:removeHomework,selectionKey:KEY};
 w.VIOLIN_AI_CURRICULUM=C;
 })(window);
