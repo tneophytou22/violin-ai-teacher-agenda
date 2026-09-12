@@ -16,11 +16,10 @@ export class LessonService {
     const lesson = await this.get(lessonId);
     if (!lesson) throw new Error('Lesson not found');
     const items = await this.repo.list('programmeItems');
-    const allowed = new Set(items.filter(i => this.#belongsToLessonTerm(i, lesson.termId)).map(i => i.id));
+    const allowed = new Set(items.filter(i => i.termId === lesson.termId).map(i => i.id));
     if (programmeItemIds.some(id => !allowed.has(id))) throw new Error('Reviewed ProgrammeItem does not belong to the lesson term');
     lesson.reviewedProgrammeItemIds = [...new Set(programmeItemIds)];
     lesson.version += 1;
     return this.repo.put('lessons', lesson);
   }
-  async #belongsToLessonTerm(item, termId) { return item.termId === termId; }
 }
