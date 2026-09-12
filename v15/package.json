@@ -1,0 +1,6 @@
+{
+  "name": "violin-ai-teacher-agenda-v15-foundation",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test" }
+}
