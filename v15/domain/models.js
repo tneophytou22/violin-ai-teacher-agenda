@@ -10,7 +10,7 @@ export function createStudent({ name, schoolType = 'PRIVATE', instrument = 'VIOL
 export function createTerm({ studentId, name, startDate, endDate, level = null, termNumber = 1 }) {
   if (!studentId) throw new Error('Term.studentId is required');
   if (!name?.trim()) throw new Error('Term name is required');
-  if (!Number.isInteger(level) || level < 1 || level > 10) throw new Error('Term.level must be an integer from 1–10');
+  if (level !== null && (!Number.isInteger(level) || level < 1 || level > 10)) throw new Error('Term.level must be an integer from 1–10 or null');
   if (!Number.isInteger(termNumber) || termNumber < 1 || termNumber > 2) throw new Error('Term.termNumber must be 1 or 2');
   return { id: id('term'), studentId, name: name.trim(), startDate, endDate, level, termNumber, version: 1 };
 }
