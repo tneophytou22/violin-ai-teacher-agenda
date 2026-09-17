@@ -7,17 +7,19 @@ export function createStudent({ name, schoolType = 'PRIVATE', instrument = 'VIOL
   return { id: id('stu'), name: name.trim(), schoolType, instrument, createdAt: new Date().toISOString() };
 }
 
-export function createTerm({ studentId, name, startDate, endDate, level = null }) {
+export function createTerm({ studentId, name, startDate, endDate, level = null, termNumber = 1 }) {
   if (!studentId) throw new Error('Term.studentId is required');
   if (!name?.trim()) throw new Error('Term name is required');
-  return { id: id('term'), studentId, name: name.trim(), startDate, endDate, level, version: 1 };
+  if (!Number.isInteger(level) || level < 1 || level > 10) throw new Error('Term.level must be an integer from 1–10');
+  if (!Number.isInteger(termNumber) || termNumber < 1 || termNumber > 2) throw new Error('Term.termNumber must be 1 or 2');
+  return { id: id('term'), studentId, name: name.trim(), startDate, endDate, level, termNumber, version: 1 };
 }
 
-export function createProgrammeItem({ termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status = 'PLANNED' }) {
+export function createProgrammeItem({ termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status = 'PLANNED', cardId = null }) {
   if (!termId) throw new Error('ProgrammeItem.termId is required');
   if (!curriculumId || !curriculumDomain || !objectId) throw new Error('ProgrammeItem curriculum identity is required');
   if (!Number.isInteger(targetWeek) || targetWeek < 1) throw new Error('ProgrammeItem.targetWeek is mandatory');
-  return { id: id('pi'), termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status, completedAt: status === 'COMPLETED' ? new Date().toISOString() : null };
+  return { id: id('pi'), termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status, cardId, completedAt: status === 'COMPLETED' ? new Date().toISOString() : null };
 }
 
 export function createLesson({ termId, date, mark = null, attendance = 'PRESENT', reviewedProgrammeItemIds = [] }) {
