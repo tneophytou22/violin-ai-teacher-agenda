@@ -8,3 +8,5 @@ export { LessonService } from './services/lesson-service.js';
 export { ProgrammeService } from './services/programme-service.js';
 export { HomeworkService } from './services/homework-service.js';
 export * from './curriculum/registry.js';
+export * from './tktl/teacher-unit-card.js';
+export * from './tktl/registry.js';
