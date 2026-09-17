@@ -25,8 +25,8 @@ test('activated TKTL card creates 15 programme items and weekly summary can be a
   const items = await weekly.listForTerm(term.id, 1);
   assert.equal(items.length, 15);
 
-  const pureTechnical = items.filter(i => i.curriculumDomain === 'PURETECHNICAL');
-  const etudes = items.filter(i => i.curriculumDomain === 'ETUDES');
+  const pureTechnical = items.filter(i => i.curriculumDomain === 'PURE_TECHNICAL');
+  const etudes = items.filter(i => i.curriculumDomain === 'ETUDE');
   const repertoire = items.filter(i => i.curriculumDomain === 'REPERTOIRE');
   assert.equal(pureTechnical.length, 5);
   assert.equal(etudes.length, 5);
@@ -39,7 +39,7 @@ test('activated TKTL card creates 15 programme items and weekly summary can be a
   const summary = await weekly.summary(term.id, 3);
   assert.equal(summary.total, 1);
   assert.equal(summary.completed, 0);
-  assert.equal(summary.byDomain.PURETECHNICAL.total, 1);
+  assert.equal(summary.byDomain.PURE_TECHNICAL.total, 1);
 });
 
 test('weekly programme validates against the active TKTL card', async () => {
