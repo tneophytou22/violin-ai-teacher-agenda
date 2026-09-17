@@ -10,6 +10,7 @@ export { HomeworkService } from './services/homework-service.js';
 export { TeacherTermService } from './services/teacher-term-service.js';
 export { WeeklyProgrammeService } from './services/weekly-programme-service.js';
 export { LessonProgrammeService } from './services/lesson-programme-service.js';
+export { TeacherAgendaViewModel } from './ui/teacher-agenda-view-model.js';
 export * from './curriculum/registry.js';
 export * from './curriculum/v1-registration.js';
 export * from './tktl/teacher-unit-card.js';
