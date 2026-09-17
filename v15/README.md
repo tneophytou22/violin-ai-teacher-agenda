@@ -13,6 +13,7 @@ This directory is the first implementation checkpoint of the validated V15 archi
 - The validated Scales architecture remains the reference implementation for future curriculum modules.
 - Production browser persistence uses IndexedDB behind the repository contract.
 - Storage schema versions are explicit and future versions are rejected rather than silently interpreted.
+- TKTL Teacher Unit Cards are curriculum intelligence, not a second business-data store.
 
 ## Checkpoint 1 — Foundation
 Implemented:
@@ -35,5 +36,17 @@ Implemented on the V15 implementation branch:
 - future-schema rejection
 - persistence contract tests
 
+## Checkpoint 3 — TKTL contract
+Implemented:
+- Teacher Unit Card domain contract
+- locked Level 1–10 / Term 1–2 structure
+- exactly five Pure Technical choices per card
+- exactly five Etude/Study/Caprice choices per card
+- exactly five Repertoire choices per card
+- readiness criteria and next-term dependency fields
+- difficulty band and evidence status fields
+- Teacher Unit Card registry
+- automated TKTL contract tests
+
 ## Next checkpoint
-Curriculum/TKTL integration and UI wiring. The UI must consume V15 services/repositories rather than becoming a second business-data store.
+Register the validated curriculum cards and wire Student → Level/Term → Teacher Unit Card → lesson decision flow. The UI must consume V15 services/repositories rather than becoming a second business-data store.
