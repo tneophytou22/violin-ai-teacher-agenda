@@ -1,0 +1,28 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { InMemoryRepository, StudentService, TermService, TeacherTermService, WeeklyProgrammeService, LessonService, LessonProgrammeService } from '../index.js';
+import { TeacherAgendaViewModel } from '../ui/teacher-agenda-view-model.js';
+import { TeacherAgendaController } from '../ui/teacher-agenda-controller.js';
+import { TeacherAgendaShell } from '../ui/teacher-agenda-shell.js';
+import { registerV1Curricula } from '../curriculum/v1-registration.js';
+
+class FakeRoot {
+  constructor() { this.innerHTML = ''; }
+  querySelector() { return null; }
+  querySelectorAll() { return []; }
+}
+
+test('teacher agenda shell renders the V15 workspace from controller state', async () => {
+  const repo = new InMemoryRepository(); registerV1Curricula();
+  const studentService = new StudentService(repo); const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo); const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo); const lessonProgramme = new LessonProgrammeService(repo);
+  const vm = new TeacherAgendaViewModel({ studentService, termService, teacherTermService, weeklyProgrammeService: weekly, lessonService: lessons, lessonProgrammeService: lessonProgramme });
+  const controller = new TeacherAgendaController(vm); const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-17' });
+  await studentService.create({ name: 'Shell Test' });
+  await shell.start();
+  assert.match(root.innerHTML, /Teacher Agenda/); assert.match(root.innerHTML, /Select student/);
+});
+
+test('shell requires the V15 controller boundary', () => assert.throws(() => new TeacherAgendaShell({ controller: {}, root: new FakeRoot() }), /TeacherAgendaController/));
