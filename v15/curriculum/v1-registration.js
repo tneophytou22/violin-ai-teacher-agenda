@@ -1,5 +1,6 @@
 import { getCurriculum, registerCurriculum } from './registry.js';
 import { listTeacherUnitCards } from '../tktl/registry.js';
+import '../tktl/cards-v1.js';
 
 const DOMAINS = Object.freeze([
   ['PURE_TECHNICAL', 'pure-technical-v1', '1.0.0', 'pureTechnical'],
