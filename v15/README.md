@@ -47,6 +47,24 @@ Implemented:
 - difficulty band and evidence status fields
 - Teacher Unit Card registry
 - automated TKTL contract tests
+- canonical L1–L10 card export
+
+## Checkpoint 4 — Curriculum + teacher workflow
+Implemented:
+- V1 registration for Pure Technical, Etude and Repertoire curricula
+- TeacherTermService: Student → Level/Term → TKTL Card → Programme Items
+- exactly 15 ProgrammeItems generated per active TKTL card
+- idempotent card activation
+- WeeklyProgrammeService for week assignment, weekly summaries and card validation
+- LessonProgrammeService for review, explicit completion and carry-forward
+- cross-term protection for lesson review
+- TeacherAgendaViewModel as a UI/application composition boundary
+- automated integration tests for the weekly and lesson workflow
+
+## Current application flow
+Student → Active Term → Level/Term → TKTL Teacher Unit Card → 15 Programme Items → Weekly Programme → Lesson → Review → Explicit Completion → Derived Progress.
+
+The UI/application layer must consume these services and repositories; it must not become a second business-data store.
 
 ## Next checkpoint
-Register the validated curriculum cards and wire Student → Level/Term → Teacher Unit Card → lesson decision flow. The UI must consume V15 services/repositories rather than becoming a second business-data store.
+Build the first teacher-facing Agenda UI against TeacherAgendaViewModel. Keep UI state separate from business state and preserve the service ownership boundaries above. The first screen should support student selection, active term/card context, weekly programme display, lesson creation, review/completion and carry-forward actions.
