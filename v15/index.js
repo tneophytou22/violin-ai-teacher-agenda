@@ -11,3 +11,4 @@ export * from './curriculum/registry.js';
 export * from './tktl/teacher-unit-card.js';
 export * from './tktl/registry.js';
 export * from './tktl/cards-v1.js';
+export * from './tktl/cards-l5-l6.js';
