@@ -9,6 +9,7 @@ export class TeacherAgendaApp {
     this.today = today;
     this.prompt = prompt;
     this.#onChange = this.#onChange.bind(this);
+    this.#onClick = this.#onClick.bind(this);
   }
 
   async start() {
@@ -35,7 +36,7 @@ export class TeacherAgendaApp {
       if (action === 'term') await this.controller.selectTerm(event.target.value);
       if (action === 'week') await this.controller.selectWeek(Number(event.target.value));
       this.render();
-    } catch (error) {
+    } catch {
       this.render();
     }
   }
@@ -56,7 +57,7 @@ export class TeacherAgendaApp {
         if (Number.isInteger(targetWeek) && targetWeek >= 1) await this.controller.carryForward(event.target.dataset.itemId, targetWeek);
       }
       this.render();
-    } catch (error) {
+    } catch {
       this.render();
     }
   }
