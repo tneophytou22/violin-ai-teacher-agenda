@@ -1,5 +1,7 @@
 export * from './domain/models.js';
 export { InMemoryRepository } from './repository/in-memory-repository.js';
+export { IndexedDBRepository, DB_VERSION, STORE_NAMES } from './repository/indexed-db-repository.js';
+export { StorageService, STORAGE_SCHEMA_VERSION } from './services/storage-service.js';
 export { StudentService } from './services/student-service.js';
 export { TermService } from './services/term-service.js';
 export { LessonService } from './services/lesson-service.js';
