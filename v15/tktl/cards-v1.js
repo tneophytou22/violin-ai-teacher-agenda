@@ -19,3 +19,4 @@ export const L1_L4_TKTL_V1 = Object.freeze([L1T1, L1T2, L2T1, L2T2, L3T1, L3T2, 
 
 export * from './cards-l5-l6.js';
 export * from './cards-l7-l8.js';
+export * from './cards-l9-l10.js';
