@@ -1,0 +1,7 @@
+[data-v15="teacher-agenda"] { font-family: system-ui, sans-serif; max-width: 1100px; margin: 0 auto; padding: 24px; }
+[data-v15="teacher-agenda"] header { margin-bottom: 24px; }
+[data-v15="teacher-agenda"] section { margin: 16px 0; }
+[data-v15="teacher-agenda"] ul { list-style: none; padding: 0; }
+[data-v15="teacher-agenda"] li { display: flex; gap: 12px; align-items: center; padding: 8px 0; }
+[data-v15="teacher-agenda"] button, [data-v15="teacher-agenda"] select { padding: 6px 10px; }
+[data-v15="teacher-agenda"] [role="alert"] { padding: 10px; border: 1px solid; margin-bottom: 12px; }
