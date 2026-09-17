@@ -3,9 +3,9 @@ import { requireTeacherUnitCard } from '../tktl/registry.js';
 import { registerV1Curricula, V1_CURRICULUM_IDS } from '../curriculum/v1-registration.js';
 
 const FIELD_TO_CURRICULUM = Object.freeze([
-  ['pureTechnical', V1_CURRICULUM_IDS.PURE_TECHNICAL],
-  ['etudes', V1_CURRICULUM_IDS.ETUDE],
-  ['repertoire', V1_CURRICULUM_IDS.REPERTOIRE],
+  ['pureTechnical', V1_CURRICULUM_IDS.PURE_TECHNICAL, 'PURE_TECHNICAL'],
+  ['etudes', V1_CURRICULUM_IDS.ETUDE, 'ETUDE'],
+  ['repertoire', V1_CURRICULUM_IDS.REPERTOIRE, 'REPERTOIRE'],
 ]);
 
 export class TeacherTermService {
@@ -34,13 +34,13 @@ export class TeacherTermService {
     if (existingForCard.length) return { card, programmeItems: existingForCard };
 
     const programmeItems = [];
-    for (const [field, curriculumId] of FIELD_TO_CURRICULUM) {
+    for (const [field, curriculumId, curriculumDomain] of FIELD_TO_CURRICULUM) {
       for (let index = 0; index < card[field].length; index += 1) {
         programmeItems.push(await this.repo.put('programmeItems', createProgrammeItem({
           termId,
           curriculumId,
-          curriculumDomain: field.toUpperCase(),
-          objectId: `${card.id}:${field.toUpperCase()}:${index + 1}`,
+          curriculumDomain,
+          objectId: `${card.id}:${curriculumDomain}:${index + 1}`,
           title: card[field][index],
           targetWeek: 1,
           cardId: card.id,
