@@ -10,3 +10,4 @@ export { HomeworkService } from './services/homework-service.js';
 export * from './curriculum/registry.js';
 export * from './tktl/teacher-unit-card.js';
 export * from './tktl/registry.js';
+export * from './tktl/cards-v1.js';
