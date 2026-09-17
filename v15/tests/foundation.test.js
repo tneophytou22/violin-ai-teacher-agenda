@@ -25,6 +25,23 @@ test('student → term → lesson → homework flow', async () => {
   assert.equal((await programmes.progress(term.id, 3)).completedCount, 0);
 });
 
+test('concurrent first homework assignments produce one record per lesson', async () => {
+  const repo = new InMemoryRepository();
+  const student = await new StudentService(repo).create({ name: 'Concurrent Test' });
+  const term = await new TermService(repo).create({ studentId: student.id, name: 'T', startDate: '2026-09-01', endDate: '2026-12-31' });
+  const lesson = await new LessonService(repo).create({ termId: term.id, date: '2026-09-12' });
+  const homework = new HomeworkService(repo);
+
+  await Promise.all([
+    homework.assignHomework({ lessonId: lesson.id, items: [{ text: 'A' }] }),
+    homework.assignHomework({ lessonId: lesson.id, items: [{ text: 'B' }] })
+  ]);
+
+  const records = await repo.list('homework');
+  assert.equal(records.length, 1);
+  assert.equal(records[0].lessonId, lesson.id);
+});
+
 test('programme completion is independent from homework/review', async () => {
   const repo = new InMemoryRepository();
   const student = await new StudentService(repo).create({ name: 'A' });
