@@ -1,10 +1,19 @@
-import { StorageService, StudentService, TermService, TeacherTermService, WeeklyProgrammeService, LessonService, LessonProgrammeService, TeacherAgendaViewModel, TeacherAgendaController } from '../index.js';
+import { StorageService } from '../services/storage-service.js';
+import { StudentService } from '../services/student-service.js';
+import { TermService } from '../services/term-service.js';
+import { TeacherTermService } from '../services/teacher-term-service.js';
+import { WeeklyProgrammeService } from '../services/weekly-programme-service.js';
+import { LessonService } from '../services/lesson-service.js';
+import { LessonProgrammeService } from '../services/lesson-programme-service.js';
+import { TeacherAgendaViewModel } from './teacher-agenda-view-model.js';
+import { TeacherAgendaController } from './teacher-agenda-controller.js';
 import { TeacherAgendaShell } from './teacher-agenda-shell.js';
 
-export function createTeacherAgendaApp({ root, dbName } = {}) {
+export function createTeacherAgendaApp({ root, dbName, repository } = {}) {
   if (!root) throw new Error('Teacher Agenda app requires a root element');
-  const storage = new StorageService({ dbName });
-  const repo = storage.getRepository();
+
+  const storage = repository ? null : new StorageService({ dbName });
+  const repo = repository ?? storage.getRepository();
   const controller = new TeacherAgendaController(new TeacherAgendaViewModel({
     studentService: new StudentService(repo),
     termService: new TermService(repo),
@@ -14,5 +23,5 @@ export function createTeacherAgendaApp({ root, dbName } = {}) {
     lessonProgrammeService: new LessonProgrammeService(repo),
   }));
   const shell = new TeacherAgendaShell({ controller, root });
-  return { storage, controller, shell };
+  return { storage, repository: repo, controller, shell };
 }
