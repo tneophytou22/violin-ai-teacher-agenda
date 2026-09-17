@@ -27,7 +27,7 @@ export function createLesson({ termId, date, mark = null, attendance = 'PRESENT'
   return { id: id('lesson'), termId, date, mark, attendance, reviewedProgrammeItemIds: [...reviewedProgrammeItemIds], version: 1 };
 }
 
-export function createHomework({ lessonId, items = [] }) {
+export function createHomework({ id: homeworkId = null, lessonId, items = [] }) {
   if (!lessonId) throw new Error('Homework.lessonId is required');
-  return { id: id('hw'), lessonId, items: items.map(item => ({ ...item })), version: 1 };
+  return { id: homeworkId ?? id('hw'), lessonId, items: items.map(item => ({ ...item })), version: 1 };
 }
