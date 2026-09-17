@@ -61,10 +61,23 @@ Implemented:
 - TeacherAgendaViewModel as a UI/application composition boundary
 - automated integration tests for the weekly and lesson workflow
 
+## Checkpoint 5 — Teacher Agenda UI state shell
+Implemented:
+- TeacherAgendaController as the UI/application state boundary
+- student selection and term selection
+- active TKTL card context
+- week selection and weekly programme loading
+- lesson creation and active lesson selection
+- review and explicit completion actions
+- carry-forward action
+- UI-only loading/error/selection state; business state remains owned by services/repository
+- controller integration tests
+- canonical curriculum-domain identifiers: PURE_TECHNICAL, ETUDE, REPERTOIRE
+
 ## Current application flow
 Student → Active Term → Level/Term → TKTL Teacher Unit Card → 15 Programme Items → Weekly Programme → Lesson → Review → Explicit Completion → Derived Progress.
 
 The UI/application layer must consume these services and repositories; it must not become a second business-data store.
 
 ## Next checkpoint
-Build the first teacher-facing Agenda UI against TeacherAgendaViewModel. Keep UI state separate from business state and preserve the service ownership boundaries above. The first screen should support student selection, active term/card context, weekly programme display, lesson creation, review/completion and carry-forward actions.
+Build the browser-facing Agenda view on top of TeacherAgendaController, using the existing V15 repository/service composition. The first screen should render student selection, active term/card context, weekly programme grouped by canonical curriculum domain, and lesson actions without introducing a parallel business-data model.
