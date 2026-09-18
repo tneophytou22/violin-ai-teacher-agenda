@@ -49,13 +49,13 @@ export class TeacherAgendaShell {
             <p>${weekly ? `${weekly.summary.completed}/${weekly.summary.total} completed` : 'Loading week…'}</p>
             <div data-view="programme-actions">
               <button data-action="complete-selected" ${state.selectedItemIds.length ? '' : 'disabled'}>Complete selected</button>
-              <button data-action="review" ${state.activeLessonId ? '' : 'disabled'}>Review selected</button>
+              <button data-action="review" \${state.activeLessonId && state.selectedItemIds.length ? '' : 'disabled'}>Review selected (\${state.selectedItemIds.length})</button>
             </div>
-            ${grouped.map(group => `<section data-domain="${group.domain}"><h3>${group.domain.replace('_', ' ')}</h3><ul>${group.items.map(item => `<li><label><input type="checkbox" data-item="${esc(item.id)}" ${state.selectedItemIds.includes(item.id) ? 'checked' : ''}> ${esc(item.title)}${item.status === 'COMPLETED' ? ' <small>(completed)</small>' : ''}</label><button data-carry="${esc(item.id)}">Carry</button></li>`).join('')}</ul></section>`).join('')}
+            ${grouped.map(group => `<section data-domain="${group.domain}"><h3>${group.domain.replace('_', ' ')}</h3><ul>${group.items.map(item => `<li><label><input type="checkbox" data-item="${esc(item.id)}" ${state.selectedItemIds.includes(item.id) ? 'checked' : ''}> ${esc(item.title)}${item.status === 'COMPLETED' ? ' <small>(completed)</small>' : ''}${state.reviewedItemIds.includes(item.id) ? ' <small>(reviewed)</small>' : ''}</label><button data-carry="${esc(item.id)}">Carry</button></li>`).join('')}</ul></section>`).join('')}
           </section>
           <section data-view="lesson">
-            <button data-action="lesson">${state.activeLessonId ? 'Lesson active' : 'Start lesson'}</button>
-            ${state.activeLessonId ? `<button data-action="review">Review selected</button>` : ''}
+            <button data-action="lesson">${state.activeLessonId ? 'Lesson active ✓' : 'Start lesson'}</button>
+            ${state.activeLessonId ? `<p data-view="lesson-status">Lesson is active. ${state.reviewedItemIds.length} item(s) reviewed.</p>` : '<p>Start a lesson to record what you work on today.</p>'}
           </section>
         ` : '<p>Select a student to begin.</p>'}
       </section>`;
