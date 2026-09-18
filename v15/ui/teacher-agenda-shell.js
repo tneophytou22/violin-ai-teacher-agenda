@@ -78,7 +78,6 @@ export class TeacherAgendaShell {
           this.render();
         } else if (target.matches('[data-action="term"]')) {
           await this.controller.selectTerm(target.value);
-          this.bound = false;
           this.render();
         } else if (target.matches('[data-item]')) {
           this.controller.toggleItemSelection(target.dataset.item);
