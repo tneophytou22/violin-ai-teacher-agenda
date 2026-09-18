@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getTeacherUnitCard, listTeacherUnitCards } from '../tktl/cards-v1.js';
+import { getTeacherUnitCard, listTeacherUnitCards } from '../tktl/registry.js';
 
 const expectedIds = ['L1T1', 'L1T2', 'L2T1', 'L2T2', 'L3T1', 'L3T2', 'L4T1', 'L4T2'];
 
