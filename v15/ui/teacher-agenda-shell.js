@@ -75,7 +75,6 @@ export class TeacherAgendaShell {
       try {
         if (target.matches('[data-action="student"]')) {
           await this.controller.selectStudent(target.value);
-          this.bound = false;
           this.render();
         } else if (target.matches('[data-action="term"]')) {
           await this.controller.selectTerm(target.value);
@@ -110,7 +109,6 @@ export class TeacherAgendaShell {
         } else {
           return;
         }
-        this.bound = false;
         this.render();
       } catch (error) {
         this.#showError(error);
