@@ -10,6 +10,7 @@ export class TeacherAgendaController {
       week: 1,
       weekly: null,
       activeLessonId: null,
+      selectedItemIds: [],
       error: null,
       loading: false,
     };
@@ -35,6 +36,7 @@ export class TeacherAgendaController {
       this.state.termContext = null;
       this.state.weekly = null;
       this.state.activeLessonId = null;
+      this.state.selectedItemIds = [];
       this.state.week = 1;
       if (this.state.selectedTermId) await this.#loadSelectedTerm();
       return this.snapshot();
@@ -48,6 +50,7 @@ export class TeacherAgendaController {
       this.state.selectedTermId = termId;
       this.state.week = 1;
       this.state.activeLessonId = null;
+      this.state.selectedItemIds = [];
       await this.#loadSelectedTerm();
       return this.snapshot();
     });
@@ -61,6 +64,14 @@ export class TeacherAgendaController {
       this.state.weekly = await this.viewModel.loadWeek(this.state.selectedTermId, week);
       return this.snapshot();
     });
+  }
+
+  toggleItemSelection(itemId) {
+    const selected = new Set(this.state.selectedItemIds);
+    if (selected.has(itemId)) selected.delete(itemId);
+    else selected.add(itemId);
+    this.state.selectedItemIds = [...selected];
+    return this.snapshot();
   }
 
   async createLesson(date, options = {}) {
