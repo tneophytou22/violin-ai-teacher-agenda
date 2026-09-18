@@ -79,5 +79,16 @@ Student → Active Term → Level/Term → TKTL Teacher Unit Card → 15 Program
 
 The UI/application layer must consume these services and repositories; it must not become a second business-data store.
 
+## Checkpoint 6 — Browser demo + weekly interaction
+Implemented:
+- browser-facing Teacher Agenda shell on top of TeacherAgendaController
+- local IndexedDB demo with seeded Demo Student / L1T1
+- weekly programme grouped by canonical curriculum domain
+- persistent completion and carry-forward workflow
+- carry-forward advances the active UI week to the target week
+- programme-item selection is separate from completion state
+- explicit Complete Selected action preserves the Lesson review/completion distinction
+- demo startup documentation under `v15/ui/demo/`
+
 ## Next checkpoint
-Build the browser-facing Agenda view on top of TeacherAgendaController, using the existing V15 repository/service composition. The first screen should render student selection, active term/card context, weekly programme grouped by canonical curriculum domain, and lesson actions without introducing a parallel business-data model.
+Build the real lesson-session workflow on the same service boundaries: lesson details, attendance/mark, reviewed programme items, homework assignment and lesson history. Keep business state in the existing services/repository; the UI remains a composition layer.
