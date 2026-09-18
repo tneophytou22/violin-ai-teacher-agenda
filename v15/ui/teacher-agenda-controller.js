@@ -91,6 +91,7 @@ export class TeacherAgendaController {
   async carryForward(programmeItemId, targetWeek) {
     return this.#run(async () => {
       await this.viewModel.carryForward(programmeItemId, targetWeek);
+      this.state.week = targetWeek;
       await this.#reloadWeek();
       return this.snapshot();
     });
