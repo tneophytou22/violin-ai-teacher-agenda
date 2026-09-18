@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getTeacherUnitCard, listTeacherUnitCards } from './cards-v1.js';
+import { getTeacherUnitCard, listTeacherUnitCards } from './registry.js';
 
 const expectedIds = ['L1T1','L1T2','L2T1','L2T2','L3T1','L3T2','L4T1','L4T2'];
 test('real TKTL cards L1T1-L4T2 are registered', () => {
