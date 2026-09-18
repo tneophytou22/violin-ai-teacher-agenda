@@ -35,6 +35,11 @@ test('teacher agenda controller keeps UI selection state separate from business 
 
   await controller.selectStudent(student.id);
   state = controller.snapshot();
+  const selectableItem = state.weekly.items[0].id;
+  controller.toggleItemSelection(selectableItem);
+  assert.deepEqual(controller.snapshot().selectedItemIds, [selectableItem]);
+  controller.toggleItemSelection(selectableItem);
+  assert.deepEqual(controller.snapshot().selectedItemIds, []);
   assert.equal(state.selectedStudentId, student.id);
   assert.equal(state.selectedTermId, term.id);
   assert.equal(state.termContext.card.id, 'L7T1');
