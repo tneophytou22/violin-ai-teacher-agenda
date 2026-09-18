@@ -31,16 +31,23 @@ export class TeacherTermService {
     registerV1Curricula();
     const existing = await this.repo.list('programmeItems');
     const existingForCard = existing.filter(item => item.termId === termId && item.cardId === card.id);
-    if (existingForCard.length) return { card, programmeItems: existingForCard };
+    const existingByObjectId = new Map(existingForCard.map(item => [item.objectId, item]));
 
     const programmeItems = [];
     for (const [field, curriculumId, curriculumDomain] of FIELD_TO_CURRICULUM) {
       for (let index = 0; index < card[field].length; index += 1) {
+        const objectId = `${card.id}:${curriculumDomain}:${index + 1}`;
+        const existingItem = existingByObjectId.get(objectId);
+        if (existingItem) {
+          programmeItems.push(existingItem);
+          continue;
+        }
+
         programmeItems.push(await this.repo.put('programmeItems', createProgrammeItem({
           termId,
           curriculumId,
           curriculumDomain,
-          objectId: `${card.id}:${curriculumDomain}:${index + 1}`,
+          objectId,
           title: card[field][index],
           targetWeek: 1,
           cardId: card.id,
