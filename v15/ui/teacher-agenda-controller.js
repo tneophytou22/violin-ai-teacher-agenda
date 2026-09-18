@@ -11,6 +11,7 @@ export class TeacherAgendaController {
       weekly: null,
       activeLessonId: null,
       selectedItemIds: [],
+      reviewedItemIds: [],
       error: null,
       loading: false,
     };
@@ -37,6 +38,7 @@ export class TeacherAgendaController {
       this.state.weekly = null;
       this.state.activeLessonId = null;
       this.state.selectedItemIds = [];
+      this.state.reviewedItemIds = [];
       this.state.week = 1;
       if (this.state.selectedTermId) await this.#loadSelectedTerm();
       return this.snapshot();
@@ -51,6 +53,7 @@ export class TeacherAgendaController {
       this.state.week = 1;
       this.state.activeLessonId = null;
       this.state.selectedItemIds = [];
+      this.state.reviewedItemIds = [];
       await this.#loadSelectedTerm();
       return this.snapshot();
     });
@@ -86,7 +89,8 @@ export class TeacherAgendaController {
   async reviewItems(programmeItemIds) {
     return this.#run(async () => {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
-      await this.viewModel.reviewLessonItems(this.state.activeLessonId, programmeItemIds);
+      const result = await this.viewModel.reviewLessonItems(this.state.activeLessonId, programmeItemIds);
+      this.state.reviewedItemIds = [...new Set(programmeItemIds)];
       return this.snapshot();
     });
   }
