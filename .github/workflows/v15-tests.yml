@@ -1,0 +1,25 @@
+name: V15 Tests
+
+on:
+  push:
+    branches:
+      - v15-tktl-mvp
+  pull_request:
+    branches:
+      - v15-tktl-mvp
+
+jobs:
+  v15-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: v15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run V15 tests
+        run: npm test
