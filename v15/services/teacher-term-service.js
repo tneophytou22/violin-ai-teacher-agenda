@@ -1,7 +1,7 @@
 import { createProgrammeItem } from '../domain/models.js';
 import { requireTeacherUnitCard } from '../tktl/registry.js';
 import { registerV1Curricula, V1_CURRICULUM_IDS } from '../curriculum/v1-registration.js';
-import { listScaleItems } from '../curriculum/scales-data-v1.js';
+import { listScaleItems, getScaleTerm } from '../curriculum/scales-data-v1.js';
 
 const FIELD_TO_CURRICULUM = Object.freeze([
   ['pureTechnical', V1_CURRICULUM_IDS.PURE_TECHNICAL, 'PURE_TECHNICAL'],
@@ -24,7 +24,8 @@ export class TeacherTermService {
     const student = await this.repo.get('students', term.studentId);
     if (!student) throw new Error('Term student not found');
     const card = requireTeacherUnitCard(term.level, term.termNumber);
-    return { student, term, card };
+    const scales = getScaleTerm(term.level, term.termNumber);
+    return { student, term, card, scales };
   }
 
   async activateCard(termId) {
