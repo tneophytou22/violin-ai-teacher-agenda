@@ -1,6 +1,7 @@
 import { createProgrammeItem } from '../domain/models.js';
 import { requireTeacherUnitCard } from '../tktl/registry.js';
 import { registerV1Curricula, V1_CURRICULUM_IDS } from '../curriculum/v1-registration.js';
+import { listScaleItems } from '../curriculum/scales-data-v1.js';
 
 const FIELD_TO_CURRICULUM = Object.freeze([
   ['pureTechnical', V1_CURRICULUM_IDS.PURE_TECHNICAL, 'PURE_TECHNICAL'],
@@ -54,6 +55,30 @@ export class TeacherTermService {
         })));
       }
     }
-    return { card, programmeItems };
+    const scaleItems = listScaleItems(term.level, term.termNumber);
+    for (const scaleItem of scaleItems) {
+      const objectId = `${card.id}:SCALES:${scaleItem.id}`;
+      const existingItem = existingByObjectId.get(objectId);
+      if (existingItem) {
+        programmeItems.push(existingItem);
+        continue;
+      }
+
+      programmeItems.push(await this.repo.put('programmeItems', createProgrammeItem({
+        termId,
+        curriculumId: V1_CURRICULUM_IDS.SCALES,
+        curriculumDomain: 'SCALES',
+        objectId,
+        title: scaleItem.title,
+        targetWeek: 1,
+        cardId: card.id,
+        details: {
+          category: scaleItem.category,
+          requirements: scaleItem.requirements,
+        },
+      })));
+    }
+
+    return { card, programmeItems, scaleItems };
   }
 }
