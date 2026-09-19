@@ -1,5 +1,5 @@
 export class TeacherAgendaViewModel {
-  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService }) {
+  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, scaleMasteryService = null }) {
     this.students = studentService;
     this.terms = termService;
     this.teacherTerms = teacherTermService;
@@ -7,6 +7,7 @@ export class TeacherAgendaViewModel {
     this.lessons = lessonService;
     this.lessonProgramme = lessonProgrammeService;
     this.homework = homeworkService;
+    this.scaleMastery = scaleMasteryService;
   }
 
   async loadStudent(studentId) {
@@ -90,6 +91,11 @@ export class TeacherAgendaViewModel {
 
   async carryForward(programmeItemId, targetWeek) {
     return this.lessonProgramme.carryForward(programmeItemId, targetWeek);
+  }
+
+  async assessScale(programmeItemId, assessment) {
+    if (!this.scaleMastery) throw new Error('Scale mastery service is not configured');
+    return this.scaleMastery.assess({ programmeItemId, ...assessment });
   }
 
   async saveHomework(lessonId, items) {
