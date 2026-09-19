@@ -14,7 +14,7 @@ export function getTeacherUnitCard(level, term) {
 }
 
 export function listTeacherUnitCards() {
-  return [...cards.values()];
+  return [...cards.values()].sort((a, b) => a.level - b.level || a.term - b.term);
 }
 
 export function requireTeacherUnitCard(level, term) {
