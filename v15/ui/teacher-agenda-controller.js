@@ -153,6 +153,16 @@ export class TeacherAgendaController {
     });
   }
 
+  async assessScale(programmeItemId, assessment) {
+    return this.#run(async () => {
+      const item = await this.viewModel.assessScale(programmeItemId, assessment);
+      if (this.state.selectedTermId) {
+        this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
+      }
+      return item;
+    });
+  }
+
   async completeItems(programmeItemIds) {
     return this.#run(async () => {
       await this.viewModel.completeProgrammeItems(programmeItemIds);
