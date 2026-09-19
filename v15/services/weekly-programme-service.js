@@ -45,11 +45,14 @@ export class WeeklyProgrammeService {
     const card = requireTeacherUnitCard(term.level, term.termNumber);
     const items = await this.listForTerm(termId);
     const cardItems = items.filter(i => i.cardId === card.id);
+    const coreItems = cardItems.filter(i => i.curriculumDomain !== 'SCALES');
+    const scaleItems = cardItems.filter(i => i.curriculumDomain === 'SCALES');
     return {
       cardId: card.id,
       expectedCount: 15,
-      actualCount: cardItems.length,
-      valid: cardItems.length === 15,
+      actualCount: coreItems.length,
+      valid: coreItems.length === 15,
+      scaleCount: scaleItems.length,
     };
   }
 }
