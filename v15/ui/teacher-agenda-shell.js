@@ -40,6 +40,10 @@ export class TeacherAgendaShell {
             <option value="">Select student</option>
             ${state.students.map(s => `<option value="${esc(s.id)}" ${s.id === state.selectedStudentId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}
           </select>
+          <div data-view="student-create">
+            <input data-action="new-student-name" placeholder="Student name" aria-label="New student name">
+            <button type="button" data-action="create-student">New student</button>
+          </div>
         </section>
         ${student ? `
           <section data-view="student-dashboard">
@@ -47,6 +51,14 @@ export class TeacherAgendaShell {
             <select data-action="term" aria-label="Term">
               ${state.terms.map(t => `<option value="${esc(t.id)}" ${t.id === state.selectedTermId ? 'selected' : ''}>${esc(t.name)} · L${t.level}T${t.termNumber}</option>`).join('')}
             </select>
+            <div data-view="term-create">
+              <input data-action="new-term-name" placeholder="Term name (e.g. 2026–27 Term 1)" aria-label="New term name">
+              <select data-action="new-term-level" aria-label="New term level"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option><option value="5">Level 5</option><option value="6">Level 6</option><option value="7">Level 7</option><option value="8">Level 8</option><option value="9">Level 9</option><option value="10">Level 10</option></select>
+              <select data-action="new-term-number" aria-label="New term number"><option value="1">Term 1</option><option value="2">Term 2</option></select>
+              <input type="date" data-action="new-term-start" aria-label="New term start date">
+              <input type="date" data-action="new-term-end" aria-label="New term end date">
+              <button type="button" data-action="create-term">New term</button>
+            </div>
           </section>
           ${state.termContext ? `<section data-view="term-context"><strong>L${state.termContext.term.level} · Term ${state.termContext.term.termNumber}</strong><span> ${esc(state.termContext.card.technicalIntent ?? '')}</span></section>` : ''}
           <section data-view="weekly-agenda">
@@ -85,7 +97,7 @@ export class TeacherAgendaShell {
 
           <section data-view="lesson-history">
             <h2>Lesson History</h2>
-            ${state.lessonHistory.length ? `<ul>${state.lessonHistory.map(entry => `<li>${esc(entry.date)} · ${esc(entry.attendance)} · ${entry.mark ?? 'No mark'} · ${(entry.reviewedProgrammeItemIds ?? []).length} reviewed</li>`).join('')}</ul>` : '<p>No lessons recorded for this term.</p>'}
+            ${state.lessonHistory.length ? `<ul>${state.lessonHistory.map(entry => `<li><button type="button" data-action="select-lesson" data-lesson-id="${esc(entry.id)}">${esc(entry.date)} · ${esc(entry.attendance)} · ${entry.mark ?? 'No mark'} · ${(entry.reviewedProgrammeItemIds ?? []).length} reviewed</button></li>`).join('')}</ul>` : '<p>No lessons recorded for this term.</p>'}
           </section>
         ` : '<p>Select a student to begin.</p>'}
       </section>`;
@@ -120,7 +132,19 @@ export class TeacherAgendaShell {
       if (!target) return;
       try {
         const action = target.dataset.action;
-        if (action === 'week-prev') {
+        if (action === 'create-student') {
+          const name = this.root.querySelector('[data-action="new-student-name"]')?.value?.trim() ?? '';
+          await this.controller.createStudent({ name });
+        } else if (action === 'create-term') {
+          const name = this.root.querySelector('[data-action="new-term-name"]')?.value?.trim() ?? '';
+          const level = Number(this.root.querySelector('[data-action="new-term-level"]')?.value);
+          const termNumber = Number(this.root.querySelector('[data-action="new-term-number"]')?.value);
+          const startDate = this.root.querySelector('[data-action="new-term-start"]')?.value ?? '';
+          const endDate = this.root.querySelector('[data-action="new-term-end"]')?.value ?? '';
+          await this.controller.createTerm({ name, level, termNumber, startDate, endDate });
+        } else if (action === 'select-lesson') {
+          await this.controller.selectLesson(target.dataset.lessonId);
+        } else if (action === 'week-prev') {
           await this.controller.selectWeek(this.controller.snapshot().week - 1);
         } else if (action === 'week-next') {
           await this.controller.selectWeek(this.controller.snapshot().week + 1);
