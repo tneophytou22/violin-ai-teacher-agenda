@@ -23,7 +23,8 @@ test('teacher agenda controller keeps UI selection state separate from business 
   const weeklyProgrammeService = new WeeklyProgrammeService(repo);
   const lessonService = new LessonService(repo);
   const lessonProgrammeService = new LessonProgrammeService(repo);
-  const viewModel = new TeacherAgendaViewModel({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService });
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService });
   const controller = new TeacherAgendaController(viewModel);
 
   const student = await studentService.create({ name: 'Controller Test' });
@@ -188,8 +189,6 @@ test('controller creates students and terms and can reopen a historical lesson',
   assert.equal(state.weekly.items.length, 15);
 
   const firstLesson = await controller.createLesson('2026-09-18', { mark: 17 });
-  const secondLesson = await controller.createLesson('2026-09-19', { mark: 18 });
-
   const reviewed = state.weekly.items.slice(0, 2).map(item => item.id);
   await controller.reviewItems(reviewed);
   await controller.completeItems([reviewed[0]]);
@@ -197,6 +196,9 @@ test('controller creates students and terms and can reopen a historical lesson',
     { text: 'Practise first position shifts', completed: false },
     { text: 'Record one slow take', completed: false },
   ]);
+
+  const secondLesson = await controller.createLesson('2026-09-19', { mark: 18 });
+  assert.equal(secondLesson.date, '2026-09-19');
 
   await controller.selectLesson(firstLesson.id);
   state = controller.snapshot();
