@@ -6,6 +6,7 @@ import { WeeklyProgrammeService } from '../services/weekly-programme-service.js'
 import { LessonService } from '../services/lesson-service.js';
 import { LessonProgrammeService } from '../services/lesson-programme-service.js';
 import { HomeworkService } from '../services/homework-service.js';
+import { ScaleMasteryService } from '../services/scale-mastery-service.js';
 import { TeacherAgendaViewModel } from './teacher-agenda-view-model.js';
 import { TeacherAgendaController } from './teacher-agenda-controller.js';
 import { TeacherAgendaShell } from './teacher-agenda-shell.js';
@@ -23,6 +24,7 @@ export function createTeacherAgendaApp({ root, dbName, repository } = {}) {
     lessonService: new LessonService(repo),
     lessonProgrammeService: new LessonProgrammeService(repo),
     homeworkService: new HomeworkService(repo),
+    scaleMasteryService: new ScaleMasteryService(repo),
   }));
   const shell = new TeacherAgendaShell({ controller, root });
   return { storage, repository: repo, controller, shell };
