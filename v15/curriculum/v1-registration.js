@@ -28,7 +28,8 @@ export function registerV1Curricula() {
       registerCurriculum({ id, domain, version, getItems: buildItems(field, domain) });
     }
   }
-  return DOMAINS.map(([, id]) => getCurriculum(id));
+  registerV1ScalesCurriculum();
+  return [...DOMAINS.map(([, id]) => getCurriculum(id)), getCurriculum(V1_CURRICULUM_IDS.SCALES)];
 }
 
 export function registerV1ScalesCurriculum() {
