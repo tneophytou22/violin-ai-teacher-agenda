@@ -21,3 +21,7 @@
 [data-v15="teacher-agenda"] [data-view="lesson-details"] { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin: 12px 0; }
 [data-v15="teacher-agenda"] [data-view="homework"] textarea { width: min(100%, 640px); box-sizing: border-box; display: block; margin: 8px 0; }
 [data-v15="teacher-agenda"] [data-view="lesson-history"] button { text-align: left; }
+
+[data-v15="teacher-agenda"] [data-view="term-progress"] { margin-top: 10px; display: grid; gap: 6px; }
+[data-v15="teacher-agenda"] [data-view="term-progress"] div { display: flex; flex-wrap: wrap; gap: 8px; }
+[data-v15="teacher-agenda"] [data-view="term-progress"] span { font-size: 0.88rem; padding: 4px 7px; border: 1px solid #d7dbe2; border-radius: 999px; }
