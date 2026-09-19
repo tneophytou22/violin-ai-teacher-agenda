@@ -29,7 +29,7 @@ export class TeacherAgendaViewModel {
   }
 
   async loadTermProgress(termId) {
-    const items = await this.weekly.listForTerm(termId);
+    const items = (await this.weekly.listForTerm(termId)).filter(item => item.curriculumDomain !== 'SCALES');
     const byDomain = {};
     for (const item of items) {
       byDomain[item.curriculumDomain] ??= { total: 0, completed: 0 };
@@ -40,6 +40,27 @@ export class TeacherAgendaViewModel {
       total: items.length,
       completed: items.filter(item => item.status === 'COMPLETED').length,
       byDomain,
+    };
+  }
+
+  async loadScaleProgress(termId) {
+    const items = (await this.weekly.listForTerm(termId)).filter(item => item.curriculumDomain === 'SCALES');
+    const byCategory = {};
+    for (const item of items) {
+      const category = item.details?.category ?? 'Other';
+      byCategory[category] ??= { total: 0, completed: 0 };
+      byCategory[category].total += 1;
+      if (item.status === 'COMPLETED') byCategory[category].completed += 1;
+    }
+    const total = items.length;
+    const completed = items.filter(item => item.status === 'COMPLETED').length;
+    return {
+      total,
+      completed,
+      masteryPercent: total ? Math.round((completed / total) * 100) : 0,
+      inProgressCategories: Object.values(byCategory).filter(v => v.completed > 0 && v.completed < v.total).length,
+      byCategory,
+      items,
     };
   }
 
