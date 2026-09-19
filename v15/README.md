@@ -103,5 +103,17 @@ Implemented:
 
 The lesson workflow remains a composition layer over the existing services/repository; the controller does not become a second business-data store.
 
+## Checkpoint 8 — Teacher-facing student, term and history workflow
+Implemented:
+- create Student from the Teacher Agenda UI
+- create Term for the selected student with Level 1–10 and Term 1–2
+- automatic TKTL activation for the new active term
+- historical lesson selection from Lesson History
+- reopen a historical lesson into the Lesson Session view
+- persisted lesson details remain editable after historical selection
+- controller and shell coverage for the creation/history workflow
+
+The teacher UI remains a composition layer; StudentService, TermService, LessonService, HomeworkService and Programme services retain business-data ownership.
+
 ## Next checkpoint
-Harden the browser workflow with end-to-end interaction coverage and then move to teacher-facing student/term creation and lesson history navigation. Preserve the existing service ownership boundaries.
+Add stronger browser-level interaction coverage for create Student → create Term → start Lesson → review → complete → homework → reopen history, then refine the teacher workflow without introducing duplicate business state.
