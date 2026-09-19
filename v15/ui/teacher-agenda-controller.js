@@ -11,6 +11,9 @@ export class TeacherAgendaController {
       week: 1,
       weekly: null,
       activeLessonId: null,
+      activeLesson: null,
+      lessonHistory: [],
+      homework: null,
       selectedItemIds: [],
       reviewedItemIds: [],
       error: null,
@@ -37,9 +40,7 @@ export class TeacherAgendaController {
       this.state.selectedTermId = context.terms[0]?.id ?? null;
       this.state.termContext = null;
       this.state.weekly = null;
-      this.state.activeLessonId = null;
-      this.state.selectedItemIds = [];
-      this.state.reviewedItemIds = [];
+      this.#resetLessonState();
       this.state.week = 1;
       if (this.state.selectedTermId) await this.#loadSelectedTerm();
       return this.snapshot();
@@ -52,9 +53,7 @@ export class TeacherAgendaController {
       if (!term) throw new Error('Term does not belong to selected student');
       this.state.selectedTermId = termId;
       this.state.week = 1;
-      this.state.activeLessonId = null;
-      this.state.selectedItemIds = [];
-      this.state.reviewedItemIds = [];
+      this.#resetLessonState();
       await this.#loadSelectedTerm();
       return this.snapshot();
     });
@@ -81,15 +80,20 @@ export class TeacherAgendaController {
   async createLesson(date = this.today(), options = {}) {
     return this.#run(async () => {
       if (!this.state.selectedTermId) throw new Error('No term selected');
-      const lessons = await this.viewModel.lessons.listForTerm(this.state.selectedTermId);
-      const existing = lessons
-        .filter(lesson => lesson.date === date)
-        .sort((a, b) => String(a.id).localeCompare(String(b.id)))
-        .at(-1);
+      const lessons = await this.viewModel.listLessons(this.state.selectedTermId);
+      const existing = lessons.find(lesson => lesson.date === date);
       const lesson = existing ?? await this.viewModel.createLesson(this.state.selectedTermId, date, options);
-      this.state.activeLessonId = lesson.id;
-      this.state.reviewedItemIds = [...new Set(lesson.reviewedProgrammeItemIds ?? [])];
+      await this.#activateLesson(lesson);
       return lesson;
+    });
+  }
+
+  async updateLessonDetails({ mark = null, attendance = 'PRESENT' }) {
+    return this.#run(async () => {
+      if (!this.state.activeLessonId) throw new Error('No lesson selected');
+      const lesson = await this.viewModel.updateLessonDetails(this.state.activeLessonId, { mark, attendance });
+      await this.#activateLesson(lesson);
+      return this.snapshot();
     });
   }
 
@@ -97,7 +101,17 @@ export class TeacherAgendaController {
     return this.#run(async () => {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
       const result = await this.viewModel.reviewLessonItems(this.state.activeLessonId, programmeItemIds);
+      this.state.activeLesson = result;
       this.state.reviewedItemIds = [...new Set(result.reviewedProgrammeItemIds ?? programmeItemIds)];
+      this.state.selectedItemIds = [];
+      return this.snapshot();
+    });
+  }
+
+  async saveHomework(items) {
+    return this.#run(async () => {
+      if (!this.state.activeLessonId) throw new Error('No lesson selected');
+      this.state.homework = await this.viewModel.saveHomework(this.state.activeLessonId, items);
       return this.snapshot();
     });
   }
@@ -120,17 +134,31 @@ export class TeacherAgendaController {
     });
   }
 
+  #resetLessonState() {
+    this.state.activeLessonId = null;
+    this.state.activeLesson = null;
+    this.state.lessonHistory = [];
+    this.state.homework = null;
+    this.state.selectedItemIds = [];
+    this.state.reviewedItemIds = [];
+  }
+
+  async #activateLesson(lesson) {
+    this.state.activeLessonId = lesson.id;
+    this.state.activeLesson = lesson;
+    this.state.reviewedItemIds = [...new Set(lesson.reviewedProgrammeItemIds ?? [])];
+    this.state.homework = await this.viewModel.loadHomework(lesson.id);
+    this.state.lessonHistory = await this.viewModel.listLessons(this.state.selectedTermId);
+  }
+
   async #loadSelectedTerm() {
     this.state.termContext = await this.viewModel.loadTerm(this.state.selectedTermId);
     await this.viewModel.teacherTerms.activateCard(this.state.selectedTermId);
     this.state.weekly = await this.viewModel.loadWeek(this.state.selectedTermId, this.state.week);
-    const lessons = await this.viewModel.lessons.listForTerm(this.state.selectedTermId);
-    const existing = lessons
-      .filter(lesson => lesson.date === this.today())
-      .sort((a, b) => String(a.id).localeCompare(String(b.id)))
-      .at(-1);
-    this.state.activeLessonId = existing?.id ?? null;
-    this.state.reviewedItemIds = [...new Set(existing?.reviewedProgrammeItemIds ?? [])];
+    const lessons = await this.viewModel.listLessons(this.state.selectedTermId);
+    const existing = lessons.find(lesson => lesson.date === this.today());
+    this.state.lessonHistory = lessons;
+    if (existing) await this.#activateLesson(existing);
   }
 
   async #reloadWeek() {
