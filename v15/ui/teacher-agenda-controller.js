@@ -25,6 +25,29 @@ export class TeacherAgendaController {
     return structuredClone(this.state);
   }
 
+  async createStudent(input) {
+    return this.#run(async () => {
+      const student = await this.viewModel.students.create(input);
+      this.state.students = await this.viewModel.students.list();
+      await this.selectStudent(student.id);
+      return student;
+    });
+  }
+
+  async createTerm(input) {
+    return this.#run(async () => {
+      if (!this.state.selectedStudentId) throw new Error('No student selected');
+      const term = await this.viewModel.terms.create({ ...input, studentId: this.state.selectedStudentId });
+      const context = await this.viewModel.loadStudent(this.state.selectedStudentId);
+      this.state.terms = context.terms;
+      this.state.selectedTermId = term.id;
+      this.state.week = 1;
+      this.#resetLessonState();
+      await this.#loadSelectedTerm();
+      return term;
+    });
+  }
+
   async loadStudents() {
     return this.#run(async () => {
       this.state.students = await this.viewModel.students.list();
@@ -85,6 +108,16 @@ export class TeacherAgendaController {
       const lesson = existing ?? await this.viewModel.createLesson(this.state.selectedTermId, date, options);
       await this.#activateLesson(lesson);
       return lesson;
+    });
+  }
+
+  async selectLesson(lessonId) {
+    return this.#run(async () => {
+      if (!this.state.selectedTermId) throw new Error('No term selected');
+      const lesson = await this.viewModel.getLesson(lessonId);
+      if (!lesson || lesson.termId !== this.state.selectedTermId) throw new Error('Lesson does not belong to selected term');
+      await this.#activateLesson(lesson);
+      return this.snapshot();
     });
   }
 
