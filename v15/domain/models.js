@@ -15,11 +15,11 @@ export function createTerm({ studentId, name, startDate, endDate, level = null, 
   return { id: id('term'), studentId, name: name.trim(), startDate, endDate, level, termNumber, version: 1 };
 }
 
-export function createProgrammeItem({ termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status = 'PLANNED', cardId = null }) {
+export function createProgrammeItem({ termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status = 'PLANNED', cardId = null, details = null }) {
   if (!termId) throw new Error('ProgrammeItem.termId is required');
   if (!curriculumId || !curriculumDomain || !objectId) throw new Error('ProgrammeItem curriculum identity is required');
   if (!Number.isInteger(targetWeek) || targetWeek < 1) throw new Error('ProgrammeItem.targetWeek is mandatory');
-  return { id: id('pi'), termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status, cardId, completedAt: status === 'COMPLETED' ? new Date().toISOString() : null };
+  return { id: id('pi'), termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status, cardId, details, completedAt: status === 'COMPLETED' ? new Date().toISOString() : null };
 }
 
 export function createLesson({ termId, date, mark = null, attendance = 'PRESENT', reviewedProgrammeItemIds = [] }) {
