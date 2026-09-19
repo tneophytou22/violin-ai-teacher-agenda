@@ -184,11 +184,27 @@ test('controller creates students and terms and can reopen a historical lesson',
 
   const firstLesson = await controller.createLesson('2026-09-18', { mark: 17 });
   const secondLesson = await controller.createLesson('2026-09-19', { mark: 18 });
+
+  const reviewed = state.weekly.items.slice(0, 2).map(item => item.id);
+  await controller.reviewItems(reviewed);
+  await controller.completeItems([reviewed[0]]);
+  await controller.saveHomework([
+    { text: 'Practise first position shifts', completed: false },
+    { text: 'Record one slow take', completed: false },
+  ]);
+
   await controller.selectLesson(firstLesson.id);
   state = controller.snapshot();
   assert.equal(state.activeLessonId, firstLesson.id);
   assert.equal(state.activeLesson.mark, 17);
   assert.equal(state.lessonHistory.length, 2);
-  assert.equal(state.homework, null);
+  assert.deepEqual(state.reviewedItemIds, reviewed);
+  assert.equal(state.homework.items.length, 2);
+  assert.equal(state.homework.items[0].text, 'Practise first position shifts');
   assert.notEqual(state.activeLessonId, secondLesson.id);
+
+  const storedCompleted = await repo.get('programmeItems', reviewed[0]);
+  const storedReviewed = await repo.get('lessons', firstLesson.id);
+  assert.equal(storedCompleted.status, 'COMPLETED');
+  assert.deepEqual(storedReviewed.reviewedProgrammeItemIds, reviewed);
 });
