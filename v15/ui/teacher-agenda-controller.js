@@ -136,8 +136,8 @@ export class TeacherAgendaController {
     return this.#run(async () => {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
       const result = await this.viewModel.reviewLessonItems(this.state.activeLessonId, programmeItemIds);
-      this.state.activeLesson = result;
-      this.state.reviewedItemIds = [...new Set(result.reviewedProgrammeItemIds ?? programmeItemIds)];
+      this.state.activeLesson = result.lesson;
+      this.state.reviewedItemIds = [...new Set(result.lesson?.reviewedProgrammeItemIds ?? programmeItemIds)];
       this.state.selectedItemIds = [];
       return this.snapshot();
     });
@@ -192,6 +192,7 @@ export class TeacherAgendaController {
   async #loadSelectedTerm() {
     this.state.termContext = await this.viewModel.loadTerm(this.state.selectedTermId);
     await this.viewModel.teacherTerms.activateCard(this.state.selectedTermId);
+    this.state.termProgress = await this.viewModel.loadTermProgress(this.state.selectedTermId);
     this.state.weekly = await this.viewModel.loadWeek(this.state.selectedTermId, this.state.week);
     const lessons = await this.viewModel.listLessons(this.state.selectedTermId);
     const existing = lessons.find(lesson => lesson.date === this.today());
