@@ -10,6 +10,7 @@ class FakeRoot {
   constructor() { this.innerHTML = ''; }
   querySelector() { return null; }
   querySelectorAll() { return []; }
+  addEventListener() {}
 }
 
 test('teacher agenda shell renders the V15 workspace from controller state', async () => {
