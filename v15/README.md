@@ -90,5 +90,18 @@ Implemented:
 - explicit Complete Selected action preserves the Lesson review/completion distinction
 - demo startup documentation under `v15/ui/demo/`
 
+## Checkpoint 7 — Real lesson-session workflow
+Implemented:
+- lesson session state in the TeacherAgendaController
+- persisted lesson attendance and mark through LessonService
+- reviewed programme-item persistence remains owned by LessonService/LessonProgrammeService
+- deterministic one-homework-record-per-lesson workflow through HomeworkService
+- lesson history loaded from the active term
+- browser UI for lesson details, attendance, mark, reviewed work and homework
+- lesson-session controller integration coverage
+- homework text editing uses real line breaks rather than encoded literal separators
+
+The lesson workflow remains a composition layer over the existing services/repository; the controller does not become a second business-data store.
+
 ## Next checkpoint
-Build the real lesson-session workflow on the same service boundaries: lesson details, attendance/mark, reviewed programme items, homework assignment and lesson history. Keep business state in the existing services/repository; the UI remains a composition layer.
+Harden the browser workflow with end-to-end interaction coverage and then move to teacher-facing student/term creation and lesson history navigation. Preserve the existing service ownership boundaries.
