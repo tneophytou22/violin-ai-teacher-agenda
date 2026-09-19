@@ -14,6 +14,7 @@ export class TeacherAgendaController {
       activeLesson: null,
       lessonHistory: [],
       termProgress: null,
+      scaleProgress: null,
       homework: null,
       selectedItemIds: [],
       reviewedItemIds: [],
@@ -65,6 +66,7 @@ export class TeacherAgendaController {
       this.state.termContext = null;
       this.state.weekly = null;
       this.state.termProgress = null;
+      this.state.scaleProgress = null;
       this.#resetLessonState();
       this.state.week = 1;
       if (this.state.selectedTermId) await this.#loadSelectedTerm();
@@ -158,6 +160,7 @@ export class TeacherAgendaController {
       await this.#reloadWeek();
       if (this.state.selectedTermId) {
         this.state.termProgress = await this.viewModel.loadTermProgress(this.state.selectedTermId);
+        this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
       }
       return this.snapshot();
     });
