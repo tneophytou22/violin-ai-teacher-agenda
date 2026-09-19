@@ -7,6 +7,7 @@ export { TermService } from './services/term-service.js';
 export { LessonService } from './services/lesson-service.js';
 export { ProgrammeService } from './services/programme-service.js';
 export { HomeworkService } from './services/homework-service.js';
+export { ScaleMasteryService, MASTERY_STATUSES, DIMENSION_STATUSES, MASTERY_WEIGHTS } from './services/scale-mastery-service.js';
 export { TeacherTermService } from './services/teacher-term-service.js';
 export { WeeklyProgrammeService } from './services/weekly-programme-service.js';
 export { LessonProgrammeService } from './services/lesson-programme-service.js';
