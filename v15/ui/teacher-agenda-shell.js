@@ -27,6 +27,8 @@ export class TeacherAgendaShell {
       domain,
       items: items.filter(i => i.curriculumDomain === domain),
     }));
+    const lesson = state.activeLesson;
+    const homeworkText = state.homework?.items?.map(item => item.text ?? item.title ?? '').join('\\n') ?? '';
 
     this.root.innerHTML = `
       <section data-v15="teacher-agenda" aria-busy="${state.loading}">
@@ -57,8 +59,33 @@ export class TeacherAgendaShell {
             ${grouped.map(group => `<section data-domain="${group.domain}"><h3>${group.domain.replace('_', ' ')}</h3><ul>${group.items.map(item => `<li><label><input type="checkbox" data-item="${esc(item.id)}" ${state.selectedItemIds.includes(item.id) ? 'checked' : ''}> ${esc(item.title)}${item.status === 'COMPLETED' ? ' <small>(completed)</small>' : ''}${state.reviewedItemIds.includes(item.id) ? ' <small>(reviewed)</small>' : ''}</label><button type="button" data-carry="${esc(item.id)}">Carry</button></li>`).join('')}</ul></section>`).join('')}
           </section>
           <section data-view="lesson">
+            <h2>Lesson Session</h2>
             <button type="button" data-action="lesson">${state.activeLessonId ? 'Lesson active ✓' : 'Start lesson'}</button>
-            ${state.activeLessonId ? `<p data-view="lesson-status">Lesson is active. ${state.reviewedItemIds.length} item(s) reviewed.</p>` : '<p>Start a lesson to record what you work on today.</p>'}
+            ${lesson ? `
+              <p data-view="lesson-status"><strong>${esc(lesson.date)}</strong> · ${esc(lesson.attendance)} · ${lesson.mark ?? 'No mark'} · ${state.reviewedItemIds.length} item(s) reviewed.</p>
+              <div data-view="lesson-details">
+                <label>Attendance
+                  <select data-action="attendance">
+                    ${['PRESENT','LATE','ABSENT'].map(value => `<option value="${value}" ${lesson.attendance === value ? 'selected' : ''}>${value}</option>`).join('')}
+                  </select>
+                </label>
+                <label>Mark
+                  <input type="number" min="1" max="20" data-action="mark" value="${lesson.mark ?? ''}" placeholder="1–20">
+                </label>
+                <button type="button" data-action="save-details">Save lesson details</button>
+              </div>
+              <div data-view="homework">
+                <h3>Homework</h3>
+                <textarea data-action="homework" rows="5" placeholder="One homework task per line">${esc(homeworkText)}</textarea>
+                <button type="button" data-action="save-homework">Save homework</button>
+                <p>${state.homework ? `${state.homework.items.length} homework item(s)` : 'No homework assigned yet.'}</p>
+              </div>
+            ` : '<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>'}
+          </section>
+
+          <section data-view="lesson-history">
+            <h2>Lesson History</h2>
+            ${state.lessonHistory.length ? `<ul>${state.lessonHistory.map(entry => `<li>${esc(entry.date)} · ${esc(entry.attendance)} · ${entry.mark ?? 'No mark'} · ${(entry.reviewedProgrammeItemIds ?? []).length} reviewed</li>`).join('')}</ul>` : '<p>No lessons recorded for this term.</p>'}
           </section>
         ` : '<p>Select a student to begin.</p>'}
       </section>`;
@@ -103,6 +130,15 @@ export class TeacherAgendaShell {
           await this.controller.reviewItems(this.controller.snapshot().selectedItemIds);
         } else if (action === 'complete-selected') {
           await this.controller.completeItems(this.controller.snapshot().selectedItemIds);
+        } else if (action === 'save-details') {
+          const attendance = this.root.querySelector('[data-action="attendance"]')?.value ?? 'PRESENT';
+          const rawMark = this.root.querySelector('[data-action="mark"]')?.value ?? '';
+          const mark = rawMark === '' ? null : Number(rawMark);
+          await this.controller.updateLessonDetails({ attendance, mark });
+        } else if (action === 'save-homework') {
+          const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
+          const items = text.split('\\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
+          await this.controller.saveHomework(items);
         } else if (target.dataset.carry) {
           await this.controller.carryForward(target.dataset.carry, this.controller.snapshot().week + 1);
         } else {
