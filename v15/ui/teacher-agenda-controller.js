@@ -156,6 +156,9 @@ export class TeacherAgendaController {
       await this.viewModel.completeProgrammeItems(programmeItemIds);
       this.state.selectedItemIds = [];
       await this.#reloadWeek();
+      if (this.state.selectedTermId) {
+        this.state.termProgress = await this.viewModel.loadTermProgress(this.state.selectedTermId);
+      }
       return this.snapshot();
     });
   }
