@@ -67,16 +67,25 @@ export class TeacherAgendaShell {
           </section>
           <section data-view="weekly-agenda">
             <div><button type="button" data-action="week-prev" ${state.week <= 1 ? 'disabled' : ''}>←</button> Week ${state.week} <button type="button" data-action="week-next">→</button></div>
-            <p>${weekly ? `${weekly.summary.completed}/${weekly.summary.total} completed` : 'Loading week…'}</p>
+            ${weekly ? `<div data-view="weekly-summary" aria-label="Weekly progress">
+              <strong>${weekly.summary.completed}/${weekly.summary.total} completed</strong>
+              <span> · ${state.selectedItemIds.length} selected</span>
+              <div data-view="domain-progress">
+                ${['PURE_TECHNICAL', 'ETUDE', 'REPERTOIRE'].map(domain => {
+                  const summary = weekly.summary.byDomain?.[domain] ?? { completed: 0, total: 0 };
+                  return `<span>${domain.replace('_', ' ')} ${summary.completed}/${summary.total}</span>`;
+                }).join('')}
+              </div>
+            </div>` : '<p>Loading week…</p>'}
             <div data-view="programme-actions">
               <button type="button" data-action="complete-selected" ${state.selectedItemIds.length ? '' : 'disabled'}>Complete selected</button>
               <button type="button" data-action="review" ${state.activeLessonId && state.selectedItemIds.length ? '' : 'disabled'}>Review selected (${state.selectedItemIds.length})</button>
             </div>
-            ${grouped.map(group => `<section data-domain="${group.domain}"><h3>${group.domain.replace('_', ' ')}</h3><ul>${group.items.map(item => `<li><label><input type="checkbox" data-item="${esc(item.id)}" ${state.selectedItemIds.includes(item.id) ? 'checked' : ''}> ${esc(item.title)}${item.status === 'COMPLETED' ? ' <small>(completed)</small>' : ''}${state.reviewedItemIds.includes(item.id) ? ' <small>(reviewed)</small>' : ''}</label><button type="button" data-carry="${esc(item.id)}">Carry</button></li>`).join('')}</ul></section>`).join('')}
+            ${grouped.map(group => `<section data-domain="${group.domain}"><h3>${group.domain.replace('_', ' ')}</h3><ul>${group.items.map(item => `<li><label><input type="checkbox" data-item="${esc(item.id)}" ${state.selectedItemIds.includes(item.id) ? 'checked' : ''}> ${esc(item.title)}${item.status === 'COMPLETED' ? ' <small>(completed)</small>' : ''}${state.reviewedItemIds.includes(item.id) ? ' <small>(reviewed)</small>' : ''}</label><button type="button" data-carry="${esc(item.id)}" ${item.status === 'COMPLETED' ? 'disabled' : ''}>${item.status === 'COMPLETED' ? 'Completed' : 'Carry to next week'}</button></li>`).join('')}</ul></section>`).join('')}
           </section>
           <section data-view="lesson">
             <h2>Lesson Session</h2>
-            <button type="button" data-action="lesson">${state.activeLessonId ? 'Lesson active ✓' : 'Start lesson'}</button>
+            <button type="button" data-action="lesson">${state.activeLessonId ? 'Lesson active ✓' : `Start lesson · ${this.now()}`}</button>
             ${lesson ? `
               <p data-view="lesson-status"><strong>${esc(lesson.date)}</strong> · ${esc(lesson.attendance)} · ${lesson.mark ?? 'No mark'} · ${state.reviewedItemIds.length} item(s) reviewed.</p>
               <div data-view="lesson-details">
