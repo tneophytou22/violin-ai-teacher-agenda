@@ -115,5 +115,13 @@ Implemented:
 
 The teacher UI remains a composition layer; StudentService, TermService, LessonService, HomeworkService and Programme services retain business-data ownership.
 
-## Next checkpoint
-Add stronger browser-level interaction coverage for create Student → create Term → start Lesson → review → complete → homework → reopen history, then refine the teacher workflow without introducing duplicate business state.
+## Checkpoint 9 — End-to-end teacher workflow coverage
+Implemented:
+- strengthened controller integration coverage for create Student → create Term → start Lesson
+- review and explicit completion remain distinct and are verified separately
+- homework persistence is verified through the controller boundary
+- historical lesson reopening restores mark, reviewed items and homework
+- completed ProgrammeItems remain completed after historical lesson selection
+- the UI separation between Current Term and Create New Term is covered by shell tests
+
+The next refinement should focus on teacher-facing workflow ergonomics and browser interaction coverage, without introducing duplicate business state.
