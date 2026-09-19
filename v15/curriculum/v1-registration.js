@@ -1,6 +1,7 @@
 import { getCurriculum, registerCurriculum } from './registry.js';
 import { listTeacherUnitCards } from '../tktl/registry.js';
 import '../tktl/cards-v1.js';
+import { listScaleItems } from './scales-data-v1.js';
 
 const DOMAINS = Object.freeze([
   ['PURE_TECHNICAL', 'pure-technical-v1', '1.0.0', 'pureTechnical'],
@@ -30,8 +31,27 @@ export function registerV1Curricula() {
   return DOMAINS.map(([, id]) => getCurriculum(id));
 }
 
+export function registerV1ScalesCurriculum() {
+  const id = 'scales-v1';
+  if (!getCurriculum(id)) {
+    registerCurriculum({
+      id,
+      domain: 'SCALES',
+      version: '1.0.0',
+      getItems: () => listTeacherUnitCards().flatMap(card => listScaleItems(card.level, card.term).map(item => ({
+        ...item,
+        id: `${card.id}:SCALES:${item.id}`,
+        domain: 'SCALES',
+        cardId: card.id,
+      }))),
+    });
+  }
+  return getCurriculum(id);
+}
+
 export const V1_CURRICULUM_IDS = Object.freeze({
   PURE_TECHNICAL: 'pure-technical-v1',
   ETUDE: 'etude-v1',
   REPERTOIRE: 'repertoire-v1',
+  SCALES: 'scales-v1',
 });
