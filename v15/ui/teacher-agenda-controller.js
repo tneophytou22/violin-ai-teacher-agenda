@@ -13,6 +13,7 @@ export class TeacherAgendaController {
       activeLessonId: null,
       activeLesson: null,
       lessonHistory: [],
+      termProgress: null,
       homework: null,
       selectedItemIds: [],
       reviewedItemIds: [],
@@ -63,6 +64,7 @@ export class TeacherAgendaController {
       this.state.selectedTermId = context.terms[0]?.id ?? null;
       this.state.termContext = null;
       this.state.weekly = null;
+      this.state.termProgress = null;
       this.#resetLessonState();
       this.state.week = 1;
       if (this.state.selectedTermId) await this.#loadSelectedTerm();
