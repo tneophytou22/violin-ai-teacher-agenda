@@ -1,11 +1,12 @@
 export class TeacherAgendaViewModel {
-  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService }) {
+  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService }) {
     this.students = studentService;
     this.terms = termService;
     this.teacherTerms = teacherTermService;
     this.weekly = weeklyProgrammeService;
     this.lessons = lessonService;
     this.lessonProgramme = lessonProgrammeService;
+    this.homework = homeworkService;
   }
 
   async loadStudent(studentId) {
@@ -31,6 +32,18 @@ export class TeacherAgendaViewModel {
     return this.lessons.create({ termId, date, ...options });
   }
 
+  async updateLessonDetails(lessonId, details) {
+    return this.lessons.updateDetails(lessonId, details);
+  }
+
+  async getLesson(lessonId) {
+    return this.lessons.get(lessonId);
+  }
+
+  async listLessons(termId) {
+    return this.lessons.listForTerm(termId);
+  }
+
   async reviewLessonItems(lessonId, programmeItemIds) {
     return this.lessonProgramme.reviewWeeklyItems(lessonId, programmeItemIds);
   }
@@ -41,5 +54,13 @@ export class TeacherAgendaViewModel {
 
   async carryForward(programmeItemId, targetWeek) {
     return this.lessonProgramme.carryForward(programmeItemId, targetWeek);
+  }
+
+  async saveHomework(lessonId, items) {
+    return this.homework.assignHomework({ lessonId, items });
+  }
+
+  async loadHomework(lessonId) {
+    return this.homework.getForLesson(lessonId);
   }
 }
