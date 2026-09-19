@@ -65,7 +65,6 @@ export class TeacherAgendaShell {
               <button type="button" data-action="create-term">Create term</button>
             </fieldset>
           </section>
-          ${state.termContext ? `<section data-view="term-context"><strong>L${state.termContext.term.level} · Term ${state.termContext.term.termNumber}</strong><span> ${esc(state.termContext.card.technicalIntent ?? '')}</span></section>` : ''}
           <section data-view="weekly-agenda">
             <div><button type="button" data-action="week-prev" ${state.week <= 1 ? 'disabled' : ''}>←</button> Week ${state.week} <button type="button" data-action="week-next">→</button></div>
             <p>${weekly ? `${weekly.summary.completed}/${weekly.summary.total} completed` : 'Loading week…'}</p>
