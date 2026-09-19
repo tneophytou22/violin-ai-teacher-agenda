@@ -81,3 +81,72 @@ test('controller rejects invalid week and reports the UI error state', async () 
   assert.equal(controller.snapshot().error, 'Week must be an integer >= 1');
   assert.equal(controller.snapshot().loading, false);
 });
+
+test('lesson session persists details, reviewed work and homework through the controller boundary', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Lesson Session Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L5T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 5,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+
+  const lesson = await controller.createLesson('2026-09-18');
+  assert.equal(controller.snapshot().activeLessonId, lesson.id);
+
+  await controller.updateLessonDetails({ attendance: 'LATE', mark: 18 });
+  let state = controller.snapshot();
+  assert.equal(state.activeLesson.attendance, 'LATE');
+  assert.equal(state.activeLesson.mark, 18);
+
+  const items = state.weekly.items.slice(0, 2).map(item => item.id);
+  await controller.reviewItems(items);
+  state = controller.snapshot();
+  assert.deepEqual(state.activeLesson.reviewedProgrammeItemIds, items);
+  assert.deepEqual(state.reviewedItemIds, items);
+
+  await controller.saveHomework([
+    { text: 'Slow practice with metronome', completed: false },
+    { text: 'Record one take', completed: false },
+  ]);
+  state = controller.snapshot();
+  assert.equal(state.homework.items.length, 2);
+  assert.equal(state.homework.lessonId, lesson.id);
+
+  const storedLesson = await repo.get('lessons', lesson.id);
+  const storedHomework = await repo.get('homework', `hw_${lesson.id}`);
+  assert.equal(storedLesson.attendance, 'LATE');
+  assert.equal(storedLesson.mark, 18);
+  assert.deepEqual(storedLesson.reviewedProgrammeItemIds, items);
+  assert.equal(storedHomework.items.length, 2);
+  assert.equal(storedHomework.lessonId, lesson.id);
+
+  const lessons = await viewModel.listLessons(term.id);
+  assert.equal(lessons.length, 1);
+});
