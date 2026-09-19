@@ -196,6 +196,7 @@ export class TeacherAgendaController {
     this.state.termContext = await this.viewModel.loadTerm(this.state.selectedTermId);
     await this.viewModel.teacherTerms.activateCard(this.state.selectedTermId);
     this.state.termProgress = await this.viewModel.loadTermProgress(this.state.selectedTermId);
+    this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
     this.state.weekly = await this.viewModel.loadWeek(this.state.selectedTermId, this.state.week);
     const lessons = await this.viewModel.listLessons(this.state.selectedTermId);
     const existing = lessons.find(lesson => lesson.date === this.today());
