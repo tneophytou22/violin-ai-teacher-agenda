@@ -45,6 +45,9 @@ test('teacher agenda controller keeps UI selection state separate from business 
   assert.equal(state.selectedTermId, term.id);
   assert.equal(state.termContext.card.id, 'L7T1');
   assert.equal(state.weekly.items.length, 15);
+  assert.equal(state.termProgress.total, 15);
+  assert.equal(state.termProgress.completed, 0);
+  assert.equal(state.termProgress.byDomain.PURE_TECHNICAL.total, 5);
 
   await controller.selectWeek(2);
   state = controller.snapshot();
@@ -64,6 +67,8 @@ test('teacher agenda controller keeps UI selection state separate from business 
   await controller.completeItems([selected[0]]);
   state = controller.snapshot();
   assert.equal(state.weekly.summary.completed, 1);
+  assert.equal(state.termProgress.completed, 1);
+  assert.equal(state.termProgress.total, 15);
 });
 
 test('controller rejects invalid week and reports the UI error state', async () => {
