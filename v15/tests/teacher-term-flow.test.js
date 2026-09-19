@@ -32,14 +32,16 @@ test('student → Level/Term → TKTL card → programme → lesson flow', async
 
   const activation = await teacherTerm.activateCard(term.id);
   assert.equal(activation.card.id, 'L7T1');
-  assert.equal(activation.programmeItems.length, 15);
+  assert.equal(activation.programmeItems.filter(i => i.curriculumDomain !== 'SCALES').length, 15);
+  assert.ok(activation.programmeItems.some(i => i.curriculumDomain === 'SCALES'));
   assert.equal(activation.programmeItems.filter(i => i.curriculumId === V1_CURRICULUM_IDS.PURE_TECHNICAL).length, 5);
   assert.equal(activation.programmeItems.filter(i => i.curriculumId === V1_CURRICULUM_IDS.ETUDE).length, 5);
   assert.equal(activation.programmeItems.filter(i => i.curriculumId === V1_CURRICULUM_IDS.REPERTOIRE).length, 5);
   assert.ok(activation.programmeItems.every(i => i.termId === term.id && i.cardId === 'L7T1'));
 
   const secondActivation = await teacherTerm.activateCard(term.id);
-  assert.equal(secondActivation.programmeItems.length, 15);
+  assert.equal(secondActivation.programmeItems.filter(i => i.curriculumDomain !== 'SCALES').length, 15);
+  assert.equal(secondActivation.programmeItems.filter(i => i.curriculumDomain === 'SCALES').length, activation.programmeItems.filter(i => i.curriculumDomain === 'SCALES').length);
   assert.deepEqual(secondActivation.programmeItems.map(i => i.id).sort(), activation.programmeItems.map(i => i.id).sort());
 
   const lesson = await lessons.create({ termId: term.id, date: '2026-09-15', mark: 18 });
