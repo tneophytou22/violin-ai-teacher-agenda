@@ -28,7 +28,7 @@ export class TeacherAgendaShell {
       items: items.filter(i => i.curriculumDomain === domain),
     }));
     const lesson = state.activeLesson;
-    const homeworkText = state.homework?.items?.map(item => item.text ?? item.title ?? '').join('\\n') ?? '';
+    const homeworkText = state.homework?.items?.map(item => item.text ?? item.title ?? '').join('\n') ?? '';
 
     this.root.innerHTML = `
       <section data-v15="teacher-agenda" aria-busy="${state.loading}">
@@ -137,7 +137,7 @@ export class TeacherAgendaShell {
           await this.controller.updateLessonDetails({ attendance, mark });
         } else if (action === 'save-homework') {
           const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
-          const items = text.split('\\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
+          const items = text.split('\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
           await this.controller.saveHomework(items);
         } else if (target.dataset.carry) {
           await this.controller.carryForward(target.dataset.carry, this.controller.snapshot().week + 1);
