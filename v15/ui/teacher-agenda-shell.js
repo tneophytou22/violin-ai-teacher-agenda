@@ -48,17 +48,22 @@ export class TeacherAgendaShell {
         ${student ? `
           <section data-view="student-dashboard">
             <h2>${esc(student.name)}</h2>
-            <select data-action="term" aria-label="Term">
-              ${state.terms.map(t => `<option value="${esc(t.id)}" ${t.id === state.selectedTermId ? 'selected' : ''}>${esc(t.name)} · L${t.level}T${t.termNumber}</option>`).join('')}
-            </select>
-            <div data-view="term-create">
-              <input data-action="new-term-name" placeholder="Term name (e.g. 2026–27 Term 1)" aria-label="New term name">
-              <select data-action="new-term-level" aria-label="New term level"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option><option value="5">Level 5</option><option value="6">Level 6</option><option value="7">Level 7</option><option value="8">Level 8</option><option value="9">Level 9</option><option value="10">Level 10</option></select>
-              <select data-action="new-term-number" aria-label="New term number"><option value="1">Term 1</option><option value="2">Term 2</option></select>
-              <input type="date" data-action="new-term-start" aria-label="New term start date">
-              <input type="date" data-action="new-term-end" aria-label="New term end date">
-              <button type="button" data-action="create-term">New term</button>
-            </div>
+            <fieldset data-view="current-term">
+              <legend>Current term</legend>
+              <select data-action="term" aria-label="Current term">
+                ${state.terms.map(t => `<option value="${esc(t.id)}" ${t.id === state.selectedTermId ? 'selected' : ''}>${esc(t.name)} · L${t.level}T${t.termNumber}</option>`).join('')}
+              </select>
+              ${state.termContext ? `<div data-view="term-context"><strong>L${state.termContext.term.level} · Term ${state.termContext.term.termNumber}</strong><span> — ${esc(state.termContext.card.technicalIntent ?? '')}</span></div>` : ''}
+            </fieldset>
+            <fieldset data-view="term-create">
+              <legend>Create new term</legend>
+              <label>Term name <input data-action="new-term-name" placeholder="e.g. 2026–27 Term 1" aria-label="New term name"></label>
+              <label>Level <select data-action="new-term-level" aria-label="New term level"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option><option value="5">Level 5</option><option value="6">Level 6</option><option value="7">Level 7</option><option value="8">Level 8</option><option value="9">Level 9</option><option value="10">Level 10</option></select></label>
+              <label>Term <select data-action="new-term-number" aria-label="New term number"><option value="1">Term 1</option><option value="2">Term 2</option></select></label>
+              <label>Start date <input type="date" data-action="new-term-start" aria-label="New term start date"></label>
+              <label>End date <input type="date" data-action="new-term-end" aria-label="New term end date"></label>
+              <button type="button" data-action="create-term">Create term</button>
+            </fieldset>
           </section>
           ${state.termContext ? `<section data-view="term-context"><strong>L${state.termContext.term.level} · Term ${state.termContext.term.termNumber}</strong><span> ${esc(state.termContext.card.technicalIntent ?? '')}</span></section>` : ''}
           <section data-view="weekly-agenda">
