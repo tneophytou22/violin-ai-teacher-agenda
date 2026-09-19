@@ -8,6 +8,7 @@ import {
   WeeklyProgrammeService,
   LessonService,
   LessonProgrammeService,
+  HomeworkService,
 } from '../index.js';
 import { TeacherAgendaViewModel } from '../ui/teacher-agenda-view-model.js';
 import { TeacherAgendaController } from '../ui/teacher-agenda-controller.js';
@@ -91,7 +92,6 @@ test('lesson session persists details, reviewed work and homework through the co
   const weeklyProgrammeService = new WeeklyProgrammeService(repo);
   const lessonService = new LessonService(repo);
   const lessonProgrammeService = new LessonProgrammeService(repo);
-  const { HomeworkService } = await import('../services/homework-service.js');
   const homeworkService = new HomeworkService(repo);
   const viewModel = new TeacherAgendaViewModel({
     studentService,
@@ -149,4 +149,46 @@ test('lesson session persists details, reviewed work and homework through the co
 
   const lessons = await viewModel.listLessons(term.id);
   assert.equal(lessons.length, 1);
+});
+
+test('controller creates students and terms and can reopen a historical lesson', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService });
+  const controller = new TeacherAgendaController(viewModel);
+
+  await controller.loadStudents();
+  const student = await controller.createStudent({ name: 'Created Student' });
+  let state = controller.snapshot();
+  assert.equal(state.selectedStudentId, student.id);
+  assert.equal(state.terms.length, 0);
+
+  const term = await controller.createTerm({
+    name: '2026–27 Term 1',
+    level: 3,
+    termNumber: 1,
+    startDate: '2026-09-01',
+    endDate: '2027-01-31',
+  });
+  state = controller.snapshot();
+  assert.equal(state.selectedTermId, term.id);
+  assert.equal(state.termContext.card.id, 'L3T1');
+  assert.equal(state.weekly.items.length, 15);
+
+  const firstLesson = await controller.createLesson('2026-09-18', { mark: 17 });
+  const secondLesson = await controller.createLesson('2026-09-19', { mark: 18 });
+  await controller.selectLesson(firstLesson.id);
+  state = controller.snapshot();
+  assert.equal(state.activeLessonId, firstLesson.id);
+  assert.equal(state.activeLesson.mark, 17);
+  assert.equal(state.lessonHistory.length, 2);
+  assert.equal(state.homework, null);
+  assert.notEqual(state.activeLessonId, secondLesson.id);
 });
