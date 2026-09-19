@@ -24,6 +24,11 @@ test('teacher agenda view model composes the teacher workflow without owning bus
   const termContext = await agenda.loadTerm(term.id);
   assert.equal(termContext.card.id, 'L7T1');
 
+  const progress = await agenda.loadTermProgress(term.id);
+  assert.equal(progress.total, 15);
+  assert.equal(progress.completed, 0);
+  assert.equal(progress.byDomain.PURE_TECHNICAL.total, 5);
+
   const week = await agenda.loadWeek(term.id, 1);
   assert.equal(week.items.length, 15);
   assert.equal(week.summary.total, 15);
