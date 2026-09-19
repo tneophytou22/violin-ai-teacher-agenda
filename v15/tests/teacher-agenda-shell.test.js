@@ -26,3 +26,47 @@ test('teacher agenda shell renders the V15 workspace from controller state', asy
 });
 
 test('shell requires the V15 controller boundary', () => assert.throws(() => new TeacherAgendaShell({ controller: {}, root: new FakeRoot() }), /TeacherAgendaController/));
+
+test('shell renders lesson-session controls after a student and term are selected', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService: weekly,
+    lessonService: lessons,
+    lessonProgrammeService: lessonProgramme,
+    homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-18' });
+
+  const student = await studentService.create({ name: 'Lesson Shell Test' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L5T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 5,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  assert.match(root.innerHTML, /Lesson Session/);
+  assert.match(root.innerHTML, /Start lesson/);
+  assert.match(root.innerHTML, /Lesson History/);
+  assert.match(root.innerHTML, /Complete selected/);
+});
