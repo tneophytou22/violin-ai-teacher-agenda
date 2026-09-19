@@ -28,6 +28,21 @@ export class TeacherAgendaViewModel {
     return { items, summary };
   }
 
+  async loadTermProgress(termId) {
+    const items = await this.weekly.listForTerm(termId);
+    const byDomain = {};
+    for (const item of items) {
+      byDomain[item.curriculumDomain] ??= { total: 0, completed: 0 };
+      byDomain[item.curriculumDomain].total += 1;
+      if (item.status === 'COMPLETED') byDomain[item.curriculumDomain].completed += 1;
+    }
+    return {
+      total: items.length,
+      completed: items.filter(item => item.status === 'COMPLETED').length,
+      byDomain,
+    };
+  }
+
   async createLesson(termId, date, options = {}) {
     return this.lessons.create({ termId, date, ...options });
   }
