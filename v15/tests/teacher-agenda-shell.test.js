@@ -69,4 +69,6 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Start lesson/);
   assert.match(root.innerHTML, /Lesson History/);
   assert.match(root.innerHTML, /Complete selected/);
+  assert.match(root.innerHTML, /New term/);
+  assert.match(root.innerHTML, /New student/);
 });
