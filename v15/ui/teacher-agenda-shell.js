@@ -111,7 +111,7 @@ export class TeacherAgendaShell {
           </section>
           <section data-view="lesson">
             <h2>Lesson Session</h2>
-            <button type="button" data-action="lesson">${state.activeLessonId ? 'Lesson active ✓' : `Start lesson · ${this.now()}`}</button>
+            <button type="button" data-action="lesson" ${state.activeLessonId ? 'disabled' : ''}>${state.activeLessonId ? 'Lesson active ✓' : `Start lesson · ${this.now()}`}</button>
             ${lesson ? `
               <p data-view="lesson-status"><strong>${esc(lesson.date)}</strong> · ${esc(lesson.attendance)} · ${lesson.mark ?? 'No mark'} · ${state.reviewedItemIds.length} item(s) reviewed.</p>
               <div data-view="lesson-details">
