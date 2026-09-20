@@ -47,3 +47,7 @@
 [data-v15="teacher-agenda"] [data-view="scale-assessment-row"] { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 [data-v15="teacher-agenda"] [data-view="scale-assessment-row"] input { width: 105px; padding: 6px 8px; box-sizing: border-box; }
 [data-v15="teacher-agenda"] [data-view="scale-assessment-row"] select { min-width: 150px; }
+
+[data-v15="teacher-agenda"] [data-view="scale-assessment-row"] select,
+[data-v15="teacher-agenda"] [data-view="scale-assessment-row"] input { min-height: 34px; }
+[data-v15="teacher-agenda"] [data-view="scale-assessment-row"] input[type="text"] { width: 180px; }
