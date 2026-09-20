@@ -5,6 +5,37 @@ const MASTERY_WEIGHTS = Object.freeze({ NOT_STARTED: 0, DEVELOPING: 40, SECURE: 
 export class ScaleMasteryService {
   constructor(repo) { this.repo = repo; }
 
+  async getAssessment(programmeItemId) {
+    const item = await this.repo.get('programmeItems', programmeItemId);
+    if (!item) throw new Error('Scale ProgrammeItem not found');
+    if (item.curriculumDomain !== 'SCALES') throw new Error('ProgrammeItem is not a scale item');
+    return item.details?.mastery ?? {
+      status: 'NOT_STARTED',
+      currentTempo: null,
+      targetTempo: null,
+      intonation: null,
+      bowControl: null,
+      consistency: null,
+      note: '',
+      assessedAt: null,
+    };
+  }
+
+  static summarise(items) {
+    const counts = Object.fromEntries(MASTERY_STATUSES.map(status => [status, 0]));
+    let weighted = 0;
+    for (const item of items) {
+      const status = item.details?.mastery?.status ?? 'NOT_STARTED';
+      counts[status] += 1;
+      weighted += MASTERY_WEIGHTS[status];
+    }
+    return {
+      total: items.length,
+      counts,
+      masteryPercent: items.length ? Math.round(weighted / items.length) : 0,
+    };
+  }
+
   async assess({ programmeItemId, status = 'NOT_STARTED', currentTempo = null, targetTempo = null, intonation = null, bowControl = null, consistency = null, note = '' } = {}) {
     if (!MASTERY_STATUSES.includes(status)) throw new Error('Invalid scale mastery status');
     for (const value of [intonation, bowControl, consistency]) {
