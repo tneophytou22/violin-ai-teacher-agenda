@@ -89,6 +89,7 @@ export class TeacherAgendaShell {
             </fieldset>
           </section>
           <section data-view="weekly-agenda">
+            <h2>Weekly Agenda</h2>
             <div><button type="button" data-action="week-prev" ${state.week <= 1 ? 'disabled' : ''}>←</button> Week ${state.week} <button type="button" data-action="week-next">→</button></div>
             ${weekly ? `<div data-view="weekly-summary" aria-label="Weekly progress">
               <strong>${weekly.summary.completed}/${weekly.summary.total} completed</strong>
