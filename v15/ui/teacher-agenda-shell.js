@@ -136,7 +136,7 @@ export class TeacherAgendaShell {
 
           <section data-view="lesson-history">
             <h2>Lesson History</h2>
-            ${state.lessonHistory.length ? `<ul>${state.lessonHistory.map(entry => `<li><button type="button" data-action="select-lesson" data-lesson-id="${esc(entry.id)}">${esc(entry.date)} · ${esc(entry.attendance)} · ${entry.mark ?? 'No mark'} · ${(entry.reviewedProgrammeItemIds ?? []).length} reviewed</button></li>`).join('')}</ul>` : '<p>No lessons recorded for this term.</p>'}
+            ${state.lessonHistory.length ? `<ul>${state.lessonHistory.map(entry => { const selected = entry.id === state.activeLessonId; return `<li data-lesson-history-item="${esc(entry.id)}"${selected ? ' data-selected="true"' : ''}><button type="button" data-action="select-lesson" data-lesson-id="${esc(entry.id)}"${selected ? ' aria-current="true" disabled' : ''}>${esc(entry.date)} · ${esc(entry.attendance)} · ${entry.mark ?? 'No mark'} · ${(entry.reviewedProgrammeItemIds ?? []).length} reviewed${selected ? ' · Selected' : ''}</button></li>`; }).join('')}</ul>` : '<p>No lessons recorded for this term.</p>'}
           </section>
         ` : '<p>Select a student to begin.</p>'}
       </section>`;
