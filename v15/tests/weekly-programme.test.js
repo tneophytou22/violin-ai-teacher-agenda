@@ -19,11 +19,13 @@ const setup = async (level = 7, termNumber = 1) => {
   return { repo, term };
 };
 
-test('activated TKTL card creates 15 programme items and weekly summary can be assigned', async () => {
+test('activated TKTL card creates 15 core items plus scale requirements', async () => {
   const { repo, term } = await setup(7, 1);
   const weekly = new WeeklyProgrammeService(repo);
   const items = await weekly.listForTerm(term.id, 1);
-  assert.equal(items.length, 15);
+  assert.equal(items.length, 25);
+  const coreItems = items.filter(i => i.curriculumDomain !== 'SCALES');
+  assert.equal(coreItems.length, 15);
 
   const pureTechnical = items.filter(i => i.curriculumDomain === 'PURE_TECHNICAL');
   const etudes = items.filter(i => i.curriculumDomain === 'ETUDE');
@@ -32,8 +34,8 @@ test('activated TKTL card creates 15 programme items and weekly summary can be a
   assert.equal(etudes.length, 5);
   assert.equal(repertoire.length, 5);
 
-  await weekly.assignWeek(items[0].id, 3);
-  assert.equal((await weekly.listForTerm(term.id, 1)).length, 14);
+  await weekly.assignWeek(coreItems[0].id, 3);
+  assert.equal((await weekly.listForTerm(term.id, 1)).length, 24);
   assert.equal((await weekly.listForTerm(term.id, 3)).length, 1);
 
   const summary = await weekly.summary(term.id, 3);
