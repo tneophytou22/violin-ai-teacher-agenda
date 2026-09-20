@@ -48,6 +48,24 @@ export class TeacherAgendaShell {
         ${student ? `
           <section data-view="student-dashboard">
             <h2>${esc(student.name)}</h2>
+            <section data-view="lesson-dashboard" aria-label="Lesson dashboard">
+              <div data-lesson-dashboard-card>
+                <strong>Week ${state.week}</strong>
+                <span>${weekly ? `${weekly.summary.completed}/${weekly.summary.total} completed` : 'Loading week…'}</span>
+              </div>
+              <div data-lesson-dashboard-card>
+                <strong>Term progress</strong>
+                <span>${state.termProgress ? `${state.termProgress.completed}/${state.termProgress.total} core items` : 'Loading…'}</span>
+              </div>
+              <div data-lesson-dashboard-card>
+                <strong>Scale mastery</strong>
+                <span>${state.scaleProgress ? `${state.scaleProgress.masteryPercent}% assessed · ${state.scaleProgress.completed}/${state.scaleProgress.total} completed` : 'Loading…'}</span>
+              </div>
+              <div data-lesson-dashboard-card>
+                <strong>Lesson</strong>
+                <span>${lesson ? `${esc(lesson.date)} · ${esc(lesson.attendance)} · ${lesson.mark ?? 'No mark'} · ${state.reviewedItemIds.length} reviewed` : 'No lesson started'}</span>
+              </div>
+            </section>
             <div data-view="term-overview-grid">
             <fieldset data-view="current-term">
               <legend>Current term</legend>
