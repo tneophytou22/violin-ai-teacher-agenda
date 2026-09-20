@@ -68,3 +68,5 @@
   [data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li { flex-direction: column; align-items: stretch; }
   [data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li button { width: 100%; }
 }
+[data-v15="teacher-agenda"] [data-view="lesson-action-hint"] { font-size: .82rem; opacity: .75; align-self: center; }
+@media (max-width: 560px) { [data-v15="teacher-agenda"] [data-view="lesson-action-hint"] { align-self: flex-start; } }
