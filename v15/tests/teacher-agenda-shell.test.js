@@ -74,6 +74,9 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Create new term/);
   assert.match(root.innerHTML, /Weekly progress/);
   assert.match(root.innerHTML, /SCALES/);
+  assert.match(root.innerHTML, /Scale Progress \/ Mastery/);
+  assert.match(root.innerHTML, /Mastery is teacher-assessed/);
+  assert.match(root.innerHTML, /Save assessment/);
   assert.match(root.innerHTML, /PURE TECHNICAL 0\/5/);
   assert.match(root.innerHTML, /ETUDE 0\/5/);
   assert.match(root.innerHTML, /REPERTOIRE 0\/5/);
