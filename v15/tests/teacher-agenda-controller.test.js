@@ -46,7 +46,7 @@ test('teacher agenda controller keeps UI selection state separate from business 
   assert.equal(state.selectedStudentId, student.id);
   assert.equal(state.selectedTermId, term.id);
   assert.equal(state.termContext.card.id, 'L7T1');
-  assert.equal(state.weekly.items.length, 15);
+  assert.equal(state.weekly.items.filter(item => item.curriculumDomain !== 'SCALES').length, 15);
   assert.equal(state.termProgress.total, 15);
   assert.equal(state.termProgress.completed, 0);
   assert.equal(state.termProgress.byDomain.PURE_TECHNICAL.total, 5);
@@ -187,7 +187,7 @@ test('controller creates students and terms and can reopen a historical lesson',
   state = controller.snapshot();
   assert.equal(state.selectedTermId, term.id);
   assert.equal(state.termContext.card.id, 'L3T1');
-  assert.equal(state.weekly.items.length, 15);
+  assert.equal(state.weekly.items.filter(item => item.curriculumDomain !== 'SCALES').length, 15);
 
   const firstLesson = await controller.createLesson('2026-09-18', { mark: 17 });
   const reviewed = state.weekly.items.slice(0, 2).map(item => item.id);
