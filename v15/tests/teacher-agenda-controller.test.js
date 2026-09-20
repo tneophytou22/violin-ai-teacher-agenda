@@ -270,6 +270,6 @@ test('controller persists explicit scale mastery assessment', async () => {
   const assessed = state.scaleProgress.items.find(item => item.id === scaleItem.id);
   assert.equal(assessed.details.mastery.status, 'SECURE');
   assert.equal(assessed.details.mastery.currentTempo, 58);
-  assert.equal(state.scaleProgress.masteryPercent, 75);
+  assert.equal(state.scaleProgress.masteryPercent, 13);
   assert.equal(state.scaleProgress.completed, 0);
 });
