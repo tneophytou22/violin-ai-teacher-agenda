@@ -70,3 +70,5 @@
 }
 [data-v15="teacher-agenda"] [data-view="lesson-action-hint"] { font-size: .82rem; opacity: .75; align-self: center; }
 @media (max-width: 560px) { [data-v15="teacher-agenda"] [data-view="lesson-action-hint"] { align-self: flex-start; } }
+[data-v15="teacher-agenda"] [data-lesson-history-item][data-selected="true"] { border-left: 3px solid #555; padding-left: 9px; }
+[data-v15="teacher-agenda"] [data-view="lesson-history"] li { margin: 6px 0; }
