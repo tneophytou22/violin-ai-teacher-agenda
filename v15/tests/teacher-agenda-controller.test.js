@@ -9,6 +9,7 @@ import {
   LessonService,
   LessonProgrammeService,
   HomeworkService,
+  ScaleMasteryService,
 } from '../index.js';
 import { TeacherAgendaViewModel } from '../ui/teacher-agenda-view-model.js';
 import { TeacherAgendaController } from '../ui/teacher-agenda-controller.js';
@@ -214,4 +215,61 @@ test('controller creates students and terms and can reopen a historical lesson',
   const storedReviewed = await repo.get('lessons', firstLesson.id);
   assert.equal(storedCompleted.status, 'COMPLETED');
   assert.deepEqual(storedReviewed.reviewedProgrammeItemIds, reviewed);
+});
+
+
+test('controller persists explicit scale mastery assessment', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const scaleMasteryService = new ScaleMasteryService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+    scaleMasteryService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Scale Mastery Test' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const scaleItem = controller.snapshot().weekly.items.find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(scaleItem);
+
+  await controller.assessScale(scaleItem.id, {
+    status: 'SECURE',
+    currentTempo: 58,
+    targetTempo: 60,
+    intonation: 'SECURE',
+    bowControl: 'SECURE',
+    consistency: 'DEVELOPING',
+    note: 'Stable intonation; continue consistency.',
+  });
+
+  const state = controller.snapshot();
+  const assessed = state.scaleProgress.items.find(item => item.id === scaleItem.id);
+  assert.equal(assessed.details.mastery.status, 'SECURE');
+  assert.equal(assessed.details.mastery.currentTempo, 58);
+  assert.equal(state.scaleProgress.masteryPercent, 75);
+  assert.equal(state.scaleProgress.completed, 0);
 });
