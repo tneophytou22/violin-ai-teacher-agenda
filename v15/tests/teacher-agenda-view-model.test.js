@@ -30,8 +30,9 @@ test('teacher agenda view model composes the teacher workflow without owning bus
   assert.equal(progress.byDomain.PURE_TECHNICAL.total, 5);
 
   const week = await agenda.loadWeek(term.id, 1);
-  assert.equal(week.items.length, 15);
-  assert.equal(week.summary.total, 15);
+  assert.equal(week.items.length, 25);
+  assert.equal(week.summary.total, 25);
+  assert.equal(week.items.filter(item => item.curriculumDomain !== 'SCALES').length, 15);
 
   const lesson = await agenda.createLesson(term.id, '2026-09-17', { mark: 19 });
   const selected = week.items.slice(0, 2).map(item => item.id);
