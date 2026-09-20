@@ -1,3 +1,5 @@
+import { ScaleMasteryService } from '../services/scale-mastery-service.js';
+
 export class TeacherAgendaViewModel {
   constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, scaleMasteryService = null }) {
     this.students = studentService;
@@ -55,10 +57,20 @@ export class TeacherAgendaViewModel {
     }
     const total = items.length;
     const completed = items.filter(item => item.status === 'COMPLETED').length;
+    const mastery = ScaleMasteryService.summarise(items);
+    for (const [category, summary] of Object.entries(byCategory)) {
+      const categoryItems = items.filter(item => (item.details?.category ?? 'Other') === category);
+      const categoryMastery = ScaleMasteryService.summarise(categoryItems);
+      Object.assign(summary, {
+        masteryPercent: categoryMastery.masteryPercent,
+        masteryCounts: categoryMastery.counts,
+      });
+    }
     return {
       total,
       completed,
-      masteryPercent: total ? Math.round((completed / total) * 100) : 0,
+      masteryPercent: mastery.masteryPercent,
+      masteryCounts: mastery.counts,
       inProgressCategories: Object.values(byCategory).filter(v => v.completed > 0 && v.completed < v.total).length,
       byCategory,
       items,
