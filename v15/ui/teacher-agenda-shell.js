@@ -102,6 +102,8 @@ export class TeacherAgendaShell {
               </div>
             </div>` : '<p>Loading week…</p>'}
             <div data-view="programme-actions">
+              <button type="button" data-action="select-all-pending">Select all pending</button>
+              <button type="button" data-action="clear-selection" ${state.selectedItemIds.length ? '' : 'disabled'}>Clear selection</button>
               <button type="button" data-action="complete-selected" ${state.selectedItemIds.length ? '' : 'disabled'}>Complete selected</button>
               <button type="button" data-action="review" ${state.activeLessonId && state.selectedItemIds.length ? '' : 'disabled'}>Review selected (${state.selectedItemIds.length})</button>
               ${!state.activeLessonId ? '<span data-view="lesson-action-hint">Start a lesson below to enable Review selected.</span>' : '<span data-view="lesson-action-hint">Active lesson ready for review.</span>'}
@@ -187,6 +189,10 @@ export class TeacherAgendaShell {
           await this.controller.selectWeek(this.controller.snapshot().week - 1);
         } else if (action === 'week-next') {
           await this.controller.selectWeek(this.controller.snapshot().week + 1);
+        } else if (action === 'select-all-pending') {
+          this.controller.selectAllPendingItems();
+        } else if (action === 'clear-selection') {
+          this.controller.clearItemSelection();
         } else if (action === 'lesson') {
           await this.controller.createLesson(this.now());
         } else if (action === 'review') {
