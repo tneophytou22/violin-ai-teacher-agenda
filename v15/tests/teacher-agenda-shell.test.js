@@ -72,7 +72,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   shell.render();
   assert.match(root.innerHTML, /data-action="lesson" disabled/);
   assert.match(root.innerHTML, /Lesson active ✓/);
-  assert.match(root.innerHTML, /Start lesson/);
+  assert.doesNotMatch(root.innerHTML, /Start lesson/);
   assert.match(root.innerHTML, /Lesson History/);
   assert.match(root.innerHTML, /data-lesson-history-item/);
   assert.match(root.innerHTML, /Complete selected/);
@@ -86,7 +86,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Lesson dashboard/);
   assert.match(root.innerHTML, /Term progress/);
   assert.match(root.innerHTML, /Scale mastery/);
-  assert.match(root.innerHTML, /No lesson started/);
+  assert.doesNotMatch(root.innerHTML, /No lesson started/);
   assert.match(root.innerHTML, /SCALES/);
   assert.match(root.innerHTML, /Scale Progress \/ Mastery/);
   assert.match(root.innerHTML, /Mastery is teacher-assessed/);
