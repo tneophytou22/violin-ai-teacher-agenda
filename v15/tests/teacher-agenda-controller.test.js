@@ -225,6 +225,60 @@ test('controller creates students and terms and can reopen a historical lesson',
 });
 
 
+test('controller clears stale programme selection when changing week or carrying an item forward', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Selection Reset Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 3,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+
+  const item = controller.snapshot().weekly.items.find(item => item.curriculumDomain !== 'SCALES');
+  assert.ok(item);
+
+  controller.toggleItemSelection(item.id);
+  assert.deepEqual(controller.snapshot().selectedItemIds, [item.id]);
+
+  await controller.selectWeek(2);
+  assert.deepEqual(controller.snapshot().selectedItemIds, []);
+
+  await controller.selectWeek(1);
+  controller.toggleItemSelection(item.id);
+  await controller.carryForward(item.id, 2);
+
+  assert.equal(controller.snapshot().week, 2);
+  assert.deepEqual(controller.snapshot().selectedItemIds, []);
+  assert.equal(controller.snapshot().weekly.items.some(candidate => candidate.id === item.id), true);
+  assert.equal((await repo.get('programmeItems', item.id)).targetWeek, 2);
+  assert.equal(term.studentId, student.id);
+});
+
 test('controller persists explicit scale mastery assessment', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
