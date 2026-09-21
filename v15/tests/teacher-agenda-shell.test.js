@@ -76,6 +76,8 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Lesson History/);
   assert.match(root.innerHTML, /data-lesson-history-item/);
   assert.match(root.innerHTML, /Complete selected/);
+  assert.match(root.innerHTML, /Select all pending/);
+  assert.match(root.innerHTML, /Clear selection/);
   assert.doesNotMatch(root.innerHTML, /Start a lesson below to enable Review selected/);
   assert.match(root.innerHTML, /Current term/);
   assert.match(root.innerHTML, /Create new term/);
