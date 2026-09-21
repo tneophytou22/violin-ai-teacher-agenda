@@ -43,6 +43,13 @@ test('teacher agenda controller keeps UI selection state separate from business 
   assert.deepEqual(controller.snapshot().selectedItemIds, [selectableItem]);
   controller.toggleItemSelection(selectableItem);
   assert.deepEqual(controller.snapshot().selectedItemIds, []);
+  controller.selectAllPendingItems();
+  state = controller.snapshot();
+  assert.equal(state.selectedItemIds.length, 15);
+  assert.equal(new Set(state.selectedItemIds).size, 15);
+  assert.ok(state.weekly.items.filter(item => item.curriculumDomain === 'SCALES').every(item => !state.selectedItemIds.includes(item.id)));
+  controller.clearItemSelection();
+  assert.deepEqual(controller.snapshot().selectedItemIds, []);
   assert.equal(state.selectedStudentId, student.id);
   assert.equal(state.selectedTermId, term.id);
   assert.equal(state.termContext.card.id, 'L7T1');
