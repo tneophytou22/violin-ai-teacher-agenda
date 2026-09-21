@@ -104,6 +104,19 @@ export class TeacherAgendaController {
     return this.snapshot();
   }
 
+  selectAllPendingItems() {
+    const pendingIds = (this.state.weekly?.items ?? [])
+      .filter(item => item.curriculumDomain !== 'SCALES' && item.status !== 'COMPLETED')
+      .map(item => item.id);
+    this.state.selectedItemIds = pendingIds;
+    return this.snapshot();
+  }
+
+  clearItemSelection() {
+    this.state.selectedItemIds = [];
+    return this.snapshot();
+  }
+
   async createLesson(date = this.today(), options = {}) {
     return this.#run(async () => {
       if (!this.state.selectedTermId) throw new Error('No term selected');
