@@ -91,6 +91,7 @@ export class TeacherAgendaController {
       if (!Number.isInteger(week) || week < 1) throw new Error('Week must be an integer >= 1');
       if (!this.state.selectedTermId) throw new Error('No term selected');
       this.state.week = week;
+      this.state.selectedItemIds = [];
       this.state.weekly = await this.viewModel.loadWeek(this.state.selectedTermId, week);
       return this.snapshot();
     });
@@ -193,6 +194,7 @@ export class TeacherAgendaController {
     return this.#run(async () => {
       await this.viewModel.carryForward(programmeItemId, targetWeek);
       this.state.week = targetWeek;
+      this.state.selectedItemIds = [];
       await this.#reloadWeek();
       return this.snapshot();
     });
