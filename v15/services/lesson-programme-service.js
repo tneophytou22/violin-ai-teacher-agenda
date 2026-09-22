@@ -42,6 +42,16 @@ export class LessonProgrammeService {
     return completed;
   }
 
+  async uncompleteItem(itemId) {
+    const item = await this.repo.get('programmeItems', itemId);
+    if (!item) throw new Error('ProgrammeItem not found');
+    if (item.status !== 'COMPLETED') return item;
+
+    item.status = 'PLANNED';
+    delete item.completedAt;
+    return this.repo.put('programmeItems', item);
+  }
+
   async carryForward(itemId, targetWeek) {
     if (!Number.isInteger(targetWeek) || targetWeek < 1) throw new Error('Week must be a positive integer');
     const item = await this.repo.get('programmeItems', itemId);
