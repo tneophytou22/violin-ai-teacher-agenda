@@ -388,3 +388,54 @@ test('controller persists explicit scale mastery assessment', async () => {
   assert.equal(state.scaleProgress.masteryPercent, 13);
   assert.equal(state.scaleProgress.completed, 0);
 });
+
+
+test('controller uncompletes a programme item and restores pending progress', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Uncomplete Controller Test' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 3,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  assert.ok(item);
+
+  await controller.completeItems([item.id]);
+  let state = controller.snapshot();
+  assert.equal(state.weekly.summary.completed, 1);
+  assert.equal(state.termProgress.completed, 1);
+
+  await controller.uncompleteItem(item.id);
+  state = controller.snapshot();
+  const restored = state.weekly.items.find(candidate => candidate.id === item.id);
+  assert.equal(restored.status, 'PLANNED');
+  assert.equal(state.weekly.summary.completed, 0);
+  assert.equal(state.termProgress.completed, 0);
+  assert.deepEqual(state.selectedItemIds, []);
+});
