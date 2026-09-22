@@ -23,6 +23,7 @@ export class TeacherAgendaShell {
     const student = state.students.find(s => s.id === state.selectedStudentId);
     const weekly = state.weekly;
     const items = weekly?.items ?? [];
+    const pendingCoreCount = items.filter(item => item.curriculumDomain !== 'SCALES' && item.status !== 'COMPLETED').length;
     const grouped = ['PURE_TECHNICAL', 'ETUDE', 'REPERTOIRE'].map(domain => ({
       domain,
       items: items.filter(i => i.curriculumDomain === domain),
@@ -102,7 +103,7 @@ export class TeacherAgendaShell {
               </div>
             </div>` : '<p>Loading week…</p>'}
             <div data-view="programme-actions">
-              <button type="button" data-action="select-all-pending">Select all pending</button>
+              <button type="button" data-action="select-all-pending">Select all pending core (${pendingCoreCount})</button>
               <button type="button" data-action="clear-selection" ${state.selectedItemIds.length ? '' : 'disabled'}>Clear selection</button>
               <button type="button" data-action="complete-selected" ${state.selectedItemIds.length ? '' : 'disabled'}>Complete selected</button>
               <button type="button" data-action="review" ${state.activeLessonId && state.selectedItemIds.length ? '' : 'disabled'}>Review selected (${state.selectedItemIds.length})</button>
