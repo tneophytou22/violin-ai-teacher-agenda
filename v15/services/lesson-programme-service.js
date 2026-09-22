@@ -30,6 +30,14 @@ export class LessonProgrammeService {
     };
   }
 
+  async completeItemsForTerm(termId, programmeItemIds) {
+    const items = await this.repo.list('programmeItems');
+    const requested = new Set(programmeItemIds);
+    const foreign = items.filter(item => requested.has(item.id) && item.termId !== termId);
+    if (foreign.length) throw new Error('ProgrammeItem does not belong to the selected term');
+    return this.completeItems(programmeItemIds);
+  }
+
   async completeItems(programmeItemIds) {
     const items = await this.repo.list('programmeItems');
     const requested = new Set(programmeItemIds);
@@ -52,6 +60,13 @@ export class LessonProgrammeService {
     return completed;
   }
 
+  async uncompleteItemForTerm(termId, itemId) {
+    const item = await this.repo.get('programmeItems', itemId);
+    if (!item) throw new Error('ProgrammeItem not found');
+    if (item.termId !== termId) throw new Error('ProgrammeItem does not belong to the selected term');
+    return this.uncompleteItem(itemId);
+  }
+
   async uncompleteItem(itemId) {
     const item = await this.repo.get('programmeItems', itemId);
     if (!item) throw new Error('ProgrammeItem not found');
@@ -63,6 +78,13 @@ export class LessonProgrammeService {
     item.status = 'PLANNED';
     delete item.completedAt;
     return this.repo.put('programmeItems', item);
+  }
+
+  async carryForwardForTerm(termId, itemId, targetWeek) {
+    const item = await this.repo.get('programmeItems', itemId);
+    if (!item) throw new Error('ProgrammeItem not found');
+    if (item.termId !== termId) throw new Error('ProgrammeItem does not belong to the selected term');
+    return this.carryForward(itemId, targetWeek);
   }
 
   async carryForward(itemId, targetWeek) {
