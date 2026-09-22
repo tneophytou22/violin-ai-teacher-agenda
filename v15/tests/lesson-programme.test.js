@@ -104,3 +104,17 @@ test('uncompleting an already pending programme item is idempotent', async () =>
   const restored = await lessonProgramme.uncompleteItem(item.id);
   assert.equal(restored.status, 'PLANNED');
 });
+
+
+test('uncomplete rejects scale programme items because scale completion is separate from core completion', async () => {
+  const { repo, term } = await setup();
+  const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const scale = (await weekly.listForTerm(term.id, 1)).find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(scale);
+
+  await assert.rejects(
+    () => lessonProgramme.uncompleteItem(scale.id),
+    /Scale ProgrammeItem cannot be uncompleted through core completion workflow/
+  );
+});
