@@ -103,7 +103,7 @@ export class TeacherAgendaShell {
               </div>
             </div>` : '<p>Loading week…</p>'}
             <div data-view="programme-actions">
-              <button type="button" data-action="select-all-pending">Select all pending core (${pendingCoreCount})</button>
+              <button type="button" data-action="select-all-pending" ${pendingCoreCount ? '' : 'disabled'}>Select all pending core (${pendingCoreCount})</button>
               <button type="button" data-action="clear-selection" ${state.selectedItemIds.length ? '' : 'disabled'}>Clear selection (${state.selectedItemIds.length})</button>
               <button type="button" data-action="complete-selected" ${state.selectedItemIds.length ? '' : 'disabled'}>Complete selected (${state.selectedItemIds.length})</button>
               <button type="button" data-action="review" ${state.activeLessonId && state.selectedItemIds.length ? '' : 'disabled'}>Review selected (${state.selectedItemIds.length})</button>
