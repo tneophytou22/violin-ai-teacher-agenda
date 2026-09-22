@@ -97,16 +97,16 @@ export class TeacherAgendaViewModel {
     return this.lessonProgramme.reviewWeeklyItems(lessonId, programmeItemIds);
   }
 
-  async completeProgrammeItems(programmeItemIds) {
-    return this.lessonProgramme.completeItems(programmeItemIds);
+  async completeProgrammeItems(termId, programmeItemIds) {
+    return this.lessonProgramme.completeItemsForTerm(termId, programmeItemIds);
   }
 
-  async uncompleteProgrammeItem(programmeItemId) {
-    return this.lessonProgramme.uncompleteItem(programmeItemId);
+  async uncompleteProgrammeItem(termId, programmeItemId) {
+    return this.lessonProgramme.uncompleteItemForTerm(termId, programmeItemId);
   }
 
-  async carryForward(programmeItemId, targetWeek) {
-    return this.lessonProgramme.carryForward(programmeItemId, targetWeek);
+  async carryForward(termId, programmeItemId, targetWeek) {
+    return this.lessonProgramme.carryForwardForTerm(termId, programmeItemId, targetWeek);
   }
 
   async assessScale(programmeItemId, assessment, termId = null) {
