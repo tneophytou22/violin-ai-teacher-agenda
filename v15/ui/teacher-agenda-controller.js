@@ -183,7 +183,7 @@ export class TeacherAgendaController {
 
   async completeItems(programmeItemIds) {
     return this.#run(async () => {
-      await this.viewModel.completeProgrammeItems(programmeItemIds);
+      await this.viewModel.completeProgrammeItems(this.state.selectedTermId, programmeItemIds);
       this.state.selectedItemIds = [];
       await this.#reloadWeek();
       if (this.state.selectedTermId) {
@@ -196,7 +196,7 @@ export class TeacherAgendaController {
 
   async uncompleteItem(programmeItemId) {
     return this.#run(async () => {
-      await this.viewModel.uncompleteProgrammeItem(programmeItemId);
+      await this.viewModel.uncompleteProgrammeItem(this.state.selectedTermId, programmeItemId);
       this.state.selectedItemIds = [];
       await this.#reloadWeek();
       if (this.state.selectedTermId) {
@@ -209,7 +209,7 @@ export class TeacherAgendaController {
 
   async carryForward(programmeItemId, targetWeek) {
     return this.#run(async () => {
-      await this.viewModel.carryForward(programmeItemId, targetWeek);
+      await this.viewModel.carryForward(this.state.selectedTermId, programmeItemId, targetWeek);
       this.state.week = targetWeek;
       this.state.selectedItemIds = [];
       await this.#reloadWeek();
