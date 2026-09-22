@@ -113,3 +113,51 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Lesson activity: 1 reviewed/);
   assert.match(root.innerHTML, /\(reviewed\)/);
 });
+
+test('shell disables select-all when no pending core items remain', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService: weekly,
+    lessonService: lessons,
+    lessonProgrammeService: lessonProgramme,
+    homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-19' });
+
+  const student = await studentService.create({ name: 'Select All Boundary Test' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  const coreIds = controller.snapshot().weekly.items
+    .filter(item => item.curriculumDomain !== 'SCALES')
+    .map(item => item.id);
+  await controller.completeItems(coreIds);
+  shell.render();
+
+  assert.match(root.innerHTML, /Select all pending core \(0\)/);
+  assert.match(root.innerHTML, /data-action="select-all-pending" disabled/);
+});
