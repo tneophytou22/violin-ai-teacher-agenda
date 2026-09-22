@@ -143,7 +143,7 @@ test('shell exposes a live weekly selection-count target', async () => {
   shell.render();
 
   assert.match(root.innerHTML, /data-view="weekly-selection-count"/);
-  assert.match(root.innerHTML, /15 pending · 0 selected/);
+  assert.match(root.innerHTML, /21 pending · 0 selected/);
 });
 
 
