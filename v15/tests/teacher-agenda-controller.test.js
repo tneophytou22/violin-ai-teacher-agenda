@@ -421,6 +421,24 @@ test('controller persists explicit scale mastery assessment', async () => {
   });
 
   const state = controller.snapshot();
+  const secondStudent = await studentService.create({ name: 'Other Student' });
+  const secondTerm = await termService.create({
+    studentId: secondStudent.id,
+    name: 'L1T1 Other',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+  await teacherTermService.activateCard(secondTerm.id);
+  const foreignScale = (await weeklyProgrammeService.listForTerm(secondTerm.id, 1))
+    .find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(foreignScale);
+  await assert.rejects(
+    () => controller.assessScale(foreignScale.id, { status: 'SECURE' }),
+    /does not belong to the selected term/
+  );
+
   const assessed = state.scaleProgress.items.find(item => item.id === scaleItem.id);
   assert.equal(assessed.details.mastery.status, 'SECURE');
   assert.equal(assessed.details.mastery.currentTempo, 58);
