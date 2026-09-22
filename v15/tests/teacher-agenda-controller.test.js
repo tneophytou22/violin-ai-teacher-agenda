@@ -80,6 +80,45 @@ test('teacher agenda controller keeps UI selection state separate from business 
   assert.equal(state.termProgress.total, 15);
 });
 
+test('controller selection boundary excludes scales, completed items and unknown ids', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Selection Boundary Test' });
+  await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01',
+    endDate: '2026-12-31', level: 1, termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const state = controller.snapshot();
+  const core = state.weekly.items.find(item => item.curriculumDomain !== 'SCALES');
+  const scale = state.weekly.items.find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(core);
+  assert.ok(scale);
+
+  await new LessonProgrammeService(repo).completeItems([core.id]);
+  await controller.selectWeek(1);
+
+  controller.toggleItemSelection(core.id);
+  controller.toggleItemSelection(scale.id);
+  controller.toggleItemSelection('missing-programme-item');
+
+  assert.deepEqual(controller.snapshot().selectedItemIds, []);
+});
+ 
 test('controller rejects invalid week and reports the UI error state', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
