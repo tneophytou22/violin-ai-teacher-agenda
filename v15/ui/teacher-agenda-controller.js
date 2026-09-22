@@ -98,6 +98,9 @@ export class TeacherAgendaController {
   }
 
   toggleItemSelection(itemId) {
+    const item = (this.state.weekly?.items ?? []).find(candidate => candidate.id === itemId);
+    if (!item || item.curriculumDomain === 'SCALES' || item.status === 'COMPLETED') return this.snapshot();
+
     const selected = new Set(this.state.selectedItemIds);
     if (selected.has(itemId)) selected.delete(itemId);
     else selected.add(itemId);
