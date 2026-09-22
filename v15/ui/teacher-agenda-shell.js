@@ -104,7 +104,7 @@ export class TeacherAgendaShell {
             </div>` : '<p>Loading week…</p>'}
             <div data-view="programme-actions">
               <button type="button" data-action="select-all-pending">Select all pending core (${pendingCoreCount})</button>
-              <button type="button" data-action="clear-selection" ${state.selectedItemIds.length ? '' : 'disabled'}>Clear selection</button>
+              <button type="button" data-action="clear-selection" ${state.selectedItemIds.length ? '' : 'disabled'}>Clear selection (${state.selectedItemIds.length})</button>
               <button type="button" data-action="complete-selected" ${state.selectedItemIds.length ? '' : 'disabled'}>Complete selected (${state.selectedItemIds.length})</button>
               <button type="button" data-action="review" ${state.activeLessonId && state.selectedItemIds.length ? '' : 'disabled'}>Review selected (${state.selectedItemIds.length})</button>
               ${!state.activeLessonId ? '<span data-view="lesson-action-hint">Start a lesson below to enable Review selected.</span>' : `<span data-view="lesson-action-hint">Review records lesson activity; Complete selected updates progress.</span><span data-view="lesson-action-status" aria-live="polite">Lesson activity: ${state.reviewedItemIds.length} reviewed</span>`}
@@ -242,7 +242,12 @@ export class TeacherAgendaShell {
   #refreshActionButtons() {
     const state = this.controller.snapshot();
     const completeButton = this.root.querySelector('[data-action="complete-selected"]');
+    const clearButton = this.root.querySelector('[data-action="clear-selection"]');
     const reviewButton = this.root.querySelector('[data-action="review"]');
+    if (clearButton) {
+      clearButton.disabled = state.selectedItemIds.length === 0;
+      clearButton.textContent = `Clear selection (${state.selectedItemIds.length})`;
+    }
     if (completeButton) {
       completeButton.disabled = state.selectedItemIds.length === 0;
       completeButton.textContent = `Complete selected (${state.selectedItemIds.length})`;
