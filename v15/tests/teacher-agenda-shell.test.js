@@ -159,5 +159,5 @@ test('shell disables select-all when no pending core items remain', async () => 
   shell.render();
 
   assert.match(root.innerHTML, /Select all pending core \(0\)/);
-  assert.match(root.innerHTML, /data-action="select-all-pending" disabled/);
+  assert.match(root.innerHTML, /data-action="select-all-pending"[^>]*disabled/);
 });
