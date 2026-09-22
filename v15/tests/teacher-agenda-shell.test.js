@@ -161,3 +161,48 @@ test('shell disables select-all when no pending core items remain', async () => 
   assert.match(root.innerHTML, /Select all pending core \(0\)/);
   assert.match(root.innerHTML, /data-action="select-all-pending"[^>]*disabled/);
 });
+
+
+test('shell renders Uncomplete for completed core programme items', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService: weekly,
+    lessonService: lessons,
+    lessonProgrammeService: lessonProgramme,
+    homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-20' });
+
+  const student = await studentService.create({ name: 'Uncomplete Shell Test' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  await controller.completeItems([item.id]);
+  shell.render();
+
+  assert.match(root.innerHTML, /Uncomplete/);
+  assert.doesNotMatch(root.innerHTML, /data-uncomplete=""[^>]*>Uncomplete/);
+});
