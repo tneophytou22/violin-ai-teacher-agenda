@@ -88,6 +88,21 @@ test('cross-term review is rejected', async () => {
 });
 
 
+test('complete rejects scale programme items because scale completion is separate from core completion', async () => {
+  const { repo, term } = await setup();
+  const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const scale = (await weekly.listForTerm(term.id, 1)).find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(scale);
+
+  await assert.rejects(
+    () => lessonProgramme.completeItems([scale.id]),
+    /Scale ProgrammeItem cannot be completed through core completion workflow/
+  );
+  assert.equal((await repo.get('programmeItems', scale.id)).status, 'PLANNED');
+});
+
+
 test('completed programme item can be uncompleted and its completion timestamp is cleared', async () => {
   const { repo, term } = await setup();
   const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
