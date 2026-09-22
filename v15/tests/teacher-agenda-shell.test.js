@@ -105,6 +105,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   shell.render();
   assert.match(root.innerHTML, /Complete selected \(1\)/);
   assert.match(root.innerHTML, /Review selected \(1\)/);
+  assert.match(root.innerHTML, /Carry to Week 2/);
   await controller.reviewItems([itemId]);
   shell.render();
   assert.match(root.innerHTML, /Review records lesson activity; Complete selected updates progress/);
