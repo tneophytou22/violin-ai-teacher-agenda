@@ -77,7 +77,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /data-lesson-history-item/);
   assert.match(root.innerHTML, /Complete selected \(0\)/);
   assert.match(root.innerHTML, /Select all pending core \(15\)/);
-  assert.match(root.innerHTML, /Clear selection/);
+  assert.match(root.innerHTML, /Clear selection \(0\)/);
   assert.doesNotMatch(root.innerHTML, /Start a lesson below to enable Review selected/);
   assert.match(root.innerHTML, /Review records lesson activity; Complete selected updates progress/);
   assert.match(root.innerHTML, /Lesson activity: 0 reviewed/);
@@ -104,6 +104,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   controller.toggleItemSelection(itemId);
   shell.render();
   assert.match(root.innerHTML, /Complete selected \(1\)/);
+  assert.match(root.innerHTML, /Clear selection \(1\)/);
   assert.match(root.innerHTML, /Review selected \(1\)/);
   assert.match(root.innerHTML, /Carry to Week 2/);
   await controller.reviewItems([itemId]);
