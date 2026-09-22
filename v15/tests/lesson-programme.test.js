@@ -72,3 +72,35 @@ test('cross-term review is rejected', async () => {
   const otherItem = (await repo.list('programmeItems')).find(i => i.termId === otherTerm.id);
   await assert.rejects(() => new LessonProgrammeService(repo).reviewWeeklyItems(lesson.id, [otherItem.id]), /does not belong to the lesson term/);
 });
+
+
+test('completed programme item can be uncompleted and its completion timestamp is cleared', async () => {
+  const { repo, term } = await setup();
+  const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const item = (await weekly.listForTerm(term.id, 1))[0];
+
+  await lessonProgramme.completeItems([item.id]);
+  const completed = await repo.get('programmeItems', item.id);
+  assert.equal(completed.status, 'COMPLETED');
+  assert.ok(completed.completedAt);
+
+  completed.details = { ...(completed.details ?? {}), mastery: { status: 'SECURE' } };
+  await repo.put('programmeItems', completed);
+
+  const restored = await lessonProgramme.uncompleteItem(item.id);
+  assert.equal(restored.status, 'PLANNED');
+  assert.equal(restored.completedAt, undefined);
+  assert.equal(restored.details.mastery.status, 'SECURE');
+  assert.equal((await repo.get('programmeItems', item.id)).status, 'PLANNED');
+});
+
+test('uncompleting an already pending programme item is idempotent', async () => {
+  const { repo, term } = await setup();
+  const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const item = (await weekly.listForTerm(term.id, 1))[0];
+
+  const restored = await lessonProgramme.uncompleteItem(item.id);
+  assert.equal(restored.status, 'PLANNED');
+});
