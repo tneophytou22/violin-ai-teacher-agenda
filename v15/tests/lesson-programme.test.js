@@ -163,3 +163,50 @@ test('uncomplete rejects scale programme items because scale completion is separ
     /Scale ProgrammeItem cannot be uncompleted through core completion workflow/
   );
 });
+
+
+test('term-aware completion rejects a programme item from another term', async () => {
+  const { repo, term } = await setup();
+  const otherStudent = await new StudentService(repo).create({ name: 'Other Completion Student' });
+  const otherTerm = await new TermService(repo).create({ studentId: otherStudent.id, name: 'Other', startDate: '2026-09-01', endDate: '2026-12-31', level: 7, termNumber: 2 });
+  await new TeacherTermService(repo).activateCard(otherTerm.id);
+  const foreignItem = (await repo.list('programmeItems')).find(i => i.termId === otherTerm.id && i.curriculumDomain !== 'SCALES');
+  const service = new LessonProgrammeService(repo);
+
+  await assert.rejects(
+    () => service.completeItemsForTerm(term.id, [foreignItem.id]),
+    /does not belong to the selected term/
+  );
+  assert.equal((await repo.get('programmeItems', foreignItem.id)).status, 'PLANNED');
+});
+
+test('term-aware uncomplete rejects a programme item from another term', async () => {
+  const { repo, term } = await setup();
+  const otherStudent = await new StudentService(repo).create({ name: 'Other Uncomplete Student' });
+  const otherTerm = await new TermService(repo).create({ studentId: otherStudent.id, name: 'Other', startDate: '2026-09-01', endDate: '2026-12-31', level: 7, termNumber: 2 });
+  await new TeacherTermService(repo).activateCard(otherTerm.id);
+  const foreignItem = (await repo.list('programmeItems')).find(i => i.termId === otherTerm.id && i.curriculumDomain !== 'SCALES');
+  const service = new LessonProgrammeService(repo);
+  await service.completeItems([foreignItem.id]);
+
+  await assert.rejects(
+    () => service.uncompleteItemForTerm(term.id, foreignItem.id),
+    /does not belong to the selected term/
+  );
+  assert.equal((await repo.get('programmeItems', foreignItem.id)).status, 'COMPLETED');
+});
+
+test('term-aware carry-forward rejects a programme item from another term', async () => {
+  const { repo, term } = await setup();
+  const otherStudent = await new StudentService(repo).create({ name: 'Other Carry Student' });
+  const otherTerm = await new TermService(repo).create({ studentId: otherStudent.id, name: 'Other', startDate: '2026-09-01', endDate: '2026-12-31', level: 7, termNumber: 2 });
+  await new TeacherTermService(repo).activateCard(otherTerm.id);
+  const foreignItem = (await repo.list('programmeItems')).find(i => i.termId === otherTerm.id && i.curriculumDomain !== 'SCALES');
+  const service = new LessonProgrammeService(repo);
+
+  await assert.rejects(
+    () => service.carryForwardForTerm(term.id, foreignItem.id, 4),
+    /does not belong to the selected term/
+  );
+  assert.equal((await repo.get('programmeItems', foreignItem.id)).targetWeek, 1);
+});
