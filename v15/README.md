@@ -124,4 +124,33 @@ Implemented:
 - completed ProgrammeItems remain completed after historical lesson selection
 - the UI separation between Current Term and Create New Term is covered by shell tests
 
-The next refinement should focus on teacher-facing workflow ergonomics and browser interaction coverage, without introducing duplicate business state.
+## Checkpoint 10 — Weekly Teaching Workflow UX (VALIDATED)
+Validated on the live GitHub Pages browser deployment.
+
+Implemented:
+- Select all pending core programme items
+- Clear selection
+- Review selected items through the active lesson
+- Explicit Complete selected workflow
+- SCALES excluded from bulk programme-item selection
+- week changes clear stale selection
+- carry-forward clears selection and moves the active week
+- completed items cannot be carried forward
+- weekly/domain counters update after completion
+- live browser validation of Review → Complete distinction
+- GitHub Pages deployment for the V15 browser demo
+
+Validation evidence:
+- automated V15 test suite green on the pre-deployment V15 head
+- live GitHub Pages deployment green
+- browser QA passed for selection, week change, carry-forward, review and completion
+- validated live demo: https://tneophytou22.github.io/violin-ai-teacher-agenda/ui/demo/
+
+**Locked baseline:** Checkpoint 10 is now the validated V15 teaching-workflow baseline. Future work must preserve the validated Weekly Agenda → Review → Complete → Carry Forward semantics unless a new phase explicitly changes and re-validates them.
+
+## Next refinement — Phase 11
+Focus:
+- teacher-facing workflow ergonomics above the locked Checkpoint 10 baseline
+- improve visibility and efficiency of lesson review/completion without introducing duplicate business state
+- tests first, then implementation, then CI and browser validation
+- no curriculum/TKTL changes unless explicitly required by the phase
