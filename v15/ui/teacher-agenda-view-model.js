@@ -109,8 +109,14 @@ export class TeacherAgendaViewModel {
     return this.lessonProgramme.carryForward(programmeItemId, targetWeek);
   }
 
-  async assessScale(programmeItemId, assessment) {
+  async assessScale(programmeItemId, assessment, termId = null) {
     if (!this.scaleMastery) throw new Error('Scale mastery service is not configured');
+    if (termId !== null) {
+      const termItems = await this.weekly.listForTerm(termId);
+      const item = termItems.find(candidate => candidate.id === programmeItemId);
+      if (!item) throw new Error('Scale ProgrammeItem does not belong to the selected term');
+      if (item.curriculumDomain !== 'SCALES') throw new Error('ProgrammeItem is not a scale item');
+    }
     return this.scaleMastery.assess({ programmeItemId, ...assessment });
   }
 
