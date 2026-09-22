@@ -31,6 +31,9 @@ export class LessonProgrammeService {
     const requested = new Set(programmeItemIds);
     const matches = items.filter(item => requested.has(item.id));
     if (matches.length !== requested.size) throw new Error('ProgrammeItem not found');
+    if (matches.some(item => item.curriculumDomain === 'SCALES')) {
+      throw new Error('Scale ProgrammeItem cannot be completed through core completion workflow');
+    }
 
     const completed = [];
     for (const item of matches) {
