@@ -154,3 +154,14 @@ Focus:
 - improve visibility and efficiency of lesson review/completion without introducing duplicate business state
 - tests first, then implementation, then CI and browser validation
 - no curriculum/TKTL changes unless explicitly required by the phase
+
+
+## Checkpoint 11 — Phase 11 validated
+
+Phase 11 is browser-validated on the live GitHub Pages demo. The weekly bulk-selection boundary is explicit: core items are selectable, SCALES remain excluded from bulk selection, and when no pending core items remain the selection/completion actions are disabled.
+
+## Phase 12 — Completion reversal
+
+Phase 12 introduces an explicit single-item Uncomplete transition for completed core programme items. The transition restores the programme item to PLANNED, clears completedAt, preserves other item details, and refreshes weekly and term progress. Lesson review activity remains a separate record and is not erased by uncompletion.
+
+Automated coverage is added at service, controller, and shell levels. Live browser QA remains pending for the new Uncomplete action.
