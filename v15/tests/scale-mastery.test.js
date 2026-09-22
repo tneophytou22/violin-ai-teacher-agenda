@@ -36,6 +36,38 @@ test('scale mastery assessment is stored separately from programme completion', 
   assert.equal(stored.status, 'PLANNED');
 });
 
+test('scale mastery tempo values follow the assessment input boundary', async () => {
+  const repo = new InMemoryRepository();
+  const service = new ScaleMasteryService(repo);
+  const item = await repo.put('programmeItems', createProgrammeItem({
+    termId: 'term_1', curriculumId: 'scales-v1', curriculumDomain: 'SCALES',
+    objectId: 'L1T1:SCALES:scale-tempo', title: 'G major — 1 octave', targetWeek: 1,
+  }));
+
+  for (const field of ['currentTempo', 'targetTempo']) {
+    await assert.rejects(
+      () => service.assess({ programmeItemId: item.id, [field]: 0 }),
+      /Scale tempo must be a finite number between 1 and 300/
+    );
+    await assert.rejects(
+      () => service.assess({ programmeItemId: item.id, [field]: 301 }),
+      /Scale tempo must be a finite number between 1 and 300/
+    );
+    await assert.rejects(
+      () => service.assess({ programmeItemId: item.id, [field]: Number.NaN }),
+      /Scale tempo must be a finite number between 1 and 300/
+    );
+    await assert.rejects(
+      () => service.assess({ programmeItemId: item.id, [field]: '60' }),
+      /Scale tempo must be a finite number between 1 and 300/
+    );
+  }
+
+  const assessed = await service.assess({ programmeItemId: item.id, currentTempo: 1, targetTempo: 300 });
+  assert.equal(assessed.details.mastery.currentTempo, 1);
+  assert.equal(assessed.details.mastery.targetTempo, 300);
+});
+
 test('scale mastery summary uses explicit teacher-assessed mastery, not completion', async () => {
   const items = [
     { details: { mastery: { status: 'NOT_STARTED' } } },
