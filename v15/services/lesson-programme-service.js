@@ -45,6 +45,9 @@ export class LessonProgrammeService {
   async uncompleteItem(itemId) {
     const item = await this.repo.get('programmeItems', itemId);
     if (!item) throw new Error('ProgrammeItem not found');
+    if (item.curriculumDomain === 'SCALES') {
+      throw new Error('Scale ProgrammeItem cannot be uncompleted through core completion workflow');
+    }
     if (item.status !== 'COMPLETED') return item;
 
     item.status = 'PLANNED';
