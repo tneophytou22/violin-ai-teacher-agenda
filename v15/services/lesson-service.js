@@ -41,7 +41,10 @@ export class LessonService {
     const items = await this.repo.list('programmeItems');
     const allowed = new Set(items.filter(i => i.termId === lesson.termId).map(i => i.id));
     if (programmeItemIds.some(id => !allowed.has(id))) throw new Error('Reviewed ProgrammeItem does not belong to the lesson term');
-    lesson.reviewedProgrammeItemIds = [...new Set(programmeItemIds)];
+    lesson.reviewedProgrammeItemIds = [...new Set([
+      ...(lesson.reviewedProgrammeItemIds ?? []),
+      ...programmeItemIds,
+    ])];
     lesson.version += 1;
     return this.repo.put('lessons', lesson);
   }
