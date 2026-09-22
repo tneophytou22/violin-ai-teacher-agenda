@@ -79,6 +79,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Select all pending/);
   assert.match(root.innerHTML, /Clear selection/);
   assert.doesNotMatch(root.innerHTML, /Start a lesson below to enable Review selected/);
+  assert.match(root.innerHTML, /Review records lesson activity; Complete selected updates progress/);
   assert.match(root.innerHTML, /Lesson activity: 0 reviewed/);
   assert.match(root.innerHTML, /Current term/);
   assert.match(root.innerHTML, /Create new term/);
@@ -102,6 +103,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   const itemId = controller.snapshot().weekly.items.find(item => item.curriculumDomain !== 'SCALES').id;
   await controller.reviewItems([itemId]);
   shell.render();
+  assert.match(root.innerHTML, /Review records lesson activity; Complete selected updates progress/);
   assert.match(root.innerHTML, /Lesson activity: 1 reviewed/);
   assert.match(root.innerHTML, /\(reviewed\)/);
 });
