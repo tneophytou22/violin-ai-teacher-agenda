@@ -33,6 +33,20 @@ test('lesson reviews only weekly programme items belonging to its term', async (
   assert.equal(result.reviewedItems.length, 2);
 });
 
+test('reviewing additional items preserves earlier lesson review records', async () => {
+  const { repo, term, lesson } = await setup();
+  const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const items = await weekly.listForTerm(term.id, 1);
+
+  await lessonProgramme.reviewWeeklyItems(lesson.id, [items[0].id]);
+  await lessonProgramme.reviewWeeklyItems(lesson.id, [items[1].id]);
+
+  const saved = await repo.get('lessons', lesson.id);
+  assert.deepEqual(saved.reviewedProgrammeItemIds, [items[0].id, items[1].id]);
+});
+
+
 test('reviewing an item does not complete it; completion is explicit', async () => {
   const { repo, term, lesson } = await setup();
   const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
