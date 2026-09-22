@@ -8,8 +8,12 @@ export class LessonProgrammeService {
     const items = await this.repo.list('programmeItems');
     const termItems = items.filter(item => item.termId === lesson.termId);
     const allowed = new Set(termItems.map(item => item.id));
+    const selectedItems = termItems.filter(item => programmeItemIds.includes(item.id));
     if (programmeItemIds.some(id => !allowed.has(id))) {
       throw new Error('ProgrammeItem does not belong to the lesson term');
+    }
+    if (selectedItems.some(item => item.curriculumDomain === 'SCALES')) {
+      throw new Error('Scale ProgrammeItem cannot be reviewed through core lesson workflow');
     }
 
     const reviewed = [...new Set([
