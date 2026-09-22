@@ -94,7 +94,7 @@ export class TeacherAgendaShell {
             <div><button type="button" data-action="week-prev" ${state.week <= 1 ? 'disabled' : ''}>←</button> Week ${state.week} <button type="button" data-action="week-next">→</button></div>
             ${weekly ? `<div data-view="weekly-summary" aria-label="Weekly progress">
               <strong>${weekly.summary.completed}/${weekly.summary.total} completed</strong>
-              <span> · ${Math.max(weekly.summary.total - weekly.summary.completed, 0)} pending · ${state.selectedItemIds.length} selected</span>
+              <span data-view="weekly-selection-count"> · ${Math.max(weekly.summary.total - weekly.summary.completed, 0)} pending · ${state.selectedItemIds.length} selected</span>
               <div data-view="domain-progress">
                 ${['SCALES', 'PURE_TECHNICAL', 'ETUDE', 'REPERTOIRE'].map(domain => {
                   const summary = weekly.summary.byDomain?.[domain] ?? { completed: 0, total: 0 };
@@ -246,6 +246,7 @@ export class TeacherAgendaShell {
     const completeButton = this.root.querySelector('[data-action="complete-selected"]');
     const clearButton = this.root.querySelector('[data-action="clear-selection"]');
     const reviewButton = this.root.querySelector('[data-action="review"]');
+    const selectionCount = this.root.querySelector('[data-view="weekly-selection-count"]');
     if (clearButton) {
       clearButton.disabled = state.selectedItemIds.length === 0;
       clearButton.textContent = `Clear selection (${state.selectedItemIds.length})`;
@@ -253,6 +254,11 @@ export class TeacherAgendaShell {
     if (completeButton) {
       completeButton.disabled = state.selectedItemIds.length === 0;
       completeButton.textContent = `Complete selected (${state.selectedItemIds.length})`;
+    }
+    if (selectionCount) {
+      const weekly = state.weekly;
+      const pendingCount = weekly ? Math.max(weekly.summary.total - weekly.summary.completed, 0) : 0;
+      selectionCount.textContent = ` · ${pendingCount} pending · ${state.selectedItemIds.length} selected`;
     }
     if (reviewButton) {
       reviewButton.disabled = !state.activeLessonId || state.selectedItemIds.length === 0;
