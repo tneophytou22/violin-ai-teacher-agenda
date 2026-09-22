@@ -172,7 +172,8 @@ export class TeacherAgendaController {
 
   async assessScale(programmeItemId, assessment) {
     return this.#run(async () => {
-      const item = await this.viewModel.assessScale(programmeItemId, assessment);
+      if (!this.state.selectedTermId) throw new Error('No term selected');
+      const item = await this.viewModel.assessScale(programmeItemId, assessment, this.state.selectedTermId);
       if (this.state.selectedTermId) {
         this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
       }
