@@ -164,4 +164,4 @@ Phase 11 is browser-validated on the live GitHub Pages demo. The weekly bulk-sel
 
 Phase 12 introduces an explicit single-item Uncomplete transition for completed core programme items. The transition restores the programme item to PLANNED, clears completedAt, preserves other item details, and refreshes weekly and term progress. Lesson review activity remains a separate record and is not erased by uncompletion.
 
-Automated coverage is added at service, controller, and shell levels. Live browser QA remains pending for the new Uncomplete action.
+Automated coverage is added at service, controller, and shell levels. Live browser QA is validated on the live GitHub Pages demo: a completed core item can be uncompleted, returns to pending progress, and the weekly/term counters update correctly.
