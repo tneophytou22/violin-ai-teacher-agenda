@@ -38,6 +38,11 @@ export class ScaleMasteryService {
 
   async assess({ programmeItemId, status = 'NOT_STARTED', currentTempo = null, targetTempo = null, intonation = null, bowControl = null, consistency = null, note = '' } = {}) {
     if (!MASTERY_STATUSES.includes(status)) throw new Error('Invalid scale mastery status');
+    for (const value of [currentTempo, targetTempo]) {
+      if (value !== null && (!Number.isFinite(value) || value <= 0 || value > 300)) {
+        throw new Error('Scale tempo must be a finite number between 1 and 300');
+      }
+    }
     for (const value of [intonation, bowControl, consistency]) {
       if (value !== null && !DIMENSION_STATUSES.includes(value)) throw new Error('Invalid scale assessment dimension');
     }
