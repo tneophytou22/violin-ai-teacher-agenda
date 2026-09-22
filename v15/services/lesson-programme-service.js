@@ -12,7 +12,10 @@ export class LessonProgrammeService {
       throw new Error('ProgrammeItem does not belong to the lesson term');
     }
 
-    const reviewed = [...new Set(programmeItemIds)];
+    const reviewed = [...new Set([
+      ...(lesson.reviewedProgrammeItemIds ?? []),
+      ...programmeItemIds,
+    ])];
     lesson.reviewedProgrammeItemIds = reviewed;
     lesson.version += 1;
     const savedLesson = await this.repo.put('lessons', lesson);
