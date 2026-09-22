@@ -101,6 +101,10 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /New student/);
 
   const itemId = controller.snapshot().weekly.items.find(item => item.curriculumDomain !== 'SCALES').id;
+  controller.toggleItemSelection(itemId);
+  shell.render();
+  assert.match(root.innerHTML, /Complete selected \(1\)/);
+  assert.match(root.innerHTML, /Review selected \(1\)/);
   await controller.reviewItems([itemId]);
   shell.render();
   assert.match(root.innerHTML, /Review records lesson activity; Complete selected updates progress/);
