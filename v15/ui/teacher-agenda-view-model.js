@@ -101,6 +101,10 @@ export class TeacherAgendaViewModel {
     return this.lessonProgramme.completeItems(programmeItemIds);
   }
 
+  async uncompleteProgrammeItem(programmeItemId) {
+    return this.lessonProgramme.uncompleteItem(programmeItemId);
+  }
+
   async carryForward(programmeItemId, targetWeek) {
     return this.lessonProgramme.carryForward(programmeItemId, targetWeek);
   }
