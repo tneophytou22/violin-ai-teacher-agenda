@@ -190,6 +190,19 @@ export class TeacherAgendaController {
     });
   }
 
+  async uncompleteItem(programmeItemId) {
+    return this.#run(async () => {
+      await this.viewModel.uncompleteProgrammeItem(programmeItemId);
+      this.state.selectedItemIds = [];
+      await this.#reloadWeek();
+      if (this.state.selectedTermId) {
+        this.state.termProgress = await this.viewModel.loadTermProgress(this.state.selectedTermId);
+        this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
+      }
+      return this.snapshot();
+    });
+  }
+
   async carryForward(programmeItemId, targetWeek) {
     return this.#run(async () => {
       await this.viewModel.carryForward(programmeItemId, targetWeek);
