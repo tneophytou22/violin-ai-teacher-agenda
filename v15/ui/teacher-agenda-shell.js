@@ -49,6 +49,31 @@ export class TeacherAgendaShell {
         ${student ? `
           <section data-view="student-dashboard">
             <h2>${esc(student.name)}</h2>
+            ${state.studentIntelligence ? (() => {
+              const profile = state.studentIntelligence;
+              const current = profile.termProfiles.find(entry => entry.term.id === state.selectedTermId) ?? profile.termProfiles.at(-1);
+              if (!current) return '';
+              const programme = current.programme;
+              const domainSummary = ['PURE_TECHNICAL', 'ETUDE', 'REPERTOIRE'].map(domain => {
+                const summary = programme[domain] ?? { total: 0, completed: 0, reviewed: 0 };
+                return `<span>${domain.replace('_', ' ')} ${summary.completed}/${summary.total} completed · ${summary.reviewed} reviewed</span>`;
+              }).join('');
+              return `<section data-view="student-intelligence" aria-label="Student Intelligence">
+                <h2>Student Intelligence</h2>
+                <div data-view="intelligence-overview">
+                  <span>Terms: ${profile.terms.length}</span>
+                  <span>Lessons: ${current.lessons.count}</span>
+                  <span>Scales: ${current.scales.mastery.masteryPercent}% assessed mastery</span>
+                </div>
+                <div data-view="intelligence-programme">${domainSummary}</div>
+                <div data-view="intelligence-lessons">
+                  <span>Attendance: Present ${current.lessons.attendance.PRESENT} · Late ${current.lessons.attendance.LATE} · Absent ${current.lessons.attendance.ABSENT}</span>
+                  <span>Marks: ${current.lessons.marks.latest ?? '—'} latest · ${current.lessons.marks.average ?? '—'} average</span>
+                  <span>Homework: ${current.homework.itemCount} item(s) across ${current.homework.lessonCount} lesson(s)</span>
+                </div>
+                ${current.tktl ? `<details data-view="intelligence-tktl"><summary>Current TKTL context · ${esc(current.tktl.cardId)}</summary><p>${esc(current.tktl.technicalIntent ?? 'No technical intent recorded.')}</p></details>` : ''}
+              </section>`;
+            })() : ''}
             <section data-view="lesson-dashboard" aria-label="Lesson dashboard">
               <div data-lesson-dashboard-card>
                 <strong>Week ${state.week}</strong>
