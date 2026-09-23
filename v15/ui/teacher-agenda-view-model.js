@@ -10,6 +10,7 @@ export class TeacherAgendaViewModel {
     this.lessonProgramme = lessonProgrammeService;
     this.homework = homeworkService;
     this.scaleMastery = scaleMasteryService;
+    this.studentIntelligence = arguments[0].studentIntelligenceService ?? null;
   }
 
   async loadStudent(studentId) {
@@ -17,6 +18,11 @@ export class TeacherAgendaViewModel {
     if (!student) throw new Error('Student not found');
     const terms = await this.terms.listForStudent(studentId);
     return { student, terms };
+  }
+
+  async loadStudentIntelligence(studentId) {
+    if (!this.studentIntelligence) throw new Error('Student intelligence service is not configured');
+    return this.studentIntelligence.getStudentProfile(studentId);
   }
 
   async loadTerm(termId) {
