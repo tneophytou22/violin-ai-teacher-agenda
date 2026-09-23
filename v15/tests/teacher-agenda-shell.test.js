@@ -239,3 +239,40 @@ test('shell renders Uncomplete for completed core programme items', async () => 
   assert.match(root.innerHTML, /Uncomplete/);
   assert.doesNotMatch(root.innerHTML, /data-uncomplete=""[^>]*>Uncomplete/);
 });
+
+
+test('shell escapes persisted scale mastery status before rendering HTML', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-23' });
+  const student = await studentService.create({ name: 'Encoding Test' });
+  await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+  await shell.start();
+  await controller.selectStudent(student.id);
+  const scaleItem = controller.snapshot().weekly.items.find(item => item.curriculumDomain === 'SCALES');
+  scaleItem.details.mastery = { status: '<img src=x onerror=alert(1)>', currentTempo: null, targetTempo: null };
+  await repo.put('programmeItems', scaleItem);
+  await controller.selectWeek(1);
+  shell.render();
+
+  assert.doesNotMatch(root.innerHTML, /<img src=x onerror=alert\(1\)>/);
+  assert.match(root.innerHTML, /&lt;img src=x onerror=alert\(1\)&gt;/);
+});
