@@ -107,6 +107,34 @@ export class StudentIntelligenceService {
     };
   }
 
+  async getTeacherDecisionPrompts(studentId) {
+    const evidence = await this.getEvidenceSignals(studentId);
+    const profile = await this.getStudentProfile(studentId);
+    const prompts = [];
+
+    for (const signal of evidence.signals) {
+      const termProfile = profile.termProfiles.find(entry => entry.term.id === signal.termId);
+      const tktl = termProfile?.tktl;
+      if (!tktl) continue;
+
+      prompts.push({
+        signalType: signal.type,
+        termId: signal.termId,
+        domain: signal.domain ?? null,
+        evidence: signal.evidence,
+        teacherDecisionLogic: [...(tktl.teacherDecisionLogic ?? [])],
+        readinessCriteria: [...(tktl.readinessCriteria ?? [])],
+        nextTermDependency: tktl.nextTermDependency ?? null,
+      });
+    }
+
+    return {
+      student: evidence.student,
+      currentTermId: evidence.currentTermId,
+      prompts,
+    };
+  }
+
   async getLongitudinalDevelopment(studentId) {
     const profile = await this.getStudentProfile(studentId);
     const rows = profile.termProfiles.map((entry, index) => {
@@ -253,6 +281,7 @@ export class StudentIntelligenceService {
         cardId: context.card.id,
         technicalIntent: context.card.technicalIntent ?? null,
         readinessCriteria: context.card.readinessCriteria ?? null,
+        teacherDecisionLogic: context.card.teacherDecisionLogic ?? null,
         nextTermDependency: context.card.nextTermDependency ?? null,
       };
     }
