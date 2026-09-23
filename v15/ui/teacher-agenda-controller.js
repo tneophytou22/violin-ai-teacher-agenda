@@ -25,6 +25,7 @@ export class TeacherAgendaController {
       scaleProgress: null,
       studentIntelligence: null,
       longitudinalDevelopment: null,
+      evidenceSignals: null,
       homework: null,
       selectedItemIds: [],
       reviewedItemIds: [],
@@ -58,6 +59,7 @@ export class TeacherAgendaController {
       await this.#loadSelectedTerm();
       this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       this.state.longitudinalDevelopment = await this.viewModel.loadLongitudinalDevelopment(this.state.selectedStudentId);
+      this.state.evidenceSignals = await this.viewModel.loadEvidenceSignals(this.state.selectedStudentId);
       return term;
     });
   }
@@ -80,6 +82,7 @@ export class TeacherAgendaController {
     this.state.selectedTermId = context.terms[0]?.id ?? null;
     this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(studentId);
     this.state.longitudinalDevelopment = await this.viewModel.loadLongitudinalDevelopment(studentId);
+    this.state.evidenceSignals = await this.viewModel.loadEvidenceSignals(studentId);
     this.state.termContext = null;
     this.state.weekly = null;
     this.state.termProgress = null;
