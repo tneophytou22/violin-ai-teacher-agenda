@@ -55,6 +55,7 @@ export class TeacherAgendaController {
       this.state.week = 1;
       this.#resetLessonState();
       await this.#loadSelectedTerm();
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return term;
     });
   }
@@ -94,6 +95,7 @@ export class TeacherAgendaController {
       this.state.week = 1;
       this.#resetLessonState();
       await this.#loadSelectedTerm();
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
   }
@@ -173,6 +175,7 @@ export class TeacherAgendaController {
       this.state.activeLesson = result.lesson;
       this.state.reviewedItemIds = [...new Set(result.lesson?.reviewedProgrammeItemIds ?? programmeItemIds)];
       this.state.selectedItemIds = [];
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
   }
@@ -232,6 +235,7 @@ export class TeacherAgendaController {
       this.state.week = targetWeek;
       this.state.selectedItemIds = [];
       await this.#reloadWeek();
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
   }
