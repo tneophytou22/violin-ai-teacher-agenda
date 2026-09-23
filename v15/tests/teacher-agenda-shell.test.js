@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { InMemoryRepository, StudentService, TermService, TeacherTermService, WeeklyProgrammeService, LessonService, LessonProgrammeService } from '../index.js';
 import { TeacherAgendaViewModel } from '../ui/teacher-agenda-view-model.js';
-import { TeacherAgendaController } from '../ui/teacher-agenda-controller.js';
+import { TeacherAgendaController, localDateString } from '../ui/teacher-agenda-controller.js';
 import { TeacherAgendaShell } from '../ui/teacher-agenda-shell.js';
 import { registerV1Curricula } from '../curriculum/v1-registration.js';
 
@@ -12,6 +12,11 @@ class FakeRoot {
   querySelectorAll() { return []; }
   addEventListener() {}
 }
+
+test('date-only helper uses local calendar date rather than UTC date', () => {
+  const lateLocalDate = new Date(2026, 8, 23, 23, 30, 0);
+  assert.equal(localDateString(lateLocalDate), '2026-09-23');
+});
 
 test('teacher agenda shell renders the V15 workspace from controller state', async () => {
   const repo = new InMemoryRepository(); registerV1Curricula();
