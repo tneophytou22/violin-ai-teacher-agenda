@@ -2,6 +2,7 @@ export class TeacherAgendaController {
   constructor(viewModel, { today = () => new Date().toISOString().slice(0, 10) } = {}) {
     this.viewModel = viewModel;
     this.today = today;
+    this.operationTail = Promise.resolve();
     this.state = {
       students: [],
       selectedStudentId: null,
@@ -31,7 +32,7 @@ export class TeacherAgendaController {
     return this.#run(async () => {
       const student = await this.viewModel.students.create(input);
       this.state.students = await this.viewModel.students.list();
-      await this.selectStudent(student.id);
+      await this.#selectStudent(student.id);
       return student;
     });
   }
@@ -58,20 +59,22 @@ export class TeacherAgendaController {
   }
 
   async selectStudent(studentId) {
-    return this.#run(async () => {
-      const context = await this.viewModel.loadStudent(studentId);
-      this.state.selectedStudentId = studentId;
-      this.state.terms = context.terms;
-      this.state.selectedTermId = context.terms[0]?.id ?? null;
-      this.state.termContext = null;
-      this.state.weekly = null;
-      this.state.termProgress = null;
-      this.state.scaleProgress = null;
-      this.#resetLessonState();
-      this.state.week = 1;
-      if (this.state.selectedTermId) await this.#loadSelectedTerm();
-      return this.snapshot();
-    });
+    return this.#run(() => this.#selectStudent(studentId));
+  }
+
+  async #selectStudent(studentId) {
+    const context = await this.viewModel.loadStudent(studentId);
+    this.state.selectedStudentId = studentId;
+    this.state.terms = context.terms;
+    this.state.selectedTermId = context.terms[0]?.id ?? null;
+    this.state.termContext = null;
+    this.state.weekly = null;
+    this.state.termProgress = null;
+    this.state.scaleProgress = null;
+    this.#resetLessonState();
+    this.state.week = 1;
+    if (this.state.selectedTermId) await this.#loadSelectedTerm();
+    return this.snapshot();
   }
 
   async selectTerm(termId) {
@@ -252,18 +255,24 @@ export class TeacherAgendaController {
     }
   }
 
-  async #run(operation) {
-    const previousState = this.snapshot();
-    this.state.loading = true;
-    this.state.error = null;
-    try {
-      return await operation();
-    } catch (error) {
-      this.state = previousState;
-      this.state.error = error instanceof Error ? error.message : String(error);
-      throw error;
-    } finally {
-      this.state.loading = false;
-    }
+  #run(operation) {
+    const execute = async () => {
+      const previousState = this.snapshot();
+      this.state.loading = true;
+      this.state.error = null;
+      try {
+        return await operation();
+      } catch (error) {
+        this.state = previousState;
+        this.state.error = error instanceof Error ? error.message : String(error);
+        throw error;
+      } finally {
+        this.state.loading = false;
+      }
+    };
+
+    const queued = this.operationTail.then(execute, execute);
+    this.operationTail = queued.catch(() => {});
+    return queued;
   }
 }
