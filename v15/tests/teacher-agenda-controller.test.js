@@ -605,3 +605,38 @@ test('controller rolls back UI state when carry-forward reload fails', async () 
   const persisted = await repo.get('programmeItems', item.id);
   assert.equal(persisted.targetWeek, 2);
 });
+
+
+test('controller serializes overlapping async operations in call order', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService, homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+  const student = await studentService.create({ name: 'Controller Queue Test' });
+  await termService.create({
+    studentId: student.id, name: 'L3T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 3, termNumber: 1,
+  });
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+
+  const originalLoadWeek = viewModel.loadWeek.bind(viewModel);
+  viewModel.loadWeek = async (termId, week) => {
+    if (week === 2) await new Promise(resolve => setTimeout(resolve, 20));
+    return originalLoadWeek(termId, week);
+  };
+
+  await Promise.all([controller.selectWeek(2), controller.selectWeek(3)]);
+  assert.equal(controller.snapshot().week, 3);
+  assert.equal(controller.snapshot().weekly.items.every(item => item.targetWeek === 3), true);
+});
