@@ -182,7 +182,6 @@ test('longitudinal development compares adjacent terms using numeric deltas only
 
 test('evidence signals are factual and rule-based, not inferred judgements', async () => {
   const { intelligence, student, term, lessonService } = await setup();
-  const weekly = new WeeklyProgrammeService((await setup()).repository);
   await lessonService.create({ termId: term.id, date: '2026-09-10', attendance: 'ABSENT' });
 
   const result = await intelligence.getEvidenceSignals(student.id);
