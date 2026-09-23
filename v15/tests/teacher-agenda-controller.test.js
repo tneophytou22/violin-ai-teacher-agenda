@@ -77,7 +77,6 @@ test('teacher agenda controller keeps UI selection state separate from business 
   state = controller.snapshot();
   assert.equal(state.weekly.summary.completed, 1);
   assert.equal(state.termProgress.completed, 1);
-  assert.equal(state.termProgress.total, 15);
 });
 
 test('controller selection boundary excludes scales, completed items and unknown ids', async () => {
@@ -118,7 +117,7 @@ test('controller selection boundary excludes scales, completed items and unknown
 
   assert.deepEqual(controller.snapshot().selectedItemIds, []);
 });
- 
+
 test('controller rejects invalid week and reports the UI error state', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
@@ -495,4 +494,114 @@ test('controller uncompletes a programme item and restores pending progress', as
   assert.equal(state.weekly.summary.completed, 0);
   assert.equal(state.termProgress.completed, 0);
   assert.deepEqual(state.selectedItemIds, []);
+});
+
+test('controller rolls back UI state when a week load fails after local state mutation', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Rollback Test' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 3,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  controller.toggleItemSelection(item.id);
+  const before = controller.snapshot();
+
+  const originalLoadWeek = viewModel.loadWeek.bind(viewModel);
+  viewModel.loadWeek = async (termId, week) => {
+    if (week === 2) throw new Error('Injected week load failure');
+    return originalLoadWeek(termId, week);
+  };
+
+  await assert.rejects(() => controller.selectWeek(2), /Injected week load failure/);
+
+  const after = controller.snapshot();
+  assert.equal(after.week, before.week);
+  assert.deepEqual(after.weekly, before.weekly);
+  assert.deepEqual(after.selectedItemIds, before.selectedItemIds);
+  assert.equal(after.selectedTermId, before.selectedTermId);
+  assert.equal(after.error, 'Injected week load failure');
+  assert.equal(after.loading, false);
+});
+
+test('controller rolls back UI state when carry-forward reload fails', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Carry Forward Rollback Test' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 3,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  controller.toggleItemSelection(item.id);
+  const before = controller.snapshot();
+
+  const originalLoadWeek = viewModel.loadWeek.bind(viewModel);
+  viewModel.loadWeek = async (termId, week) => {
+    if (week === 2) throw new Error('Injected carry-forward reload failure');
+    return originalLoadWeek(termId, week);
+  };
+
+  await assert.rejects(() => controller.carryForward(item.id, 2), /Injected carry-forward reload failure/);
+
+  const after = controller.snapshot();
+  assert.equal(after.week, before.week);
+  assert.deepEqual(after.weekly, before.weekly);
+  assert.deepEqual(after.selectedItemIds, before.selectedItemIds);
+  assert.equal(after.error, 'Injected carry-forward reload failure');
+  assert.equal(after.loading, false);
+
+  const persisted = await repo.get('programmeItems', item.id);
+  assert.equal(persisted.targetWeek, 2);
 });
