@@ -26,6 +26,7 @@ export class TeacherAgendaController {
       studentIntelligence: null,
       longitudinalDevelopment: null,
       evidenceSignals: null,
+      teacherDecisionPrompts: null,
       homework: null,
       selectedItemIds: [],
       reviewedItemIds: [],
@@ -60,6 +61,7 @@ export class TeacherAgendaController {
       this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       this.state.longitudinalDevelopment = await this.viewModel.loadLongitudinalDevelopment(this.state.selectedStudentId);
       this.state.evidenceSignals = await this.viewModel.loadEvidenceSignals(this.state.selectedStudentId);
+      this.state.teacherDecisionPrompts = await this.viewModel.loadTeacherDecisionPrompts(this.state.selectedStudentId);
       return term;
     });
   }
@@ -83,6 +85,7 @@ export class TeacherAgendaController {
     this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(studentId);
     this.state.longitudinalDevelopment = await this.viewModel.loadLongitudinalDevelopment(studentId);
     this.state.evidenceSignals = await this.viewModel.loadEvidenceSignals(studentId);
+    this.state.teacherDecisionPrompts = await this.viewModel.loadTeacherDecisionPrompts(studentId);
     this.state.termContext = null;
     this.state.weekly = null;
     this.state.termProgress = null;
