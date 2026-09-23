@@ -253,11 +253,13 @@ export class TeacherAgendaController {
   }
 
   async #run(operation) {
+    const previousState = this.snapshot();
     this.state.loading = true;
     this.state.error = null;
     try {
       return await operation();
     } catch (error) {
+      this.state = previousState;
       this.state.error = error instanceof Error ? error.message : String(error);
       throw error;
     } finally {
