@@ -35,6 +35,11 @@ export class TeacherAgendaViewModel {
     return this.studentIntelligence.getEvidenceSignals(studentId);
   }
 
+  async loadTeacherDecisionPrompts(studentId) {
+    if (!this.studentIntelligence) return null;
+    return this.studentIntelligence.getTeacherDecisionPrompts(studentId);
+  }
+
   async loadTerm(termId) {
     return this.teacherTerms.getContext(termId);
   }
