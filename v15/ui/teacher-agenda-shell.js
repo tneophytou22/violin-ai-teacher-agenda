@@ -1,9 +1,9 @@
-import { TeacherAgendaController } from './teacher-agenda-controller.js';
+import { TeacherAgendaController, localDateString } from './teacher-agenda-controller.js';
 
 const esc = value => String(value ?? '').replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export class TeacherAgendaShell {
-  constructor({ controller, root, now = () => new Date().toISOString().slice(0, 10) }) {
+  constructor({ controller, root, now = localDateString }) {
     if (!controller || !(controller instanceof TeacherAgendaController)) throw new Error('TeacherAgendaShell requires TeacherAgendaController');
     if (!root) throw new Error('TeacherAgendaShell requires a root element');
     this.controller = controller;
