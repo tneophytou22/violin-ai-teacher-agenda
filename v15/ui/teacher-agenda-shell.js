@@ -74,6 +74,22 @@ export class TeacherAgendaShell {
                 ${current.tktl ? `<details data-view="intelligence-tktl"><summary>Current TKTL context · ${esc(current.tktl.cardId)}</summary><p>${esc(current.tktl.technicalIntent ?? 'No technical intent recorded.')}</p></details>` : ''}
               </section>`;
             })() : ''}
+            <section data-view="teacher-decision-layer" aria-label="Teacher Decision Prompts">
+              <h2>Teacher Decision Prompts</h2>
+              ${state.teacherDecisionPrompts?.prompts?.length ? state.teacherDecisionPrompts.prompts.map(prompt => `
+                <article data-view="teacher-decision-prompt">
+                  <strong>${esc(prompt.signalType.replaceAll('_', ' '))}</strong>
+                  ${prompt.domain ? `<span> · ${esc(prompt.domain.replaceAll('_', ' '))}</span>` : ''}
+                  <p><strong>Evidence:</strong> ${esc(prompt.evidence)}</p>
+                  <details>
+                    <summary>TKTL guidance</summary>
+                    <div><strong>Teacher decision logic</strong><ul>${prompt.teacherDecisionLogic.map(item => `<li>${esc(item)}</li>`).join('')}</ul></div>
+                    <div><strong>Readiness criteria</strong><ul>${prompt.readinessCriteria.map(item => `<li>${esc(item)}</li>`).join('')}</ul></div>
+                    <div><strong>Next-term dependency</strong><p>${esc(prompt.nextTermDependency)}</p></div>
+                  </details>
+                </article>
+              `).join('') : '<p>No evidence-linked decision prompts for the current data.</p>'}
+            </section>
             <section data-view="lesson-dashboard" aria-label="Lesson dashboard">
               <div data-lesson-dashboard-card>
                 <strong>Week ${state.week}</strong>
