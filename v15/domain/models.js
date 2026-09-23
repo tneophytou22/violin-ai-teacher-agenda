@@ -1,5 +1,8 @@
 export const LEVELS = Object.freeze(Array.from({ length: 10 }, (_, i) => `L${i + 1}`));
 
+export const PROGRAMME_ITEM_STATUSES = Object.freeze(['PLANNED', 'COMPLETED']);
+export const ATTENDANCE_STATUSES = Object.freeze(['PRESENT', 'ABSENT', 'LATE']);
+
 const id = (prefix) => `${prefix}_${crypto.randomUUID()}`;
 
 export function createStudent({ name, schoolType = 'PRIVATE', instrument = 'VIOLIN' }) {
@@ -19,6 +22,7 @@ export function createProgrammeItem({ termId, curriculumId, curriculumDomain, ob
   if (!termId) throw new Error('ProgrammeItem.termId is required');
   if (!curriculumId || !curriculumDomain || !objectId) throw new Error('ProgrammeItem curriculum identity is required');
   if (!Number.isInteger(targetWeek) || targetWeek < 1) throw new Error('ProgrammeItem.targetWeek is mandatory');
+  if (!PROGRAMME_ITEM_STATUSES.includes(status)) throw new Error('ProgrammeItem.status must be PLANNED or COMPLETED');
   return { id: id('pi'), termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status, cardId, details, completedAt: status === 'COMPLETED' ? new Date().toISOString() : null };
 }
 
@@ -26,6 +30,10 @@ export function createLesson({ termId, date, mark = null, attendance = 'PRESENT'
   if (!termId) throw new Error('Lesson.termId is required');
   if (!date) throw new Error('Lesson.date is required');
   if (mark !== null && (!Number.isInteger(mark) || mark < 1 || mark > 20)) throw new Error('Lesson.mark must be 1–20');
+  if (!ATTENDANCE_STATUSES.includes(attendance)) throw new Error('Lesson.attendance must be PRESENT, ABSENT or LATE');
+  if (!Array.isArray(reviewedProgrammeItemIds) || reviewedProgrammeItemIds.some(id => typeof id !== 'string' || !id)) {
+    throw new Error('Lesson.reviewedProgrammeItemIds must be an array of non-empty IDs');
+  }
   return { id: id('lesson'), termId, date, mark, attendance, reviewedProgrammeItemIds: [...reviewedProgrammeItemIds], version: 1 };
 }
 
