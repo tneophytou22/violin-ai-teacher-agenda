@@ -23,6 +23,7 @@ export class TeacherAgendaController {
       lessonHistory: [],
       termProgress: null,
       scaleProgress: null,
+      studentIntelligence: null,
       homework: null,
       selectedItemIds: [],
       reviewedItemIds: [],
@@ -74,6 +75,7 @@ export class TeacherAgendaController {
     this.state.selectedStudentId = studentId;
     this.state.terms = context.terms;
     this.state.selectedTermId = context.terms[0]?.id ?? null;
+    this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(studentId);
     this.state.termContext = null;
     this.state.weekly = null;
     this.state.termProgress = null;
