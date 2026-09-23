@@ -126,3 +126,55 @@ test('student intelligence rejects unknown students', async () => {
     /Student not found/
   );
 });
+
+
+test('longitudinal development returns factual term metrics and deltas without inferred judgments', async () => {
+  const { intelligence, student, term, lessonService } = await setup();
+  await lessonService.create({ termId: term.id, date: '2026-09-10', mark: 15, attendance: 'PRESENT' });
+
+  const development = await intelligence.getLongitudinalDevelopment(student.id);
+
+  assert.equal(development.student.id, student.id);
+  assert.equal(development.currentTerm.id, term.id);
+  assert.equal(development.terms.length, 1);
+  assert.deepEqual(development.terms[0].metrics, {
+    lessons: 1,
+    averageMark: 15,
+    attendancePresent: 1,
+    attendanceLate: 0,
+    attendanceAbsent: 0,
+    pureTechnicalCompleted: 0,
+    etudeCompleted: 0,
+    repertoireCompleted: 0,
+    scalesCompleted: 0,
+    scaleMasteryPercent: 0,
+    homeworkItems: 0,
+  });
+  assert.equal(development.terms[0].delta.lessons, null);
+  assert.equal(development.terms[0].delta.averageMark, null);
+});
+
+test('longitudinal development compares adjacent terms using numeric deltas only', async () => {
+  const { intelligence, student, termService, lessonService, term } = await setup();
+  await lessonService.create({ termId: term.id, date: '2026-09-10', mark: 15, attendance: 'PRESENT' });
+
+  const term2 = await termService.create({
+    studentId: student.id,
+    name: 'L3T2',
+    startDate: '2027-02-01',
+    endDate: '2027-06-30',
+    level: 3,
+    termNumber: 2,
+  });
+  await lessonService.create({ termId: term2.id, date: '2027-02-10', mark: 18, attendance: 'LATE' });
+
+  const development = await intelligence.getLongitudinalDevelopment(student.id);
+
+  assert.equal(development.terms.length, 2);
+  assert.equal(development.terms[0].metrics.averageMark, 15);
+  assert.equal(development.terms[1].metrics.averageMark, 18);
+  assert.equal(development.terms[1].delta.averageMark, 3);
+  assert.equal(development.terms[1].delta.lessons, 0);
+  assert.equal(development.terms[1].delta.attendancePresent, -1);
+  assert.equal(development.terms[1].delta.attendanceLate, 1);
+});
