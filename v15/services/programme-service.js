@@ -1,4 +1,4 @@
-import { createProgrammeItem } from '../domain/models.js';
+import { createProgrammeItem, PROGRAMME_ITEM_STATUSES } from '../domain/models.js';
 
 export class ProgrammeService {
   constructor(repo) { this.repo = repo; }
@@ -12,6 +12,7 @@ export class ProgrammeService {
     return items.filter(i => i.termId === termId);
   }
   async setStatus(itemId, status) {
+    if (!PROGRAMME_ITEM_STATUSES.includes(status)) throw new Error('ProgrammeItem.status must be PLANNED or COMPLETED');
     const item = await this.repo.get('programmeItems', itemId);
     if (!item) throw new Error('ProgrammeItem not found');
     item.status = status;
