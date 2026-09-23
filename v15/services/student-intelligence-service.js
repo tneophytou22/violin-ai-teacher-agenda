@@ -35,12 +35,61 @@ export class StudentIntelligenceService {
     };
   }
 
+  async getLongitudinalDevelopment(studentId) {
+    const profile = await this.getStudentProfile(studentId);
+    const rows = profile.termProfiles.map((entry, index) => {
+      const previous = profile.termProfiles[index - 1] ?? null;
+      const metrics = {
+        lessons: entry.lessons.count,
+        averageMark: entry.lessons.marks.average,
+        attendancePresent: entry.lessons.attendance.PRESENT,
+        attendanceLate: entry.lessons.attendance.LATE,
+        attendanceAbsent: entry.lessons.attendance.ABSENT,
+        pureTechnicalCompleted: entry.programme.PURE_TECHNICAL.completed,
+        etudeCompleted: entry.programme.ETUDE.completed,
+        repertoireCompleted: entry.programme.REPERTOIRE.completed,
+        scalesCompleted: entry.scales.completed,
+        scaleMasteryPercent: entry.scales.mastery.masteryPercent,
+        homeworkItems: entry.homework.itemCount,
+      };
+
+      const delta = {};
+      for (const [key, value] of Object.entries(metrics)) {
+        const previousValue = previous
+          ? ({
+              lessons: previous.lessons.count,
+              averageMark: previous.lessons.marks.average,
+              attendancePresent: previous.lessons.attendance.PRESENT,
+              attendanceLate: previous.lessons.attendance.LATE,
+              attendanceAbsent: previous.lessons.attendance.ABSENT,
+              pureTechnicalCompleted: previous.programme.PURE_TECHNICAL.completed,
+              etudeCompleted: previous.programme.ETUDE.completed,
+              repertoireCompleted: previous.programme.REPERTOIRE.completed,
+              scalesCompleted: previous.scales.completed,
+              scaleMasteryPercent: previous.scales.mastery.masteryPercent,
+              homeworkItems: previous.homework.itemCount,
+            }[key])
+          : null;
+        delta[key] = previousValue === null || value === null || previousValue === null
+          ? null
+          : value - previousValue;
+      }
+
+      return { term: entry.term, metrics, delta };
+    });
+
+    return {
+      student: profile.student,
+      currentTerm: profile.currentTerm,
+      terms: rows,
+      timeline: profile.timeline,
+    };
+  }
+
   async getStudentTimeline(studentId) {
     const terms = await this.terms.listForStudent(studentId);
     const termIds = new Set(terms.map(term => term.id));
-    const lessons = (await this.lessons.listForTerm)
-      ? (await Promise.all([...termIds].map(termId => this.lessons.listForTerm(termId)))).flat()
-      : [];
+    const lessons = (await Promise.all([...termIds].map(termId => this.lessons.listForTerm(termId)))).flat();
 
     const events = [];
     for (const lesson of lessons) {
