@@ -1,13 +1,14 @@
 import { ScaleMasteryService } from './scale-mastery-service.js';
 
 export class StudentIntelligenceService {
-  constructor({ studentService, termService, weeklyProgrammeService, lessonService, homeworkService, teacherTermService }) {
+  constructor({ studentService, termService, weeklyProgrammeService, lessonService, homeworkService, teacherTermService, repository }) {
     this.students = studentService;
     this.terms = termService;
     this.weekly = weeklyProgrammeService;
     this.lessons = lessonService;
     this.homework = homeworkService;
     this.teacherTerms = teacherTermService;
+    this.repo = repository ?? weeklyProgrammeService.repo;
   }
 
   async getStudentProfile(studentId) {
@@ -65,7 +66,7 @@ export class StudentIntelligenceService {
       }
     }
 
-    const programmeItems = (await this.weekly.repo.list('programmeItems')).filter(item => termIds.has(item.termId));
+    const programmeItems = (await this.repo.list('programmeItems')).filter(item => termIds.has(item.termId));
     for (const item of programmeItems) {
       if (item.status === 'COMPLETED' && item.completedAt) {
         events.push({
@@ -90,18 +91,19 @@ export class StudentIntelligenceService {
     const coreItems = items.filter(item => item.curriculumDomain !== 'SCALES');
     const scaleItems = items.filter(item => item.curriculumDomain === 'SCALES');
 
+    const lessons = await this.lessons.listForTerm(term.id);
+    const reviewedIds = new Set(lessons.flatMap(lesson => lesson.reviewedProgrammeItemIds ?? []));
     const programme = {};
     for (const domain of ['PURE_TECHNICAL', 'ETUDE', 'REPERTOIRE']) {
       const domainItems = coreItems.filter(item => item.curriculumDomain === domain);
       programme[domain] = {
         total: domainItems.length,
         completed: domainItems.filter(item => item.status === 'COMPLETED').length,
-        reviewed: domainItems.filter(item => false).length,
+        reviewed: domainItems.filter(item => reviewedIds.has(item.id)).length,
         pending: domainItems.filter(item => item.status !== 'COMPLETED').length,
       };
     }
 
-    const lessons = await this.lessons.listForTerm(term.id);
     const homework = [];
     for (const lesson of lessons) {
       const record = await this.homework.getForLesson(lesson.id);
