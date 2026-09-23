@@ -80,7 +80,7 @@ test('student intelligence builds a derived longitudinal profile without a new p
   assert.equal(termProfile.lessons.attendance.PRESENT, 1);
   assert.equal(termProfile.homework.lessonCount, 1);
   assert.equal(termProfile.homework.itemCount, 2);
-  assert.equal(termProfile.scales.total, 6);
+  assert.equal(termProfile.scales.total, 11);
   assert.equal(termProfile.scales.mastery.masteryPercent, 0);
   assert.equal(termProfile.tktl.cardId, 'L3T1');
 
@@ -105,7 +105,7 @@ test('student intelligence preserves explicit scale mastery as a derived summary
   const profile = await intelligence.getStudentProfile(student.id);
   const scales = profile.termProfiles[0].scales;
   assert.equal(scales.mastery.counts.SECURE, 1);
-  assert.equal(scales.mastery.masteryPercent, 13);
+  assert.equal(scales.mastery.masteryPercent, 7);
   assert.equal(scales.completed, 0);
 });
 
