@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { InMemoryRepository, StudentService, TermService, LessonService, ProgrammeService, HomeworkService, createProgrammeItem } from '../index.js';
+import { InMemoryRepository, StudentService, TermService, LessonService, ProgrammeService, HomeworkService, createProgrammeItem, createLesson } from '../index.js';
 
 test('student → term → lesson → homework flow', async () => {
   const repo = new InMemoryRepository();
@@ -57,4 +57,19 @@ test('programme completion is independent from homework/review', async () => {
 
 test('targetWeek is mandatory', () => {
   assert.throws(() => createProgrammeItem({ termId: 't', curriculumId: 'x', curriculumDomain: 'x', objectId: 'x', title: 'x' }));
+});
+
+test('programme item status and lesson attendance are domain-enforced', () => {
+  assert.throws(
+    () => createProgrammeItem({ termId: 't', curriculumId: 'x', curriculumDomain: 'x', objectId: 'x', title: 'x', targetWeek: 1, status: 'DONE' }),
+    /ProgrammeItem.status must be PLANNED or COMPLETED/
+  );
+  assert.throws(
+    () => createLesson({ termId: 't', date: '2026-09-23', attendance: 'UNKNOWN' }),
+    /Lesson.attendance must be PRESENT, ABSENT or LATE/
+  );
+  assert.throws(
+    () => createLesson({ termId: 't', date: '2026-09-23', reviewedProgrammeItemIds: [123] }),
+    /Lesson.reviewedProgrammeItemIds must be an array of non-empty IDs/
+  );
 });
