@@ -21,7 +21,7 @@ export class TeacherAgendaViewModel {
   }
 
   async loadStudentIntelligence(studentId) {
-    if (!this.studentIntelligence) throw new Error('Student intelligence service is not configured');
+    if (!this.studentIntelligence) return null;
     return this.studentIntelligence.getStudentProfile(studentId);
   }
 
