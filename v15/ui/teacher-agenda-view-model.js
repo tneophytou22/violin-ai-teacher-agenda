@@ -30,6 +30,11 @@ export class TeacherAgendaViewModel {
     return this.studentIntelligence.getLongitudinalDevelopment(studentId);
   }
 
+  async loadEvidenceSignals(studentId) {
+    if (!this.studentIntelligence) return null;
+    return this.studentIntelligence.getEvidenceSignals(studentId);
+  }
+
   async loadTerm(termId) {
     return this.teacherTerms.getContext(termId);
   }
