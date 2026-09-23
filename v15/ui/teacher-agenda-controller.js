@@ -140,6 +140,7 @@ export class TeacherAgendaController {
       const existing = lessons.find(lesson => lesson.date === date);
       const lesson = existing ?? await this.viewModel.createLesson(this.state.selectedTermId, date, options);
       await this.#activateLesson(lesson);
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return lesson;
     });
   }
@@ -150,6 +151,7 @@ export class TeacherAgendaController {
       const lesson = await this.viewModel.getLesson(lessonId);
       if (!lesson || lesson.termId !== this.state.selectedTermId) throw new Error('Lesson does not belong to selected term');
       await this.#activateLesson(lesson);
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
   }
@@ -159,6 +161,7 @@ export class TeacherAgendaController {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
       const lesson = await this.viewModel.updateLessonDetails(this.state.activeLessonId, { mark, attendance });
       await this.#activateLesson(lesson);
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
   }
@@ -178,6 +181,7 @@ export class TeacherAgendaController {
     return this.#run(async () => {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
       this.state.homework = await this.viewModel.saveHomework(this.state.activeLessonId, items);
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
   }
@@ -189,6 +193,7 @@ export class TeacherAgendaController {
       if (this.state.selectedTermId) {
         this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
       }
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return item;
     });
   }
@@ -202,6 +207,7 @@ export class TeacherAgendaController {
         this.state.termProgress = await this.viewModel.loadTermProgress(this.state.selectedTermId);
         this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
       }
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
   }
@@ -215,6 +221,7 @@ export class TeacherAgendaController {
         this.state.termProgress = await this.viewModel.loadTermProgress(this.state.selectedTermId);
         this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
       }
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
   }
