@@ -35,6 +35,78 @@ export class StudentIntelligenceService {
     };
   }
 
+  async getEvidenceSignals(studentId) {
+    const profile = await this.getStudentProfile(studentId);
+    const signals = [];
+
+    for (const entry of profile.termProfiles) {
+      for (const [domain, summary] of Object.entries(entry.programme)) {
+        if (summary.pending > 0) {
+          signals.push({
+            type: 'PENDING_PROGRAMME',
+            termId: entry.term.id,
+            domain,
+            count: summary.pending,
+            evidence: `${summary.pending} programme item(s) are not completed`,
+          });
+        }
+        const reviewedPending = Math.max(0, summary.reviewed - summary.completed);
+        if (reviewedPending > 0) {
+          signals.push({
+            type: 'REVIEWED_NOT_COMPLETED',
+            termId: entry.term.id,
+            domain,
+            count: reviewedPending,
+            evidence: `${reviewedPending} reviewed programme item(s) are still not completed`,
+          });
+        }
+      }
+
+      const developing = entry.scales.mastery.counts.DEVELOPING ?? 0;
+      const notStarted = entry.scales.mastery.counts.NOT_STARTED ?? 0;
+      if (developing > 0) {
+        signals.push({
+          type: 'SCALE_DEVELOPING',
+          termId: entry.term.id,
+          count: developing,
+          evidence: `${developing} scale assessment(s) are marked DEVELOPING`,
+        });
+      }
+      if (notStarted > 0) {
+        signals.push({
+          type: 'SCALE_NOT_STARTED',
+          termId: entry.term.id,
+          count: notStarted,
+          evidence: `${notStarted} scale assessment(s) are NOT_STARTED`,
+        });
+      }
+
+      if (entry.lessons.attendance.ABSENT > 0) {
+        signals.push({
+          type: 'ABSENCE_RECORDED',
+          termId: entry.term.id,
+          count: entry.lessons.attendance.ABSENT,
+          evidence: `${entry.lessons.attendance.ABSENT} lesson(s) recorded ABSENT`,
+        });
+      }
+
+      if (entry.lessons.count === 0) {
+        signals.push({
+          type: 'NO_LESSONS_RECORDED',
+          termId: entry.term.id,
+          count: 0,
+          evidence: 'No lessons are recorded for this term',
+        });
+      }
+    }
+
+    return {
+      student: profile.student,
+      currentTermId: profile.currentTerm?.id ?? null,
+      signals,
+    };
+  }
+
   async getLongitudinalDevelopment(studentId) {
     const profile = await this.getStudentProfile(studentId);
     const rows = profile.termProfiles.map((entry, index) => {
