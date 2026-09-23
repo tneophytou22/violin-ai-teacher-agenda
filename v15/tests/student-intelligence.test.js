@@ -193,3 +193,18 @@ test('evidence signals are factual and rule-based, not inferred judgements', asy
   assert.equal(result.signals.every(signal => typeof signal.evidence === 'string' && signal.evidence.length > 0), true);
   assert.equal(result.signals.some(signal => /weak|at risk|improving|poor/i.test(signal.evidence)), false);
 });
+
+
+test('teacher decision prompts expose TKTL guidance alongside evidence without making conclusions', async () => {
+  const { intelligence, student, term, lessonService } = await setup();
+  await lessonService.create({ termId: term.id, date: '2026-09-10', attendance: 'PRESENT' });
+
+  const result = await intelligence.getTeacherDecisionPrompts(student.id);
+  assert.equal(result.student.id, student.id);
+  assert.equal(result.currentTermId, term.id);
+  assert.equal(result.prompts.length > 0, true);
+  assert.equal(result.prompts.every(prompt => Array.isArray(prompt.teacherDecisionLogic)), true);
+  assert.equal(result.prompts.every(prompt => Array.isArray(prompt.readinessCriteria)), true);
+  assert.equal(result.prompts.every(prompt => typeof prompt.nextTermDependency === 'string'), true);
+  assert.equal(result.prompts.every(prompt => typeof prompt.evidence === 'string'), true);
+});
