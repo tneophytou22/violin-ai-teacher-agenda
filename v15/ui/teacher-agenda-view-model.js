@@ -1,7 +1,7 @@
 import { ScaleMasteryService } from '../services/scale-mastery-service.js';
 
 export class TeacherAgendaViewModel {
-  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, scaleMasteryService = null }) {
+  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, scaleMasteryService = null, studentIntelligenceService = null }) {
     this.students = studentService;
     this.terms = termService;
     this.teacherTerms = teacherTermService;
@@ -10,7 +10,7 @@ export class TeacherAgendaViewModel {
     this.lessonProgramme = lessonProgrammeService;
     this.homework = homeworkService;
     this.scaleMastery = scaleMasteryService;
-    this.studentIntelligence = arguments[0].studentIntelligenceService ?? null;
+    this.studentIntelligence = studentIntelligenceService;
   }
 
   async loadStudent(studentId) {
