@@ -178,3 +178,19 @@ test('longitudinal development compares adjacent terms using numeric deltas only
   assert.equal(development.terms[1].delta.attendancePresent, -1);
   assert.equal(development.terms[1].delta.attendanceLate, 1);
 });
+
+
+test('evidence signals are factual and rule-based, not inferred judgements', async () => {
+  const { intelligence, student, term, lessonService } = await setup();
+  const weekly = new WeeklyProgrammeService((await setup()).repository);
+  await lessonService.create({ termId: term.id, date: '2026-09-10', attendance: 'ABSENT' });
+
+  const result = await intelligence.getEvidenceSignals(student.id);
+  assert.equal(result.student.id, student.id);
+  assert.equal(result.currentTermId, term.id);
+  assert.equal(result.signals.some(signal => signal.type === 'PENDING_PROGRAMME'), true);
+  assert.equal(result.signals.some(signal => signal.type === 'ABSENCE_RECORDED'), true);
+  assert.equal(result.signals.some(signal => signal.type === 'SCALE_NOT_STARTED'), true);
+  assert.equal(result.signals.every(signal => typeof signal.evidence === 'string' && signal.evidence.length > 0), true);
+  assert.equal(result.signals.some(signal => /weak|at risk|improving|poor/i.test(signal.evidence)), false);
+});
