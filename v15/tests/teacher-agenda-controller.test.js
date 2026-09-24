@@ -1111,6 +1111,57 @@ test('controller rejects teacher readiness save when no term is selected without
 });
 
 
+test('controller rejects completion of a foreign programme item without mutating the current term state', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService, homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Foreign Completion Test' });
+  const term1 = await termService.create({
+    studentId: student.id, name: 'L3T1', startDate: '2026-09-01',
+    endDate: '2026-12-31', level: 3, termNumber: 1,
+  });
+  const term2 = await termService.create({
+    studentId: student.id, name: 'L3T2', startDate: '2027-01-01',
+    endDate: '2027-04-30', level: 3, termNumber: 2,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term1.id);
+  const foreignItem = (await repo.list('programmeItems'))
+    .find(item => item.termId === term2.id && item.curriculumDomain !== 'SCALES');
+  assert.ok(foreignItem);
+
+  const before = controller.snapshot();
+  await assert.rejects(
+    () => controller.completeItems([foreignItem.id]),
+    /ProgrammeItem does not belong to the selected term/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.selectedTermId, term1.id);
+  assert.equal(after.week, before.week);
+  assert.deepEqual(after.weekly, before.weekly);
+  assert.deepEqual(after.termProgress, before.termProgress);
+  assert.equal(after.error, 'ProgrammeItem does not belong to the selected term');
+  assert.equal(after.loading, false);
+
+  const stored = await repo.get('programmeItems', foreignItem.id);
+  assert.equal(stored.status, foreignItem.status);
+});
+
 test('controller preserves the active lesson after invalid lesson details', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
