@@ -73,3 +73,34 @@ test('programme item status and lesson attendance are domain-enforced', () => {
     /Lesson.reviewedProgrammeItemIds must be an array of non-empty IDs/
   );
 });
+
+test('teacher readiness decision enforces enum, trims notes, and clears timestamp', async () => {
+  const repo = new InMemoryRepository();
+  const students = new StudentService(repo);
+  const terms = new TermService(repo);
+  const student = await students.create({ name: 'Readiness Validation' });
+  const term = await terms.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2027-01-31',
+  });
+
+  await assert.rejects(
+    () => terms.setReadinessDecision(term.id, { decision: 'READY', note: 'invalid' }),
+    /Teacher readiness decision is invalid/
+  );
+
+  const recorded = await terms.setReadinessDecision(term.id, {
+    decision: 'TARGETED_REVIEW_BEFORE_ADVANCE',
+    note: '  Revisit bow control.  ',
+  });
+  assert.equal(recorded.readinessDecision, 'TARGETED_REVIEW_BEFORE_ADVANCE');
+  assert.equal(recorded.readinessDecisionNote, 'Revisit bow control.');
+  assert.equal(typeof recorded.readinessDecisionAt, 'string');
+
+  const cleared = await terms.setReadinessDecision(term.id, { decision: null, note: '   ' });
+  assert.equal(cleared.readinessDecision, null);
+  assert.equal(cleared.readinessDecisionNote, '');
+  assert.equal(cleared.readinessDecisionAt, null);
+});
