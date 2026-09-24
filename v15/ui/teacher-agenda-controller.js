@@ -27,6 +27,7 @@ export class TeacherAgendaController {
       longitudinalDevelopment: null,
       evidenceSignals: null,
       teacherDecisionPrompts: null,
+      teacherReadinessReview: null,
       homework: null,
       selectedItemIds: [],
       reviewedItemIds: [],
@@ -62,6 +63,7 @@ export class TeacherAgendaController {
       this.state.longitudinalDevelopment = await this.viewModel.loadLongitudinalDevelopment(this.state.selectedStudentId);
       this.state.evidenceSignals = await this.viewModel.loadEvidenceSignals(this.state.selectedStudentId);
       this.state.teacherDecisionPrompts = await this.viewModel.loadTeacherDecisionPrompts(this.state.selectedStudentId);
+      this.state.teacherReadinessReview = await this.viewModel.loadTeacherReadinessReview(this.state.selectedStudentId);
       return term;
     });
   }
@@ -86,6 +88,7 @@ export class TeacherAgendaController {
     this.state.longitudinalDevelopment = await this.viewModel.loadLongitudinalDevelopment(studentId);
     this.state.evidenceSignals = await this.viewModel.loadEvidenceSignals(studentId);
     this.state.teacherDecisionPrompts = await this.viewModel.loadTeacherDecisionPrompts(studentId);
+    this.state.teacherReadinessReview = await this.viewModel.loadTeacherReadinessReview(studentId);
     this.state.termContext = null;
     this.state.weekly = null;
     this.state.termProgress = null;
@@ -105,6 +108,7 @@ export class TeacherAgendaController {
       this.#resetLessonState();
       await this.#loadSelectedTerm();
       this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
+      this.state.teacherReadinessReview = await this.viewModel.loadTeacherReadinessReview(this.state.selectedStudentId);
       return this.snapshot();
     });
   }
