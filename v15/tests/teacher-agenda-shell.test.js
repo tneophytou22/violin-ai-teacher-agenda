@@ -328,6 +328,11 @@ test('shell renders teacher decision prompts from evidence-linked TKTL guidance'
   assert.match(root.innerHTML, /Teacher decision logic/);
   assert.match(root.innerHTML, /Readiness criteria/);
   assert.match(root.innerHTML, /Next-term dependency/);
+  assert.match(root.innerHTML, /Teacher readiness decision/);
+  assert.match(root.innerHTML, /Advance to next term/);
+  assert.match(root.innerHTML, /Continue current term/);
+  assert.match(root.innerHTML, /Targeted review before advance/);
+  assert.match(root.innerHTML, /Save teacher decision/);
 });
 
 
