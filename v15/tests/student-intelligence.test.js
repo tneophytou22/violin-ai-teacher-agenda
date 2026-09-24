@@ -268,9 +268,9 @@ test('teacher readiness review can project a specific term when requested', asyn
 });
 
 test('teacher readiness review rejects a term that does not belong to the student', async () => {
-  const { intelligence, student } = await setup();
-  const otherStudent = await new StudentService(intelligence.repository).create({ name: 'Other Readiness Student' });
-  const otherTerm = await new TermService(intelligence.repository).create({
+  const { intelligence, student, studentService, termService } = await setup();
+  const otherStudent = await studentService.create({ name: 'Other Readiness Student' });
+  const otherTerm = await termService.create({
     studentId: otherStudent.id,
     name: 'L3T1 Other',
     startDate: '2026-09-01',
