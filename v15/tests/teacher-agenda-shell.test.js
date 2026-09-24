@@ -329,3 +329,47 @@ test('shell renders teacher decision prompts from evidence-linked TKTL guidance'
   assert.match(root.innerHTML, /Readiness criteria/);
   assert.match(root.innerHTML, /Next-term dependency/);
 });
+
+
+test('shell renders teacher readiness review as a teacher-led checklist', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    homeworkService: homework, repository: repo,
+  });
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Readiness Review Test' });
+  await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  assert.match(root.innerHTML, /Teacher Readiness Review/);
+  assert.match(root.innerHTML, /Readiness criteria/);
+  assert.match(root.innerHTML, /Next-term dependency/);
+  assert.match(root.innerHTML, /Not recorded — teacher review required/);
+  assert.doesNotMatch(root.innerHTML, /PASS|FAIL|Ready|Not ready/);
+});
