@@ -74,6 +74,20 @@ export class TeacherAgendaShell {
                 ${current.tktl ? `<details data-view="intelligence-tktl"><summary>Current TKTL context · ${esc(current.tktl.cardId)}</summary><p>${esc(current.tktl.technicalIntent ?? 'No technical intent recorded.')}</p></details>` : ''}
               </section>`;
             })() : ''}
+            <section data-view="teacher-readiness-review" aria-label="Teacher Readiness Review">
+              <h2>Teacher Readiness Review</h2>
+              ${state.teacherReadinessReview?.checklist?.length ? state.teacherReadinessReview.checklist.map(check => `
+                <article data-view="teacher-readiness-checklist">
+                  <strong>Teacher review checklist · ${esc(check.cardId ?? 'No TKTL card')}</strong>
+                  <p><strong>Readiness criteria</strong></p>
+                  <ul>${check.readinessCriteria.map(item => `<li>${esc(item)}</li>`).join('')}</ul>
+                  <p><strong>Next-term dependency</strong></p>
+                  <p>${esc(check.nextTermDependency ?? 'No next-term dependency recorded.')}</p>
+                  <p><strong>Teacher decision</strong></p>
+                  <p data-view="teacher-decision-status">Not recorded — teacher review required.</p>
+                </article>
+              `).join('') : '<p>No current-term readiness checklist is available.</p>'}
+            </section>
             <section data-view="teacher-decision-layer" aria-label="Teacher Decision Prompts">
               <h2>Teacher Decision Prompts</h2>
               ${state.teacherDecisionPrompts?.prompts?.length ? state.teacherDecisionPrompts.prompts.map(prompt => `
