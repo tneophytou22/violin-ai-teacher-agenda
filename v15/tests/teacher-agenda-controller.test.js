@@ -644,6 +644,53 @@ test('controller serializes overlapping async operations in call order', async (
 });
 
 
+test('controller aligns readiness review with the first selected term after student selection', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, weeklyProgrammeService, lessonService,
+    homeworkService, teacherTermService, repository: repo,
+  });
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService, homeworkService,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Initial Readiness Alignment Test' });
+  const term1 = await termService.create({
+    studentId: student.id, name: 'L3T1', startDate: '2026-09-01',
+    endDate: '2026-12-31', level: 3, termNumber: 1,
+  });
+  const term2 = await termService.create({
+    studentId: student.id, name: 'L3T2', startDate: '2027-02-01',
+    endDate: '2027-06-30', level: 3, termNumber: 2,
+  });
+  await termService.setReadinessDecision(term1.id, {
+    decision: 'CONTINUE_CURRENT_TERM', note: 'First selected term.',
+  });
+  await termService.setReadinessDecision(term2.id, {
+    decision: 'ADVANCE_TO_NEXT_TERM', note: 'Latest term.',
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedTermId, term1.id);
+  assert.equal(state.teacherReadinessReview.currentTerm.id, term1.id);
+  assert.equal(state.teacherReadinessReview.checklist[0].decision, 'CONTINUE_CURRENT_TERM');
+  assert.equal(state.teacherReadinessReview.checklist[0].decisionNote, 'First selected term.');
+});
+
 test('controller captures and persists the teacher readiness decision', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
