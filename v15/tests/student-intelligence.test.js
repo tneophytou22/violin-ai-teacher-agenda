@@ -236,6 +236,55 @@ test('teacher readiness review exposes the persisted teacher decision and note',
 });
 
 
+test('teacher readiness review can project a specific term when requested', async () => {
+  const { intelligence, student, term, termService } = await setup();
+  const term2 = await termService.create({
+    studentId: student.id,
+    name: 'L3T2',
+    startDate: '2027-02-01',
+    endDate: '2027-06-30',
+    level: 3,
+    termNumber: 2,
+  });
+
+  await termService.setReadinessDecision(term.id, {
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Keep term 1 focus.',
+  });
+  await termService.setReadinessDecision(term2.id, {
+    decision: 'TARGETED_REVIEW_BEFORE_ADVANCE',
+    note: 'Review term 2 criteria.',
+  });
+
+  const result = await intelligence.getTeacherReadinessReview(student.id, term.id);
+  assert.equal(result.currentTerm.id, term.id);
+  assert.equal(result.checklist[0].termId, term.id);
+  assert.equal(result.checklist[0].decision, 'CONTINUE_CURRENT_TERM');
+  assert.equal(result.checklist[0].decisionNote, 'Keep term 1 focus.');
+
+  const latest = await intelligence.getTeacherReadinessReview(student.id);
+  assert.equal(latest.currentTerm.id, term2.id);
+  assert.equal(latest.checklist[0].decision, 'TARGETED_REVIEW_BEFORE_ADVANCE');
+});
+
+test('teacher readiness review rejects a term that does not belong to the student', async () => {
+  const { intelligence, student } = await setup();
+  const otherStudent = await new StudentService(intelligence.repository).create({ name: 'Other Readiness Student' });
+  const otherTerm = await new TermService(intelligence.repository).create({
+    studentId: otherStudent.id,
+    name: 'L3T1 Other',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 3,
+    termNumber: 1,
+  });
+
+  await assert.rejects(
+    () => intelligence.getTeacherReadinessReview(student.id, otherTerm.id),
+    /Term not found for student/
+  );
+});
+
 test('teacher readiness review clears a previously recorded decision without creating an automatic replacement', async () => {
   const { intelligence, student, term, termService } = await setup();
 
