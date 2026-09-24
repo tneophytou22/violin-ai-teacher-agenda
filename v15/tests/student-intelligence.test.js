@@ -221,3 +221,16 @@ test('teacher readiness review exposes current TKTL criteria without an automati
   assert.equal(typeof result.checklist[0].nextTermDependency, 'string');
   assert.equal(result.checklist[0].decision, null);
 });
+
+test('teacher readiness review exposes the persisted teacher decision and note', async () => {
+  const { intelligence, student, term, termService } = await setup();
+  await termService.setReadinessDecision(term.id, {
+    decision: 'TARGETED_REVIEW_BEFORE_ADVANCE',
+    note: 'Revisit bow control before next-term work.',
+  });
+
+  const result = await intelligence.getTeacherReadinessReview(student.id);
+  assert.equal(result.checklist[0].decision, 'TARGETED_REVIEW_BEFORE_ADVANCE');
+  assert.equal(result.checklist[0].decisionNote, 'Revisit bow control before next-term work.');
+  assert.equal(typeof result.checklist[0].decisionRecordedAt, 'string');
+});
