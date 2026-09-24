@@ -135,9 +135,12 @@ export class StudentIntelligenceService {
     };
   }
 
-  async getTeacherReadinessReview(studentId) {
+  async getTeacherReadinessReview(studentId, termId = null) {
     const profile = await this.getStudentProfile(studentId);
-    const current = profile.termProfiles.at(-1) ?? null;
+    const current = termId
+      ? profile.termProfiles.find(termProfile => termProfile.term.id === termId) ?? null
+      : profile.termProfiles.at(-1) ?? null;
+    if (termId && !current) throw new Error('Term not found for student');
     if (!current) {
       return { student: profile.student, currentTerm: null, checklist: [] };
     }
