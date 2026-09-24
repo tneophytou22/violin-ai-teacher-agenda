@@ -256,3 +256,31 @@ test('teacher readiness review clears a previously recorded decision without cre
   assert.equal(result.checklist[0].decisionNote, '');
   assert.equal(result.checklist[0].decisionRecordedAt, null);
 });
+
+test('teacher readiness review replaces a previous decision and refreshes its note and timestamp', async () => {
+  const { intelligence, student, term, termService } = await setup();
+
+  await termService.setReadinessDecision(term.id, {
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Keep current-term focus.',
+  });
+
+  const first = await intelligence.getTeacherReadinessReview(student.id);
+  const firstTimestamp = first.checklist[0].decisionRecordedAt;
+  assert.equal(first.checklist[0].decision, 'CONTINUE_CURRENT_TERM');
+  assert.equal(first.checklist[0].decisionNote, 'Keep current-term focus.');
+  assert.equal(typeof firstTimestamp, 'string');
+
+  await new Promise(resolve => setTimeout(resolve, 2));
+
+  await termService.setReadinessDecision(term.id, {
+    decision: 'ADVANCE_TO_NEXT_TERM',
+    note: 'Criteria reviewed and documented.',
+  });
+
+  const second = await intelligence.getTeacherReadinessReview(student.id);
+  assert.equal(second.checklist[0].decision, 'ADVANCE_TO_NEXT_TERM');
+  assert.equal(second.checklist[0].decisionNote, 'Criteria reviewed and documented.');
+  assert.equal(typeof second.checklist[0].decisionRecordedAt, 'string');
+  assert.notEqual(second.checklist[0].decisionRecordedAt, firstTimestamp);
+});
