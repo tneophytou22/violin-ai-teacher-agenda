@@ -1140,6 +1140,8 @@ test('controller rejects completion of a foreign programme item without mutating
   await controller.loadStudents();
   await controller.selectStudent(student.id);
   await controller.selectTerm(term1.id);
+  await controller.selectTerm(term2.id);
+  await controller.selectTerm(term1.id);
   const foreignItem = (await repo.list('programmeItems'))
     .find(item => item.termId === term2.id && item.curriculumDomain !== 'SCALES');
   assert.ok(foreignItem);
