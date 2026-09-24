@@ -814,3 +814,54 @@ test('controller refreshes the readiness projection after clearing a teacher dec
   assert.equal(stored.readinessDecisionNote, '');
   assert.equal(stored.readinessDecisionAt, null);
 });
+
+
+test('controller preserves the recorded readiness decision after an invalid replacement attempt', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, weeklyProgrammeService, lessonService,
+    homeworkService, teacherTermService, repository: repo,
+  });
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService, homeworkService,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+  const student = await studentService.create({ name: 'Readiness Invalid Replacement Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L3T1', startDate: '2026-09-01',
+    endDate: '2026-12-31', level: 3, termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  await controller.saveTeacherReadinessDecision({
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Keep current-term focus.',
+  });
+
+  const before = await repo.get('terms', term.id);
+  await assert.rejects(
+    () => controller.saveTeacherReadinessDecision({ decision: 'AUTO_PASS', note: 'Invalid replacement.' }),
+    /Teacher readiness decision is invalid/
+  );
+
+  const after = await repo.get('terms', term.id);
+  assert.equal(after.readinessDecision, before.readinessDecision);
+  assert.equal(after.readinessDecisionNote, before.readinessDecisionNote);
+  assert.equal(after.readinessDecisionAt, before.readinessDecisionAt);
+  assert.equal(after.version, before.version);
+
+  const state = controller.snapshot();
+  assert.equal(state.teacherReadinessReview.checklist[0].decision, 'CONTINUE_CURRENT_TERM');
+  assert.equal(state.teacherReadinessReview.checklist[0].decisionNote, 'Keep current-term focus.');
+});
