@@ -95,7 +95,10 @@ export class TeacherAgendaController {
     this.state.scaleProgress = null;
     this.#resetLessonState();
     this.state.week = 1;
-    if (this.state.selectedTermId) await this.#loadSelectedTerm();
+    if (this.state.selectedTermId) {
+      await this.#loadSelectedTerm();
+      this.state.teacherReadinessReview = await this.viewModel.loadTeacherReadinessReview(studentId, this.state.selectedTermId);
+    }
     return this.snapshot();
   }
 
