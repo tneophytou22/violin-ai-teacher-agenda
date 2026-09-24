@@ -596,6 +596,69 @@ test('shell renders teacher readiness review as a teacher-led checklist', async 
 });
 
 
+test('shell routes term selection through the controller and refreshes readiness review', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    homeworkService: homework, repository: repo,
+  });
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Term Shell Selection Test' });
+  const term1 = await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+  const term2 = await termService.create({
+    studentId: student.id, name: 'L1T2', startDate: '2027-01-01', endDate: '2027-04-30',
+    level: 1, termNumber: 2,
+  });
+  await termService.setReadinessDecision(term1.id, {
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Term one decision.',
+  });
+  await termService.setReadinessDecision(term2.id, {
+    decision: 'TARGETED_REVIEW_BEFORE_ADVANCE',
+    note: 'Term two decision.',
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  const termTarget = {
+    value: term2.id,
+    matches: selector => selector === '[data-action="term"]',
+  };
+  await root.dispatch('change', { target: termTarget });
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedTermId, term2.id);
+  assert.equal(state.teacherReadinessReview.currentTerm.id, term2.id);
+  assert.match(root.innerHTML, /Teacher review checklist · L1T2/);
+  assert.match(root.innerHTML, /Targeted review before advance/);
+  assert.match(root.innerHTML, /Term two decision\./);
+  assert.doesNotMatch(root.innerHTML, /Term one decision\./);
+});
+
 test('shell reopens a historical lesson through the lesson-history control', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
