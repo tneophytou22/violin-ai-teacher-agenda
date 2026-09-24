@@ -229,6 +229,7 @@ export class StudentIntelligenceService {
         termId: lesson.termId,
         mark: lesson.mark,
         attendance: lesson.attendance,
+        teacherNote: lesson.teacherNote ?? '',
         reviewedCount: (lesson.reviewedProgrammeItemIds ?? []).length,
       });
 
