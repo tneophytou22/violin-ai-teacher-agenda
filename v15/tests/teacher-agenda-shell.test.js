@@ -659,6 +659,56 @@ test('shell routes term selection through the controller and refreshes readiness
   assert.doesNotMatch(root.innerHTML, /Term one decision\./);
 });
 
+test('shell reports an invalid historical lesson selection without mutating the active lesson', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Cross Term Lesson Shell Test' });
+  const term1 = await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+  const term2 = await termService.create({
+    studentId: student.id, name: 'L1T2', startDate: '2027-01-01', endDate: '2027-04-30',
+    level: 1, termNumber: 2,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term1.id);
+  const active = await controller.createLesson('2026-09-24', { teacherNote: 'Keep this lesson active.' });
+  const foreign = await lessons.create({ termId: term2.id, date: '2027-01-10', teacherNote: 'Foreign lesson.' });
+  shell.render();
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'select-lesson', lessonId: foreign.id },
+      closest: () => ({ dataset: { action: 'select-lesson', lessonId: foreign.id }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.activeLessonId, active.id);
+  assert.equal(state.activeLesson.teacherNote, 'Keep this lesson active.');
+  assert.match(root.innerHTML, /Lesson does not belong to selected term/);
+});
+
 test('shell reopens a historical lesson through the lesson-history control', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
