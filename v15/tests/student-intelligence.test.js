@@ -234,3 +234,25 @@ test('teacher readiness review exposes the persisted teacher decision and note',
   assert.equal(result.checklist[0].decisionNote, 'Revisit bow control before next-term work.');
   assert.equal(typeof result.checklist[0].decisionRecordedAt, 'string');
 });
+
+
+test('teacher readiness review clears a previously recorded decision without creating an automatic replacement', async () => {
+  const { intelligence, student, term, termService } = await setup();
+
+  await termService.setReadinessDecision(term.id, {
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Continue targeted work on current-term criteria.',
+  });
+
+  let result = await intelligence.getTeacherReadinessReview(student.id);
+  assert.equal(result.checklist[0].decision, 'CONTINUE_CURRENT_TERM');
+  assert.equal(result.checklist[0].decisionNote, 'Continue targeted work on current-term criteria.');
+  assert.equal(typeof result.checklist[0].decisionRecordedAt, 'string');
+
+  await termService.setReadinessDecision(term.id, { decision: null, note: '' });
+
+  result = await intelligence.getTeacherReadinessReview(student.id);
+  assert.equal(result.checklist[0].decision, null);
+  assert.equal(result.checklist[0].decisionNote, '');
+  assert.equal(result.checklist[0].decisionRecordedAt, null);
+});
