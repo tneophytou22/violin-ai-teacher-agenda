@@ -30,6 +30,10 @@ export class TeacherAgendaViewModel {
     return this.studentIntelligence.getTeacherReadinessReview(studentId);
   }
 
+  async saveTeacherReadinessDecision(termId, decision, note = '') {
+    return this.terms.setReadinessDecision(termId, { decision, note });
+  }
+
   async loadLongitudinalDevelopment(studentId) {
     if (!this.studentIntelligence) return null;
     return this.studentIntelligence.getLongitudinalDevelopment(studentId);
