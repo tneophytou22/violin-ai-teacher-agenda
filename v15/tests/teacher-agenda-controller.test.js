@@ -79,6 +79,43 @@ test('teacher agenda controller keeps UI selection state separate from business 
   assert.equal(state.termProgress.completed, 1);
 });
 
+test('controller rejects an unknown term without mutating the selected term', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService, homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Invalid Term Selection Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const before = controller.snapshot();
+  await assert.rejects(
+    () => controller.selectTerm('missing-term'),
+    /Term does not belong to selected student/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.selectedTermId, term.id);
+  assert.equal(after.termContext.term.id, before.termContext.term.id);
+  assert.deepEqual(after.teacherReadinessReview, before.teacherReadinessReview);
+  assert.equal(after.error, 'Term does not belong to selected student');
+});
+
 test('controller selection boundary excludes scales, completed items and unknown ids', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
