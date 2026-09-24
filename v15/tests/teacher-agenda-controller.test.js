@@ -236,7 +236,7 @@ test('controller creates students and terms and can reopen a historical lesson',
   assert.equal(state.termContext.card.id, 'L3T1');
   assert.equal(state.weekly.items.filter(item => item.curriculumDomain !== 'SCALES').length, 15);
 
-  const firstLesson = await controller.createLesson('2026-09-18', { mark: 17 });
+  const firstLesson = await controller.createLesson('2026-09-18', { mark: 17, teacherNote: '  Historical lesson note.  ' });
   const reviewed = state.weekly.items.slice(0, 2).map(item => item.id);
   await controller.reviewItems(reviewed);
   await controller.completeItems([reviewed[0]]);
@@ -252,6 +252,7 @@ test('controller creates students and terms and can reopen a historical lesson',
   state = controller.snapshot();
   assert.equal(state.activeLessonId, firstLesson.id);
   assert.equal(state.activeLesson.mark, 17);
+  assert.equal(state.activeLesson.teacherNote, 'Historical lesson note.');
   assert.equal(state.lessonHistory.length, 2);
   assert.deepEqual(state.reviewedItemIds, reviewed);
   assert.equal(state.homework.items.length, 2);
