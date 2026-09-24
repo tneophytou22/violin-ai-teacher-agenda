@@ -182,10 +182,10 @@ export class TeacherAgendaController {
     });
   }
 
-  async updateLessonDetails({ mark = null, attendance = 'PRESENT' }) {
+  async updateLessonDetails({ mark = null, attendance = 'PRESENT', teacherNote = '' }) {
     return this.#run(async () => {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
-      const lesson = await this.viewModel.updateLessonDetails(this.state.activeLessonId, { mark, attendance });
+      const lesson = await this.viewModel.updateLessonDetails(this.state.activeLessonId, { mark, attendance, teacherNote });
       await this.#activateLesson(lesson);
       this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
