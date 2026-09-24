@@ -433,6 +433,59 @@ test('shell reports an invalid teacher readiness save without mutating the prior
   assert.equal(controller.snapshot().teacherReadinessReview.checklist[0].decisionNote, 'Prior decision.');
   assert.equal(controller.snapshot().error, 'Teacher readiness decision is invalid');
 });
+test('shell clears a recorded teacher readiness decision through the same save boundary', async () => {
+  const repo = new InMemoryRepository(); registerV1Curricula();
+  const studentService = new StudentService(repo); const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo); const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo); const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    homeworkService: homework, repository: repo,
+  });
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const decisionField = { value: '' };
+  const noteField = { value: '' };
+  root.fields.set('[data-action="teacher-readiness-decision"]', decisionField);
+  root.fields.set('[data-action="teacher-readiness-note"]', noteField);
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Readiness Shell Clear Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+  await termService.setReadinessDecision(term.id, {
+    decision: 'TARGETED_REVIEW_BEFORE_ADVANCE',
+    note: 'Clear this decision.',
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'save-teacher-readiness-decision' },
+      closest: () => ({ dataset: { action: 'save-teacher-readiness-decision' } }),
+    },
+  });
+
+  const stored = await repo.get('terms', term.id);
+  assert.equal(stored.readinessDecision, null);
+  assert.equal(stored.readinessDecisionNote, '');
+  assert.equal(stored.readinessDecisionAt, null);
+  assert.equal(controller.snapshot().teacherReadinessReview.checklist[0].decision, null);
+  assert.equal(controller.snapshot().teacherReadinessReview.checklist[0].decisionNote, '');
+});
 test('shell renders teacher readiness review as a teacher-led checklist', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
