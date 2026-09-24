@@ -1109,3 +1109,48 @@ test('controller rejects teacher readiness save when no term is selected without
   assert.equal(state.error, 'No term selected');
   assert.equal(state.loading, false);
 });
+
+
+test('controller rejects an unknown lesson without mutating the active lesson', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService, homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Invalid Lesson Selection Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L3T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 3, termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const lesson = await controller.createLesson('2026-09-18', {
+    mark: 17,
+    teacherNote: '  Keep bow contact stable.  ',
+  });
+
+  const before = controller.snapshot();
+  await assert.rejects(
+    () => controller.selectLesson('missing-lesson'),
+    /Lesson not found/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.activeLessonId, lesson.id);
+  assert.equal(after.activeLesson.id, lesson.id);
+  assert.equal(after.activeLesson.teacherNote, 'Keep bow contact stable.');
+  assert.equal(after.termContext.term.id, term.id);
+  assert.equal(after.error, 'Lesson not found');
+  assert.equal(after.loading, false);
+});
