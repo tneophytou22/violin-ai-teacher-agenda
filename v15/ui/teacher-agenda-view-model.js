@@ -25,9 +25,9 @@ export class TeacherAgendaViewModel {
     return this.studentIntelligence.getStudentProfile(studentId);
   }
 
-  async loadTeacherReadinessReview(studentId) {
+  async loadTeacherReadinessReview(studentId, termId = null) {
     if (!this.studentIntelligence) return null;
-    return this.studentIntelligence.getTeacherReadinessReview(studentId);
+    return this.studentIntelligence.getTeacherReadinessReview(studentId, termId);
   }
 
   async saveTeacherReadinessDecision(termId, decision, note = '') {
