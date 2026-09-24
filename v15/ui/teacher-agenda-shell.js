@@ -193,6 +193,9 @@ export class TeacherAgendaShell {
                 <label>Mark
                   <input type="number" min="1" max="20" data-action="mark" value="${lesson.mark ?? ''}" placeholder="1–20">
                 </label>
+                <label>Teacher note
+                  <textarea data-action="teacher-note" rows="4" placeholder="Lesson observations, technical notes, next focus…">${esc(lesson.teacherNote ?? '')}</textarea>
+                </label>
                 <button type="button" data-action="save-details">Save lesson details</button>
               </div>
               <div data-view="homework">
@@ -271,7 +274,8 @@ export class TeacherAgendaShell {
           const attendance = this.root.querySelector('[data-action="attendance"]')?.value ?? 'PRESENT';
           const rawMark = this.root.querySelector('[data-action="mark"]')?.value ?? '';
           const mark = rawMark === '' ? null : Number(rawMark);
-          await this.controller.updateLessonDetails({ attendance, mark });
+          const teacherNote = this.root.querySelector('[data-action="teacher-note"]')?.value ?? '';
+          await this.controller.updateLessonDetails({ attendance, mark, teacherNote });
         } else if (action === 'save-homework') {
           const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
           const items = text.split('\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
