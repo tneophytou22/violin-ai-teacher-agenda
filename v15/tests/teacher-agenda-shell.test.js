@@ -7,10 +7,11 @@ import { TeacherAgendaShell } from '../ui/teacher-agenda-shell.js';
 import { registerV1Curricula } from '../curriculum/v1-registration.js';
 
 class FakeRoot {
-  constructor() { this.innerHTML = ''; }
-  querySelector() { return null; }
+  constructor() { this.innerHTML = ''; this.listeners = {}; this.fields = new Map(); }
+  querySelector(selector) { return this.fields.get(selector) ?? null; }
   querySelectorAll() { return []; }
-  addEventListener() {}
+  addEventListener(type, handler) { this.listeners[type] = handler; }
+  async dispatch(type, event) { return this.listeners[type]?.(event); }
 }
 
 test('date-only helper uses local calendar date rather than UTC date', () => {
@@ -336,6 +337,51 @@ test('shell renders teacher decision prompts from evidence-linked TKTL guidance'
 });
 
 
+test('shell routes teacher readiness save through the controller boundary', async () => {
+  const repo = new InMemoryRepository(); registerV1Curricula();
+  const studentService = new StudentService(repo); const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo); const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo); const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    homeworkService: homework, repository: repo,
+  });
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  root.fields.set('[data-action="teacher-readiness-decision"]', { value: 'TARGETED_REVIEW_BEFORE_ADVANCE' });
+  root.fields.set('[data-action="teacher-readiness-note"]', { value: '  Shell-saved note.  ' });
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Readiness Shell Save Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'save-teacher-readiness-decision' },
+      closest: () => ({ dataset: { action: 'save-teacher-readiness-decision' } }),
+    },
+  });
+
+  const stored = await repo.get('terms', term.id);
+  assert.equal(stored.readinessDecision, 'TARGETED_REVIEW_BEFORE_ADVANCE');
+  assert.equal(stored.readinessDecisionNote, 'Shell-saved note.');
+  assert.equal(controller.snapshot().teacherReadinessReview.checklist[0].decision, 'TARGETED_REVIEW_BEFORE_ADVANCE');
+});
 test('shell renders teacher readiness review as a teacher-led checklist', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
