@@ -274,7 +274,7 @@ test('teacher readiness review preserves decision data when the selected term ha
     name: 'No-TKTL-Term',
     startDate: '2027-01-01',
     endDate: '2027-04-30',
-    level: 99,
+    level: null,
     termNumber: 1,
   });
   await termService.setReadinessDecision(term.id, {
