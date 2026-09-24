@@ -818,6 +818,69 @@ test('shell routes lesson details save through the controller with teacher note'
 });
 
 
+test('shell reports invalid lesson details without mutating the active lesson', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const attendanceField = { value: 'LATE' };
+  const markField = { value: '21' };
+  const noteField = { value: 'Invalid shell update.' };
+  root.fields.set('[data-action="attendance"]', attendanceField);
+  root.fields.set('[data-action="mark"]', markField);
+  root.fields.set('[data-action="teacher-note"]', noteField);
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Invalid Lesson Details Shell Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L1T1',
+    startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  const lesson = await controller.createLesson('2026-09-24', {
+    mark: 17,
+    attendance: 'PRESENT',
+    teacherNote: 'Original shell lesson note.',
+  });
+  shell.render();
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'save-details' },
+      closest: () => ({ dataset: { action: 'save-details' } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.activeLessonId, lesson.id);
+  assert.equal(state.activeLesson.mark, 17);
+  assert.equal(state.activeLesson.attendance, 'PRESENT');
+  assert.equal(state.activeLesson.teacherNote, 'Original shell lesson note.');
+  assert.match(root.innerHTML, /Lesson.mark must be 1–20 or null/);
+
+  const stored = await repo.get('lessons', lesson.id);
+  assert.equal(stored.mark, 17);
+  assert.equal(stored.attendance, 'PRESENT');
+  assert.equal(stored.teacherNote, 'Original shell lesson note.');
+});
+
 test('shell reports an invalid term selection without mutating the selected term', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
