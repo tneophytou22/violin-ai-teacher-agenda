@@ -816,6 +816,68 @@ test('controller refreshes the readiness projection after clearing a teacher dec
 });
 
 
+test('controller keeps readiness review aligned with the selected historical term', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, weeklyProgrammeService, lessonService,
+    homeworkService, teacherTermService, repository: repo,
+  });
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService, homeworkService,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Historical Readiness Selection Test' });
+  const term1 = await termService.create({
+    studentId: student.id, name: 'L3T1', startDate: '2026-09-01',
+    endDate: '2026-12-31', level: 3, termNumber: 1,
+  });
+  const term2 = await termService.create({
+    studentId: student.id, name: 'L3T2', startDate: '2027-02-01',
+    endDate: '2027-06-30', level: 3, termNumber: 2,
+  });
+
+  await termService.setReadinessDecision(term1.id, {
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Term 1 decision.',
+  });
+  await termService.setReadinessDecision(term2.id, {
+    decision: 'ADVANCE_TO_NEXT_TERM',
+    note: 'Term 2 decision.',
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term1.id);
+
+  let state = controller.snapshot();
+  assert.equal(state.selectedTermId, term1.id);
+  assert.equal(state.teacherReadinessReview.currentTerm.id, term1.id);
+  assert.equal(state.teacherReadinessReview.checklist[0].decision, 'CONTINUE_CURRENT_TERM');
+  assert.equal(state.teacherReadinessReview.checklist[0].decisionNote, 'Term 1 decision.');
+
+  await controller.saveTeacherReadinessDecision({
+    decision: 'TARGETED_REVIEW_BEFORE_ADVANCE',
+    note: 'Term 1 updated.',
+  });
+
+  state = controller.snapshot();
+  assert.equal(state.teacherReadinessReview.currentTerm.id, term1.id);
+  assert.equal(state.teacherReadinessReview.checklist[0].decision, 'TARGETED_REVIEW_BEFORE_ADVANCE');
+  assert.equal(state.teacherReadinessReview.checklist[0].decisionNote, 'Term 1 updated.');
+  assert.equal((await repo.get('terms', term2.id)).readinessDecision, 'ADVANCE_TO_NEXT_TERM');
+});
+
 test('controller preserves the recorded readiness decision after an invalid replacement attempt', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
