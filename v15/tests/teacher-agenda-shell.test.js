@@ -816,3 +816,56 @@ test('shell routes lesson details save through the controller with teacher note'
   assert.equal(stored.teacherNote, 'Shell lesson note.');
   assert.match(root.innerHTML, /Shell lesson note./);
 });
+
+
+test('shell reports an invalid term selection without mutating the selected term', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    homeworkService: homework, repository: repo,
+  });
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Invalid Term Shell Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L1T1',
+    startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  await root.dispatch('change', {
+    target: {
+      value: 'missing-term',
+      matches: selector => selector === '[data-action="term"]',
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedTermId, term.id);
+  assert.equal(state.termContext.term.id, term.id);
+  assert.equal(state.error, 'Term does not belong to selected student');
+  assert.match(root.innerHTML, /Term does not belong to selected student/);
+  assert.match(root.innerHTML, /Teacher Readiness Review/);
+});
