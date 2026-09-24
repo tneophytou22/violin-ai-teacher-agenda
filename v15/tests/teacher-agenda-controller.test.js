@@ -640,3 +640,110 @@ test('controller serializes overlapping async operations in call order', async (
   assert.equal(controller.snapshot().week, 3);
   assert.equal(controller.snapshot().weekly.items.every(item => item.targetWeek === 3), true);
 });
+
+
+test('controller captures and persists the teacher readiness decision', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService,
+    termService,
+    weeklyProgrammeService,
+    lessonService,
+    homeworkService,
+    teacherTermService,
+    repository: repo,
+  });
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Readiness Decision Controller Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 3,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  await controller.saveTeacherReadinessDecision({
+    decision: 'ADVANCE_TO_NEXT_TERM',
+    note: 'Criteria reviewed in lesson.',
+  });
+
+  const stored = await repo.get('terms', term.id);
+  assert.equal(stored.readinessDecision, 'ADVANCE_TO_NEXT_TERM');
+  assert.equal(stored.readinessDecisionNote, 'Criteria reviewed in lesson.');
+  assert.equal(typeof stored.readinessDecisionAt, 'string');
+
+  const state = controller.snapshot();
+  assert.equal(state.teacherReadinessReview.checklist[0].decision, 'ADVANCE_TO_NEXT_TERM');
+  assert.equal(state.teacherReadinessReview.checklist[0].decisionNote, 'Criteria reviewed in lesson.');
+});
+
+test('controller rejects an invalid teacher readiness decision', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService,
+    termService,
+    weeklyProgrammeService,
+    lessonService,
+    homeworkService,
+    teacherTermService,
+    repository: repo,
+  });
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+  const student = await studentService.create({ name: 'Readiness Decision Validation Test' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+
+  await assert.rejects(
+    () => controller.saveTeacherReadinessDecision({ decision: 'AUTO_PASS' }),
+    /Teacher readiness decision is invalid/
+  );
+});
