@@ -699,7 +699,7 @@ test('shell reports an invalid historical lesson selection without mutating the 
   await root.dispatch('click', {
     target: {
       dataset: { action: 'select-lesson', lessonId: foreign.id },
-      closest: () => ({ dataset: { action: 'select-lesson', lessonId: foreign.id }),
+      closest: () => ({ dataset: { action: 'select-lesson', lessonId: foreign.id } }),
     },
   });
 
