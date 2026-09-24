@@ -267,6 +267,31 @@ test('teacher readiness review can project a specific term when requested', asyn
   assert.equal(latest.checklist[0].decision, 'TARGETED_REVIEW_BEFORE_ADVANCE');
 });
 
+test('teacher readiness review preserves decision data when the selected term has no TKTL card', async () => {
+  const { intelligence, student, termService } = await setup();
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'No-TKTL-Term',
+    startDate: '2027-01-01',
+    endDate: '2027-04-30',
+    level: 99,
+    termNumber: 1,
+  });
+  await termService.setReadinessDecision(term.id, {
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Teacher decision without TKTL card.',
+  });
+
+  const result = await intelligence.getTeacherReadinessReview(student.id, term.id);
+
+  assert.equal(result.currentTerm.id, term.id);
+  assert.equal(result.checklist[0].cardId, null);
+  assert.deepEqual(result.checklist[0].readinessCriteria, []);
+  assert.equal(result.checklist[0].nextTermDependency, null);
+  assert.deepEqual(result.checklist[0].teacherDecisionLogic, []);
+  assert.equal(result.checklist[0].decision, 'CONTINUE_CURRENT_TERM');
+  assert.equal(result.checklist[0].decisionNote, 'Teacher decision without TKTL card.');
+});
 test('teacher readiness review rejects a term that does not belong to the student', async () => {
   const { intelligence, student, studentService, termService } = await setup();
   const otherStudent = await studentService.create({ name: 'Other Readiness Student' });
