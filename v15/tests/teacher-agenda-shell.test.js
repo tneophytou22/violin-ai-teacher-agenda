@@ -594,3 +594,57 @@ test('shell renders teacher readiness review as a teacher-led checklist', async 
   assert.doesNotMatch(root.innerHTML, /Latest term decision\./);
   assert.doesNotMatch(root.innerHTML, /(?:^|>)\\s*(?:PASS|FAIL|Ready|Not ready)\\s*(?:<|$)/i);
 });
+
+
+test('shell routes lesson details save through the controller with teacher note', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  root.fields.set('[data-action="attendance"]', { value: 'LATE' });
+  root.fields.set('[data-action="mark"]', { value: '18' });
+  root.fields.set('[data-action="teacher-note"]', { value: '  Shell lesson note.  ' });
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Lesson Details Shell Save Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  await controller.createLesson('2026-09-24');
+  shell.render();
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'save-details' },
+      closest: () => ({ dataset: { action: 'save-details' } }),
+    },
+  });
+
+  const stored = await repo.get('lessons', controller.snapshot().activeLessonId);
+  assert.equal(stored.attendance, 'LATE');
+  assert.equal(stored.mark, 18);
+  assert.equal(stored.teacherNote, 'Shell lesson note.');
+  assert.match(root.innerHTML, /Shell lesson note./);
+});
