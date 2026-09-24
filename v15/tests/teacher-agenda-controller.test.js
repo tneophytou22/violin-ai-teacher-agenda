@@ -7,7 +7,7 @@ import {
   TeacherTermService,
   WeeklyProgrammeService,
   LessonService,
-  LessonProgrammeService,
+  LessonProgrammeService, StudentIntelligenceService,
   HomeworkService,
   ScaleMasteryService,
 } from '../index.js';
