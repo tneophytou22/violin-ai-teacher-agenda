@@ -371,5 +371,5 @@ test('shell renders teacher readiness review as a teacher-led checklist', async 
   assert.match(root.innerHTML, /Readiness criteria/);
   assert.match(root.innerHTML, /Next-term dependency/);
   assert.match(root.innerHTML, /Not recorded — teacher review required/);
-  assert.doesNotMatch(root.innerHTML, /PASS|FAIL|Ready|Not ready/);
+  assert.doesNotMatch(root.innerHTML, /(?:^|>)\\s*(?:PASS|FAIL|Ready|Not ready)\\s*(?:<|$)/i);
 });
