@@ -113,6 +113,17 @@ export class TeacherAgendaController {
     });
   }
 
+  async saveTeacherReadinessDecision({ decision, note = '' }) {
+    return this.#run(async () => {
+      if (!this.state.selectedTermId) throw new Error('No term selected');
+      const term = await this.viewModel.saveTeacherReadinessDecision(this.state.selectedTermId, decision || null, note);
+      await this.#loadSelectedTerm();
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
+      this.state.teacherReadinessReview = await this.viewModel.loadTeacherReadinessReview(this.state.selectedStudentId);
+      return term;
+    });
+  }
+
   async selectWeek(week) {
     return this.#run(async () => {
       if (!Number.isInteger(week) || week < 1) throw new Error('Week must be an integer >= 1');
