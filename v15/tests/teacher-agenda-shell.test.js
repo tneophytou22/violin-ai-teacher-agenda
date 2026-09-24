@@ -363,18 +363,32 @@ test('shell renders teacher readiness review as a teacher-led checklist', async 
   const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
 
   const student = await studentService.create({ name: 'Readiness Review Test' });
-  await termService.create({
+  const term1 = await termService.create({
     studentId: student.id, name: 'L1T1', startDate: '2026-09-01', endDate: '2026-12-31',
     level: 1, termNumber: 1,
+  });
+  const term2 = await termService.create({
+    studentId: student.id, name: 'L1T2', startDate: '2027-01-01', endDate: '2027-04-30',
+    level: 1, termNumber: 2,
+  });
+  await termService.setReadinessDecision(term1.id, {
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Historical term decision.',
+  });
+  await termService.setReadinessDecision(term2.id, {
+    decision: 'ADVANCE_TO_NEXT_TERM',
+    note: 'Latest term decision.',
   });
 
   await shell.start();
   await controller.selectStudent(student.id);
+  await controller.selectTerm(term1.id);
   shell.render();
 
   assert.match(root.innerHTML, /Teacher Readiness Review/);
-  assert.match(root.innerHTML, /Readiness criteria/);
-  assert.match(root.innerHTML, /Next-term dependency/);
-  assert.match(root.innerHTML, /Not recorded — teacher review required/);
+  assert.match(root.innerHTML, /Teacher review checklist · L1T1/);
+  assert.match(root.innerHTML, /Continue current term/);
+  assert.match(root.innerHTML, /Historical term decision\./);
+  assert.doesNotMatch(root.innerHTML, /Latest term decision\./);
   assert.doesNotMatch(root.innerHTML, /(?:^|>)\\s*(?:PASS|FAIL|Ready|Not ready)\\s*(?:<|$)/i);
 });
