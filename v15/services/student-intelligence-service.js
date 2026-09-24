@@ -135,6 +135,29 @@ export class StudentIntelligenceService {
     };
   }
 
+  async getTeacherReadinessReview(studentId) {
+    const profile = await this.getStudentProfile(studentId);
+    const current = profile.termProfiles.at(-1) ?? null;
+    if (!current) {
+      return { student: profile.student, currentTerm: null, checklist: [] };
+    }
+
+    const tktl = current.tktl;
+    return {
+      student: profile.student,
+      currentTerm: current.term,
+      checklist: [{
+        termId: current.term.id,
+        cardId: tktl?.cardId ?? null,
+        evidence: current,
+        readinessCriteria: [...(tktl?.readinessCriteria ?? [])],
+        nextTermDependency: tktl?.nextTermDependency ?? null,
+        teacherDecisionLogic: [...(tktl?.teacherDecisionLogic ?? [])],
+        decision: null,
+      }],
+    };
+  }
+
   async getLongitudinalDevelopment(studentId) {
     const profile = await this.getStudentProfile(studentId);
     const rows = profile.termProfiles.map((entry, index) => {
