@@ -208,3 +208,16 @@ test('teacher decision prompts expose TKTL guidance alongside evidence without m
   assert.equal(result.prompts.every(prompt => typeof prompt.nextTermDependency === 'string'), true);
   assert.equal(result.prompts.every(prompt => typeof prompt.evidence === 'string'), true);
 });
+
+
+test('teacher readiness review exposes current TKTL criteria without an automatic decision', async () => {
+  const { intelligence, student, term } = await setup();
+  const result = await intelligence.getTeacherReadinessReview(student.id);
+  assert.equal(result.student.id, student.id);
+  assert.equal(result.currentTerm.id, term.id);
+  assert.equal(result.checklist.length, 1);
+  assert.equal(result.checklist[0].cardId, 'L3T1');
+  assert.equal(Array.isArray(result.checklist[0].readinessCriteria), true);
+  assert.equal(typeof result.checklist[0].nextTermDependency, 'string');
+  assert.equal(result.checklist[0].decision, null);
+});
