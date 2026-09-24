@@ -747,3 +747,70 @@ test('controller rejects an invalid teacher readiness decision', async () => {
     /Teacher readiness decision is invalid/
   );
 });
+
+test('controller refreshes the readiness projection after clearing a teacher decision', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService,
+    termService,
+    weeklyProgrammeService,
+    lessonService,
+    homeworkService,
+    teacherTermService,
+    repository: repo,
+  });
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Readiness Decision Refresh Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 3,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+
+  await controller.saveTeacherReadinessDecision({
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Keep current-term focus.',
+  });
+  assert.equal(
+    controller.snapshot().teacherReadinessReview.checklist[0].decision,
+    'CONTINUE_CURRENT_TERM'
+  );
+
+  await controller.saveTeacherReadinessDecision({ decision: null, note: '' });
+
+  const state = controller.snapshot();
+  assert.equal(state.teacherReadinessReview.currentTerm.id, term.id);
+  assert.equal(state.teacherReadinessReview.checklist[0].decision, null);
+  assert.equal(state.teacherReadinessReview.checklist[0].decisionNote, '');
+  assert.equal(state.teacherReadinessReview.checklist[0].decisionRecordedAt, null);
+
+  const stored = await repo.get('terms', term.id);
+  assert.equal(stored.readinessDecision, null);
+  assert.equal(stored.readinessDecisionNote, '');
+  assert.equal(stored.readinessDecisionAt, null);
+});
