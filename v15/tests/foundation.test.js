@@ -59,6 +59,12 @@ test('targetWeek is mandatory', () => {
   assert.throws(() => createProgrammeItem({ termId: 't', curriculumId: 'x', curriculumDomain: 'x', objectId: 'x', title: 'x' }));
 });
 
+test('lesson teacher notes are domain-enforced and trimmed', () => {
+  const lesson = createLesson({ termId: 't', date: '2026-09-23', teacherNote: '  Bow hand relaxed.  ' });
+  assert.equal(lesson.teacherNote, 'Bow hand relaxed.');
+  assert.throws(() => createLesson({ termId: 't', date: '2026-09-23', teacherNote: 123 }), /Lesson.teacherNote must be a string/);
+});
+
 test('programme item status and lesson attendance are domain-enforced', () => {
   assert.throws(
     () => createProgrammeItem({ termId: 't', curriculumId: 'x', curriculumDomain: 'x', objectId: 'x', title: 'x', targetWeek: 1, status: 'DONE' }),
