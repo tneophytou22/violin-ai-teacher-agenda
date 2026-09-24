@@ -104,3 +104,35 @@ test('teacher readiness decision enforces enum, trims notes, and clears timestam
   assert.equal(cleared.readinessDecisionNote, '');
   assert.equal(cleared.readinessDecisionAt, null);
 });
+
+
+test('invalid teacher readiness decision does not mutate the term', async () => {
+  const repo = new InMemoryRepository();
+  const students = new StudentService(repo);
+  const terms = new TermService(repo);
+  const student = await students.create({ name: 'Readiness Mutation Guard' });
+  const term = await terms.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2027-01-31',
+  });
+
+  const recorded = await terms.setReadinessDecision(term.id, {
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Keep current target.',
+  });
+  const beforeInvalidAttempt = await terms.get(term.id);
+
+  await assert.rejects(
+    () => terms.setReadinessDecision(term.id, { decision: 'READY', note: 'Should not persist.' }),
+    /Teacher readiness decision is invalid/
+  );
+
+  const afterInvalidAttempt = await terms.get(term.id);
+  assert.equal(afterInvalidAttempt.readinessDecision, beforeInvalidAttempt.readinessDecision);
+  assert.equal(afterInvalidAttempt.readinessDecisionNote, beforeInvalidAttempt.readinessDecisionNote);
+  assert.equal(afterInvalidAttempt.readinessDecisionAt, beforeInvalidAttempt.readinessDecisionAt);
+  assert.equal(afterInvalidAttempt.version, beforeInvalidAttempt.version);
+  assert.equal(afterInvalidAttempt.version, recorded.version);
+});
