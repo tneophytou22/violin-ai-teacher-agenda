@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { InMemoryRepository, StudentService, TermService, TeacherTermService, WeeklyProgrammeService, LessonService, LessonProgrammeService } from '../index.js';
+import { InMemoryRepository, StudentService, TermService, TeacherTermService, WeeklyProgrammeService, LessonService, LessonProgrammeService, StudentIntelligenceService } from '../index.js';
 import { TeacherAgendaViewModel } from '../ui/teacher-agenda-view-model.js';
 import { TeacherAgendaController, localDateString } from '../ui/teacher-agenda-controller.js';
 import { TeacherAgendaShell } from '../ui/teacher-agenda-shell.js';
