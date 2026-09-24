@@ -975,3 +975,50 @@ test('controller reports an invalid readiness replacement without losing the pri
   assert.equal(after.error, 'Teacher readiness decision is invalid');
   assert.equal(after.loading, false);
 });
+
+
+test('controller rejects teacher readiness save when no term is selected without mutating readiness state', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService,
+    termService,
+    weeklyProgrammeService,
+    lessonService,
+    homeworkService,
+    teacherTermService,
+    repository: repo,
+  });
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  await assert.rejects(
+    () => controller.saveTeacherReadinessDecision({
+      decision: 'CONTINUE_CURRENT_TERM',
+      note: 'Should not be stored.',
+    }),
+    /No term selected/
+  );
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedTermId, null);
+  assert.equal(state.teacherReadinessReview, null);
+  assert.equal(state.error, 'No term selected');
+  assert.equal(state.loading, false);
+});
