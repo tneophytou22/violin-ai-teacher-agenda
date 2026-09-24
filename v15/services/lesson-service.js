@@ -20,7 +20,7 @@ export class LessonService {
       .sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id)));
   }
 
-  async updateDetails(lessonId, { mark = null, attendance = 'PRESENT' } = {}) {
+  async updateDetails(lessonId, { mark = null, attendance = 'PRESENT', teacherNote = '' } = {}) {
     const lesson = await this.get(lessonId);
     if (!lesson) throw new Error('Lesson not found');
     if (mark !== null && (!Number.isInteger(mark) || mark < 1 || mark > 20)) {
@@ -29,8 +29,10 @@ export class LessonService {
     if (!ATTENDANCE_VALUES.has(attendance)) {
       throw new Error('Lesson.attendance must be PRESENT, ABSENT or LATE');
     }
+    if (typeof teacherNote !== 'string') throw new Error('Lesson.teacherNote must be a string');
     lesson.mark = mark;
     lesson.attendance = attendance;
+    lesson.teacherNote = teacherNote.trim();
     lesson.version += 1;
     return this.repo.put('lessons', lesson);
   }
