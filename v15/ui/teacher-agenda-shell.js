@@ -71,6 +71,19 @@ export class TeacherAgendaShell {
                   <span>Marks: ${current.lessons.marks.latest ?? '—'} latest · ${current.lessons.marks.average ?? '—'} average</span>
                   <span>Homework: ${current.homework.itemCount} item(s) across ${current.homework.lessonCount} lesson(s)</span>
                 </div>
+                <details data-view="intelligence-timeline">
+                  <summary>Student timeline · ${profile.timeline.length} event(s)</summary>
+                  ${profile.timeline.slice(0, 10).map(event => `
+                    <article data-view="intelligence-timeline-event">
+                      <strong>${esc(event.type.replaceAll('_', ' '))}</strong>
+                      <span> · ${esc(event.date ?? 'No date')}</span>
+                      ${event.type === 'LESSON' ? `
+                        <span> · ${esc(event.attendance ?? '')}${event.mark !== null && event.mark !== undefined ? ` · Mark ${esc(event.mark)}` : ''}</span>
+                        ${event.teacherNote ? `<p><strong>Teacher note:</strong> ${esc(event.teacherNote)}</p>` : ''}
+                      ` : ''}
+                    </article>
+                  `).join('')}
+                </details>
                 ${current.tktl ? `<details data-view="intelligence-tktl"><summary>Current TKTL context · ${esc(current.tktl.cardId)}</summary><p>${esc(current.tktl.technicalIntent ?? 'No technical intent recorded.')}</p></details>` : ''}
               </section>`;
             })() : ''}
