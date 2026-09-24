@@ -292,6 +292,41 @@ test('teacher readiness review preserves decision data when the selected term ha
   assert.equal(result.checklist[0].decision, 'CONTINUE_CURRENT_TERM');
   assert.equal(result.checklist[0].decisionNote, 'Teacher decision without TKTL card.');
 });
+test('teacher readiness review keeps evidence aligned with the selected term', async () => {
+  const { intelligence, student, term, termService, lessonService } = await setup();
+  const term2 = await termService.create({
+    studentId: student.id,
+    name: 'L3T2',
+    startDate: '2027-02-01',
+    endDate: '2027-06-30',
+    level: 3,
+    termNumber: 2,
+  });
+
+  await lessonService.create({
+    termId: term.id,
+    date: '2026-09-10',
+    mark: 12,
+    attendance: 'ABSENT',
+  });
+  await lessonService.create({
+    termId: term2.id,
+    date: '2027-02-10',
+    mark: 19,
+    attendance: 'PRESENT',
+  });
+
+  const result = await intelligence.getTeacherReadinessReview(student.id, term.id);
+
+  assert.equal(result.currentTerm.id, term.id);
+  assert.equal(result.checklist[0].termId, term.id);
+  assert.equal(result.checklist[0].evidence.term.id, term.id);
+  assert.equal(result.checklist[0].evidence.lessons.marks.latest, 12);
+  assert.equal(result.checklist[0].evidence.lessons.attendance.ABSENT, 1);
+  assert.equal(result.checklist[0].evidence.lessons.marks.latest, result.checklist[0].evidence.lessons.marks.average);
+  assert.notEqual(result.checklist[0].evidence.term.id, term2.id);
+});
+
 test('teacher readiness review rejects a term that does not belong to the student', async () => {
   const { intelligence, student, studentService, termService } = await setup();
   const otherStudent = await studentService.create({ name: 'Other Readiness Student' });
