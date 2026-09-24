@@ -112,11 +112,13 @@ test('student intelligence preserves explicit scale mastery as a derived summary
 test('student intelligence timeline is chronological and factual', async () => {
   const { intelligence, student, term, lessonService } = await setup();
   const older = await lessonService.create({ termId: term.id, date: '2026-09-10', mark: 15 });
-  const newer = await lessonService.create({ termId: term.id, date: '2026-09-24', mark: 17 });
+  const newer = await lessonService.create({ termId: term.id, date: '2026-09-24', mark: 17, teacherNote: '  Work on relaxed thumb.  ' });
   const timeline = await intelligence.getStudentTimeline(student.id);
   const lessonEvents = timeline.filter(event => event.type === 'LESSON');
   assert.deepEqual(lessonEvents.map(event => event.id), [newer.id, older.id]);
   assert.deepEqual(lessonEvents.map(event => event.date), ['2026-09-24', '2026-09-10']);
+  assert.equal(lessonEvents[0].teacherNote, 'Work on relaxed thumb.');
+  assert.equal(lessonEvents[1].teacherNote, '');
 });
 
 test('student intelligence rejects unknown students', async () => {
