@@ -596,6 +596,61 @@ test('shell renders teacher readiness review as a teacher-led checklist', async 
 });
 
 
+test('shell reopens a historical lesson through the lesson-history control', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Historical Lesson Shell Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  const firstLesson = await controller.createLesson('2026-09-10', { mark: 17, attendance: 'LATE', teacherNote: 'Historical shell note.' });
+  await controller.createLesson('2026-09-24', { mark: 19 });
+  shell.render();
+
+  assert.match(root.innerHTML, new RegExp(`data-lesson-history-item="${firstLesson.id}"`));
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'select-lesson', lessonId: firstLesson.id },
+      closest: () => ({ dataset: { action: 'select-lesson', lessonId: firstLesson.id } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.activeLessonId, firstLesson.id);
+  assert.equal(state.activeLesson.teacherNote, 'Historical shell note.');
+  assert.equal(state.activeLesson.attendance, 'LATE');
+  assert.equal(state.activeLesson.mark, 17);
+  assert.match(root.innerHTML, /Historical shell note\./);
+  assert.match(root.innerHTML, /data-selected="true"/);
+});
+
 test('shell routes lesson details save through the controller with teacher note', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
