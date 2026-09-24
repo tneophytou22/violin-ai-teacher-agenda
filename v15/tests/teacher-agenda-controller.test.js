@@ -1143,7 +1143,7 @@ test('controller rejects an unknown lesson without mutating the active lesson', 
   const before = controller.snapshot();
   await assert.rejects(
     () => controller.selectLesson('missing-lesson'),
-    /Lesson not found/
+    /Lesson does not belong to selected term/
   );
 
   const after = controller.snapshot();
@@ -1151,6 +1151,6 @@ test('controller rejects an unknown lesson without mutating the active lesson', 
   assert.equal(after.activeLesson.id, lesson.id);
   assert.equal(after.activeLesson.teacherNote, 'Keep bow contact stable.');
   assert.equal(after.termContext.term.id, term.id);
-  assert.equal(after.error, 'Lesson not found');
+  assert.equal(after.error, 'Lesson does not belong to selected term');
   assert.equal(after.loading, false);
 });
