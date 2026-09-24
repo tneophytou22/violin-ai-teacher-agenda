@@ -84,7 +84,19 @@ export class TeacherAgendaShell {
                   <p><strong>Next-term dependency</strong></p>
                   <p>${esc(check.nextTermDependency ?? 'No next-term dependency recorded.')}</p>
                   <p><strong>Teacher decision</strong></p>
-                  <p data-view="teacher-decision-status">Not recorded — teacher review required.</p>
+                  <label>Decision
+                    <select data-action="teacher-readiness-decision" aria-label="Teacher readiness decision">
+                      <option value="" ${!check.decision ? 'selected' : ''}>Not recorded</option>
+                      <option value="ADVANCE_TO_NEXT_TERM" ${check.decision === 'ADVANCE_TO_NEXT_TERM' ? 'selected' : ''}>Advance to next term</option>
+                      <option value="CONTINUE_CURRENT_TERM" ${check.decision === 'CONTINUE_CURRENT_TERM' ? 'selected' : ''}>Continue current term</option>
+                      <option value="TARGETED_REVIEW_BEFORE_ADVANCE" ${check.decision === 'TARGETED_REVIEW_BEFORE_ADVANCE' ? 'selected' : ''}>Targeted review before advance</option>
+                    </select>
+                  </label>
+                  <label>Teacher note
+                    <textarea data-action="teacher-readiness-note" rows="3" placeholder="Optional teacher note">${esc(check.decisionNote ?? '')}</textarea>
+                  </label>
+                  <button type="button" data-action="save-teacher-readiness-decision">Save teacher decision</button>
+                  <p data-view="teacher-decision-status">${check.decision ? `Recorded: ${esc(check.decision.replaceAll('_', ' ').toLowerCase())}` : 'Not recorded — teacher review required.'}</p>
                 </article>
               `).join('') : '<p>No current-term readiness checklist is available.</p>'}
             </section>
@@ -264,6 +276,10 @@ export class TeacherAgendaShell {
           const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
           const items = text.split('\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
           await this.controller.saveHomework(items);
+        } else if (action === 'save-teacher-readiness-decision') {
+          const decision = this.root.querySelector('[data-action="teacher-readiness-decision"]')?.value ?? '';
+          const note = this.root.querySelector('[data-action="teacher-readiness-note"]')?.value ?? '';
+          await this.controller.saveTeacherReadinessDecision({ decision, note });
         } else if (action === 'assess-scale') {
           const id = target.dataset.scaleId;
           const status = this.root.querySelector(`[data-scale-status="${id}"]`)?.value ?? 'NOT_STARTED';
