@@ -1,4 +1,5 @@
 import { ScaleMasteryService } from './scale-mastery-service.js';
+import { getTeacherUnitCard } from '../tktl/registry.js';
 
 export class StudentIntelligenceService {
   constructor({ studentService, termService, weeklyProgrammeService, lessonService, homeworkService, teacherTermService, repository }) {
@@ -304,14 +305,17 @@ export class StudentIntelligenceService {
 
     let tktl = null;
     if (Number.isInteger(term.level) && Number.isInteger(term.termNumber)) {
-      const context = await this.teacherTerms.getContext(term.id);
-      tktl = {
-        cardId: context.card.id,
-        technicalIntent: context.card.technicalIntent ?? null,
-        readinessCriteria: context.card.readinessCriteria ?? null,
-        teacherDecisionLogic: context.card.teacherDecisionLogic ?? null,
-        nextTermDependency: context.card.nextTermDependency ?? null,
-      };
+      const card = getTeacherUnitCard(term.level, term.termNumber);
+      if (card) {
+        const context = await this.teacherTerms.getContext(term.id);
+        tktl = {
+          cardId: context.card.id,
+          technicalIntent: context.card.technicalIntent ?? null,
+          readinessCriteria: context.card.readinessCriteria ?? null,
+          teacherDecisionLogic: context.card.teacherDecisionLogic ?? null,
+          nextTermDependency: context.card.nextTermDependency ?? null,
+        };
+      }
     }
 
     return {
