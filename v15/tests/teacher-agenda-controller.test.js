@@ -173,9 +173,11 @@ test('lesson session persists details, reviewed work and homework through the co
   assert.equal(controller.snapshot().activeLessonId, lesson.id);
 
   await controller.updateLessonDetails({ attendance: 'LATE', mark: 18 });
+  await controller.updateLessonDetails({ attendance: 'LATE', mark: 18, teacherNote: '  Strong rhythm; relax right thumb.  ' });
   let state = controller.snapshot();
   assert.equal(state.activeLesson.attendance, 'LATE');
   assert.equal(state.activeLesson.mark, 18);
+  assert.equal(state.activeLesson.teacherNote, 'Strong rhythm; relax right thumb.');
 
   const items = state.weekly.items.slice(0, 2).map(item => item.id);
   await controller.reviewItems(items);
