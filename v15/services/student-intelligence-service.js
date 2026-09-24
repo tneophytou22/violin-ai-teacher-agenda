@@ -153,7 +153,9 @@ export class StudentIntelligenceService {
         readinessCriteria: [...(tktl?.readinessCriteria ?? [])],
         nextTermDependency: tktl?.nextTermDependency ?? null,
         teacherDecisionLogic: [...(tktl?.teacherDecisionLogic ?? [])],
-        decision: null,
+        decision: current.term.readinessDecision ?? null,
+        decisionNote: current.term.readinessDecisionNote ?? '',
+        decisionRecordedAt: current.term.readinessDecisionAt ?? null,
       }],
     };
   }
