@@ -41,15 +41,16 @@ export function createProgrammeItem({ termId, curriculumId, curriculumDomain, ob
   return { id: id('pi'), termId, curriculumId, curriculumDomain, objectId, title, targetWeek, status, cardId, details, completedAt: status === 'COMPLETED' ? new Date().toISOString() : null };
 }
 
-export function createLesson({ termId, date, mark = null, attendance = 'PRESENT', reviewedProgrammeItemIds = [] }) {
+export function createLesson({ termId, date, mark = null, attendance = 'PRESENT', teacherNote = '', reviewedProgrammeItemIds = [] }) {
   if (!termId) throw new Error('Lesson.termId is required');
   if (!date) throw new Error('Lesson.date is required');
   if (mark !== null && (!Number.isInteger(mark) || mark < 1 || mark > 20)) throw new Error('Lesson.mark must be 1–20');
   if (!ATTENDANCE_STATUSES.includes(attendance)) throw new Error('Lesson.attendance must be PRESENT, ABSENT or LATE');
+  if (typeof teacherNote !== 'string') throw new Error('Lesson.teacherNote must be a string');
   if (!Array.isArray(reviewedProgrammeItemIds) || reviewedProgrammeItemIds.some(id => typeof id !== 'string' || !id)) {
     throw new Error('Lesson.reviewedProgrammeItemIds must be an array of non-empty IDs');
   }
-  return { id: id('lesson'), termId, date, mark, attendance, reviewedProgrammeItemIds: [...reviewedProgrammeItemIds], version: 1 };
+  return { id: id('lesson'), termId, date, mark, attendance, teacherNote: teacherNote.trim(), reviewedProgrammeItemIds: [...reviewedProgrammeItemIds], version: 1 };
 }
 
 export function createHomework({ id: homeworkId = null, lessonId, items = [] }) {
