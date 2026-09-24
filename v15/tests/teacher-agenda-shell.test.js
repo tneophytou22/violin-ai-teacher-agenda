@@ -487,6 +487,57 @@ test('shell clears a recorded teacher readiness decision through the same save b
   assert.equal(controller.snapshot().teacherReadinessReview.checklist[0].decision, null);
   assert.equal(controller.snapshot().teacherReadinessReview.checklist[0].decisionNote, '');
 });
+test('shell renders lesson teacher notes from the student intelligence timeline', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    homeworkService: homework, repository: repo,
+  });
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Timeline Note Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+  await lessons.create({
+    termId: term.id,
+    date: '2026-09-23',
+    attendance: 'PRESENT',
+    mark: 14,
+    teacherNote: '  Relax the bow hand.  ',
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  shell.render();
+
+  assert.match(root.innerHTML, /Student timeline · 1 event\(s\)/);
+  assert.match(root.innerHTML, /LESSON/);
+  assert.match(root.innerHTML, /2026-09-23/);
+  assert.match(root.innerHTML, /Mark 14/);
+  assert.match(root.innerHTML, /Teacher note:<\/strong> Relax the bow hand\./);
+});
+
 test('shell renders teacher readiness review as a teacher-led checklist', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
