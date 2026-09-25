@@ -144,6 +144,23 @@ test('invalid teacher readiness decision does not mutate the term', async () => 
 });
 
 
+test('teacher readiness decision rejects an unknown term without creating or mutating a record', async () => {
+  const repo = new InMemoryRepository();
+  const terms = new TermService(repo);
+
+  await assert.rejects(
+    () => terms.setReadinessDecision('missing-term', {
+      decision: 'CONTINUE_CURRENT_TERM',
+      note: 'Should not save.',
+    }),
+    /Term not found/
+  );
+
+  assert.equal((await repo.list('terms')).length, 0);
+});
+
+
+
 test('homework assignment rejects an unknown lesson without creating a record', async () => {
   const repo = new InMemoryRepository();
   const homework = new HomeworkService(repo);
