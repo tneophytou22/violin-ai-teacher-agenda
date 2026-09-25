@@ -216,6 +216,9 @@ export class StudentIntelligenceService {
   }
 
   async getStudentTimeline(studentId) {
+    const student = await this.students.get(studentId);
+    if (!student) throw new Error('Student not found');
+
     const terms = await this.terms.listForStudent(studentId);
     const termIds = new Set(terms.map(term => term.id));
     const lessons = (await Promise.all([...termIds].map(termId => this.lessons.listForTerm(termId)))).flat();
