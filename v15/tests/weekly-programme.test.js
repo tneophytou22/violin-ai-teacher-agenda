@@ -60,3 +60,30 @@ test('unknown term and invalid week are rejected', async () => {
   await assert.rejects(() => weekly.listForTerm('missing', 1), /Term not found/);
   await assert.rejects(() => weekly.listForTerm('missing', 0), /Term not found/);
 });
+
+test('invalid target week does not mutate a programme item', async () => {
+  const { repo, term } = await setup();
+  const weekly = new WeeklyProgrammeService(repo);
+  const item = (await weekly.listForTerm(term.id, 1)).find(i => i.curriculumDomain !== 'SCALES');
+  const before = await repo.get('programmeItems', item.id);
+
+  await assert.rejects(
+    () => weekly.assignWeek(item.id, 0),
+    /Week must be a positive integer/
+  );
+
+  const after = await repo.get('programmeItems', item.id);
+  assert.equal(after.targetWeek, before.targetWeek);
+});
+
+test('assigning an unknown programme item is rejected without creating a record', async () => {
+  const { repo } = await setup();
+  const weekly = new WeeklyProgrammeService(repo);
+
+  await assert.rejects(
+    () => weekly.assignWeek('missing-programme-item', 4),
+    /ProgrammeItem not found/
+  );
+
+  assert.equal((await repo.get('programmeItems', 'missing-programme-item')), undefined);
+});
