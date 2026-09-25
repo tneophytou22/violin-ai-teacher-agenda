@@ -486,6 +486,60 @@ test('controller persists explicit scale mastery assessment', async () => {
 });
 
 
+test('controller rejects invalid scale mastery assessment without mutating the scale item or progress', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const scaleMasteryService = new ScaleMasteryService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService, homeworkService, scaleMasteryService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Invalid Scale Assessment Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L1T1', startDate: '2026-09-01',
+    endDate: '2026-12-31', level: 1, termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const scaleItem = controller.snapshot().weekly.items.find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(scaleItem);
+  const before = controller.snapshot();
+  const storedBefore = await repo.get('programmeItems', scaleItem.id);
+
+  await assert.rejects(
+    () => controller.assessScale(scaleItem.id, {
+      status: 'SECURE',
+      currentTempo: 301,
+      targetTempo: 60,
+      intonation: 'SECURE',
+      bowControl: 'SECURE',
+      consistency: 'DEVELOPING',
+      note: 'Should not persist.',
+    }),
+    /Scale tempo must be a finite number between 1 and 300/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.selectedTermId, term.id);
+  assert.deepEqual(after.scaleProgress, before.scaleProgress);
+  assert.equal(after.error, 'Scale tempo must be a finite number between 1 and 300');
+  assert.equal(after.loading, false);
+
+  const storedAfter = await repo.get('programmeItems', scaleItem.id);
+  assert.deepEqual(storedAfter, storedBefore);
+});
+
+
 test('controller uncompletes a programme item and restores pending progress', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
