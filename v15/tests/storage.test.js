@@ -51,3 +51,24 @@ test('in-memory repository preserves clone isolation and deletion semantics', as
   assert.equal(await repository.delete('students', source.id), true);
   assert.equal(await repository.get('students', source.id), null);
 });
+
+
+test('in-memory repository clear removes all stores and remains reusable', async () => {
+  const repository = new InMemoryRepository();
+  await repository.put('students', { id: 'student-1', name: 'Clear Boundary' });
+  await repository.put('terms', { id: 'term-1', studentId: 'student-1' });
+
+  await repository.clear();
+
+  assert.deepEqual(await repository.list('students'), []);
+  assert.deepEqual(await repository.list('terms'), []);
+  assert.equal(await repository.get('students', 'student-1'), null);
+
+  await repository.put('students', { id: 'student-2', name: 'After Clear' });
+  assert.deepEqual(await repository.list('students'), [{ id: 'student-2', name: 'After Clear' }]);
+});
+
+test('in-memory repository delete returns false for an unknown record', async () => {
+  const repository = new InMemoryRepository();
+  assert.equal(await repository.delete('students', 'missing-student'), false);
+});
