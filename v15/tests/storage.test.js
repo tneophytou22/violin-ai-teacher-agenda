@@ -8,6 +8,17 @@ test('storage schema rejects future versions', () => {
   assert.throws(() => storage.assertSchemaVersion(STORAGE_SCHEMA_VERSION + 1), /Unsupported storage schema version/);
 });
 
+
+test('storage schema rejects invalid non-integer and non-positive versions', () => {
+  const storage = new StorageService({ repository: new InMemoryRepository() });
+  for (const version of [0, -1, 1.5, NaN, '1', null]) {
+    assert.throws(
+      () => storage.assertSchemaVersion(version),
+      /Invalid storage schema version/
+    );
+  }
+});
+
 test('production storage contract exposes explicit schema stores', () => {
   assert.equal(DB_VERSION, STORAGE_SCHEMA_VERSION);
   assert.deepEqual(STORE_NAMES, ['students', 'terms', 'lessons', 'programmeItems', 'homework']);
