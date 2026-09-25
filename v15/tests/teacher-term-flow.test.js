@@ -64,3 +64,20 @@ test('Term rejects missing or invalid Level×Term identity', async () => {
     /Term\.termNumber must be 1 or 2/
   );
 });
+
+
+test('TeacherTermService rejects an unknown term without creating programme items', async () => {
+  const repo = new InMemoryRepository();
+  const teacherTerm = new TeacherTermService(repo);
+
+  await assert.rejects(
+    teacherTerm.getContext('missing-term'),
+    /Term not found/
+  );
+  await assert.rejects(
+    teacherTerm.activateCard('missing-term'),
+    /Term not found/
+  );
+
+  assert.deepEqual(await repo.list('programmeItems'), []);
+});
