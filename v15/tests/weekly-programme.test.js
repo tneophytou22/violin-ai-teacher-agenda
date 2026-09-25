@@ -85,5 +85,5 @@ test('assigning an unknown programme item is rejected without creating a record'
     /ProgrammeItem not found/
   );
 
-  assert.equal((await repo.get('programmeItems', 'missing-programme-item')), undefined);
+  assert.equal(await repo.get('programmeItems', 'missing-programme-item'), null);
 });
