@@ -234,6 +234,39 @@ test('uncomplete rejects an unknown programme item', async () => {
   );
 });
 
+
+test('invalid carry-forward week does not mutate a programme item', async () => {
+  const { repo } = await setup();
+  const service = new LessonProgrammeService(repo);
+  const item = (await repo.list('programmeItems')).find(i => i.curriculumDomain !== 'SCALES');
+  const before = await repo.get('programmeItems', item.id);
+
+  await assert.rejects(
+    () => service.carryForward(item.id, 0),
+    /Week must be a positive integer/
+  );
+
+  const after = await repo.get('programmeItems', item.id);
+  assert.equal(after.targetWeek, before.targetWeek);
+  assert.equal(after.status, before.status);
+});
+
+test('mixed valid and unknown completion request does not partially complete items', async () => {
+  const { repo } = await setup();
+  const service = new LessonProgrammeService(repo);
+  const item = (await repo.list('programmeItems')).find(i => i.curriculumDomain !== 'SCALES');
+  const before = await repo.get('programmeItems', item.id);
+
+  await assert.rejects(
+    () => service.completeItems([item.id, 'missing-programme-item']),
+    /ProgrammeItem not found/
+  );
+
+  const after = await repo.get('programmeItems', item.id);
+  assert.equal(after.status, before.status);
+  assert.equal(after.completedAt, before.completedAt);
+});
+
 test('carry-forward rejects an unknown programme item without creating a record', async () => {
   const { repo } = await setup();
   const service = new LessonProgrammeService(repo);
