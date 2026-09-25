@@ -1313,3 +1313,80 @@ test('shell routes scale mastery assessment through the controller and refreshes
   assert.equal(stored.details.mastery.consistency, 'SECURE');
   assert.equal(stored.details.mastery.note, 'Stable intonation; build consistency.');
 });
+
+
+test('shell routes homework save through the controller and restores it when the lesson is reopened', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService: weekly,
+    lessonService: lessons,
+    lessonProgrammeService: lessonProgramme,
+    homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-25' });
+
+  const student = await studentService.create({ name: 'Homework Shell Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  const lesson = await controller.createLesson('2026-09-25');
+  shell.render();
+
+  root.fields.set('[data-action="homework"]', {
+    value: '  Practise Dounis Op. 20  \\n  Review A major scale  \\n\\n',
+  });
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'save-homework' },
+      closest: () => ({ dataset: { action: 'save-homework' } }),
+    },
+  });
+
+  let state = controller.snapshot();
+  assert.equal(state.error, null);
+  assert.equal(state.loading, false);
+  assert.equal(state.homework.lessonId, lesson.id);
+  assert.deepEqual(state.homework.items, [
+    { text: 'Practise Dounis Op. 20', completed: false },
+    { text: 'Review A major scale', completed: false },
+  ]);
+  assert.match(root.innerHTML, /2 homework item\(s\)/);
+
+  const stored = await repo.get('homework', state.homework.id);
+  assert.equal(stored.lessonId, lesson.id);
+  assert.deepEqual(stored.items, state.homework.items);
+
+  await controller.selectLesson(lesson.id);
+  state = controller.snapshot();
+  assert.deepEqual(state.homework.items, [
+    { text: 'Practise Dounis Op. 20', completed: false },
+    { text: 'Review A major scale', completed: false },
+  ]);
+  shell.render();
+  assert.match(root.innerHTML, /Practise Dounis Op\. 20/);
+  assert.match(root.innerHTML, /Review A major scale/);
+  assert.match(root.innerHTML, /2 homework item\(s\)/);
+});
