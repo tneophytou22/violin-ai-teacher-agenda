@@ -61,6 +61,31 @@ test('unknown term and invalid week are rejected', async () => {
   await assert.rejects(() => weekly.listForTerm('missing', 0), /Term not found/);
 });
 
+
+test('weekly summary rejects an unknown term through the same term boundary', async () => {
+  const repo = new InMemoryRepository();
+  const weekly = new WeeklyProgrammeService(repo);
+
+  await assert.rejects(
+    () => weekly.summary('missing-term', 1),
+    /Term not found/
+  );
+});
+
+test('weekly summary rejects a non-positive week without mutating programme items', async () => {
+  const { repo, term } = await setup();
+  const weekly = new WeeklyProgrammeService(repo);
+  const before = await repo.list('programmeItems');
+
+  await assert.rejects(
+    () => weekly.summary(term.id, 0),
+    /Week must be a positive integer/
+  );
+
+  assert.deepEqual(await repo.list('programmeItems'), before);
+});
+
+
 test('invalid target week does not mutate a programme item', async () => {
   const { repo, term } = await setup();
   const weekly = new WeeklyProgrammeService(repo);
