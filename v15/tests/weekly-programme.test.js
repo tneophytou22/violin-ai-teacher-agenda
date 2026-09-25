@@ -86,6 +86,22 @@ test('weekly summary rejects a non-positive week without mutating programme item
 });
 
 
+test('weekly listing rejects non-integer week values without changing the programme', async () => {
+  const { repo, term } = await setup();
+  const weekly = new WeeklyProgrammeService(repo);
+  const before = await repo.list('programmeItems');
+
+  for (const week of [1.5, '1']) {
+    await assert.rejects(
+      () => weekly.listForTerm(term.id, week),
+      /Week must be a positive integer/
+    );
+  }
+
+  assert.deepEqual(await repo.list('programmeItems'), before);
+});
+
+
 test('invalid target week does not mutate a programme item', async () => {
   const { repo, term } = await setup();
   const weekly = new WeeklyProgrammeService(repo);
