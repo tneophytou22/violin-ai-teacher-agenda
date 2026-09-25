@@ -6,6 +6,7 @@ import { TermService } from '../services/term-service.js';
 import { LessonService } from '../services/lesson-service.js';
 import { TeacherTermService } from '../services/teacher-term-service.js';
 import { registerV1Curricula, V1_CURRICULUM_IDS } from '../curriculum/v1-registration.js';
+import { createTerm } from '../domain/models.js';
 
 registerV1Curricula();
 
@@ -85,10 +86,7 @@ test('TeacherTermService rejects an unknown term without creating programme item
 
 test('TeacherTermService rejects a term whose student record is missing without creating programme items', async () => {
   const repo = new InMemoryRepository();
-  const terms = new TermService(repo);
-  const teacherTerm = new TeacherTermService(repo);
-
-  const term = await terms.create({
+  const term = createTerm({
     studentId: 'missing-student',
     name: 'Orphan Term',
     level: 3,
@@ -96,6 +94,8 @@ test('TeacherTermService rejects a term whose student record is missing without 
     startDate: '2026-09-01',
     endDate: '2027-01-31',
   });
+  await repo.put('terms', term);
+  const teacherTerm = new TeacherTermService(repo);
 
   await assert.rejects(
     teacherTerm.getContext(term.id),
