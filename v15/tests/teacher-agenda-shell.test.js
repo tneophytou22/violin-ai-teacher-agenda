@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { InMemoryRepository, StudentService, TermService, TeacherTermService, WeeklyProgrammeService, LessonService, LessonProgrammeService, StudentIntelligenceService } from '../index.js';
+import { InMemoryRepository, StudentService, TermService, TeacherTermService, WeeklyProgrammeService, LessonService, LessonProgrammeService, HomeworkService, StudentIntelligenceService } from '../index.js';
 import { TeacherAgendaViewModel } from '../ui/teacher-agenda-view-model.js';
 import { TeacherAgendaController, localDateString } from '../ui/teacher-agenda-controller.js';
 import { TeacherAgendaShell } from '../ui/teacher-agenda-shell.js';
@@ -1185,9 +1185,10 @@ test('shell rejects review of a foreign programme item without mutating the acti
   const weeklyProgrammeService = new WeeklyProgrammeService(repo);
   const lessonService = new LessonService(repo);
   const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
   const viewModel = new TeacherAgendaViewModel({
     studentService, termService, teacherTermService,
-    weeklyProgrammeService, lessonService, lessonProgrammeService,
+    weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService,
   });
   const controller = new TeacherAgendaController(viewModel);
   const root = new FakeRoot();
