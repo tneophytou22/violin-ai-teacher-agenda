@@ -22,3 +22,16 @@ test('lesson service preserves earlier review records when adding more programme
   const saved = await repo.get('lessons', lesson.id);
   assert.deepEqual(saved.reviewedProgrammeItemIds, [items[0].id, items[1].id]);
 });
+
+
+test('lesson service rejects an unknown lesson before reading or mutating review records', async () => {
+  const repo = new InMemoryRepository();
+  const service = new LessonService(repo);
+
+  await assert.rejects(
+    () => service.reviewProgrammeItems('missing-lesson', ['missing-programme-item']),
+    /Lesson not found/
+  );
+
+  assert.deepEqual(await repo.list('lessons'), []);
+});
