@@ -36,6 +36,42 @@ test('scale mastery assessment is stored separately from programme completion', 
   assert.equal(stored.status, 'PLANNED');
 });
 
+
+test('scale mastery assessment lookup rejects unknown and non-scale programme items', async () => {
+  const repo = new InMemoryRepository();
+  const service = new ScaleMasteryService(repo);
+  const nonScale = await repo.put('programmeItems', createProgrammeItem({
+    termId: 'term_1',
+    curriculumId: 'etude-v1',
+    curriculumDomain: 'ETUDE',
+    objectId: 'L1T1:ETUDE:1',
+    title: 'Etude',
+    targetWeek: 1,
+  }));
+
+  await assert.rejects(
+    () => service.getAssessment('missing-programme-item'),
+    /Scale ProgrammeItem not found/
+  );
+  await assert.rejects(
+    () => service.getAssessment(nonScale.id),
+    /ProgrammeItem is not a scale item/
+  );
+
+  const scale = await repo.put('programmeItems', createProgrammeItem({
+    termId: 'term_1',
+    curriculumId: 'scales-v1',
+    curriculumDomain: 'SCALES',
+    objectId: 'L1T1:SCALES:lookup',
+    title: 'G major — 1 octave',
+    targetWeek: 1,
+  }));
+  const assessment = await service.getAssessment(scale.id);
+  assert.equal(assessment.status, 'NOT_STARTED');
+  assert.equal(assessment.currentTempo, null);
+  assert.equal(assessment.targetTempo, null);
+});
+
 test('scale mastery tempo values follow the assessment input boundary', async () => {
   const repo = new InMemoryRepository();
   const service = new ScaleMasteryService(repo);
