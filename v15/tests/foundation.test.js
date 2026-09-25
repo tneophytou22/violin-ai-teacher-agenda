@@ -191,3 +191,50 @@ test('lesson detail update rejects an unknown lesson without creating a record',
 
   assert.equal((await repo.list('lessons')).length, 0);
 });
+
+
+test('lesson update validates attendance and teacher note without mutating the stored lesson', async () => {
+  const repo = new InMemoryRepository();
+  const lessons = new LessonService(repo);
+  const term = await new TermService(repo).create({
+    studentId: (await new StudentService(repo).create({ name: 'Lesson Update Validation' })).id,
+    name: 'T',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+  });
+  const lesson = await lessons.create({
+    termId: term.id,
+    date: '2026-09-25',
+    mark: 17,
+    attendance: 'PRESENT',
+    teacherNote: 'Original note.',
+  });
+
+  await assert.rejects(
+    () => lessons.updateDetails(lesson.id, {
+      mark: 18,
+      attendance: 'UNKNOWN',
+      teacherNote: 'Should not save.',
+    }),
+    /Lesson.attendance must be PRESENT, ABSENT or LATE/
+  );
+  let stored = await repo.get('lessons', lesson.id);
+  assert.equal(stored.mark, 17);
+  assert.equal(stored.attendance, 'PRESENT');
+  assert.equal(stored.teacherNote, 'Original note.');
+  assert.equal(stored.version, lesson.version);
+
+  await assert.rejects(
+    () => lessons.updateDetails(lesson.id, {
+      mark: 18,
+      attendance: 'LATE',
+      teacherNote: 123,
+    }),
+    /Lesson.teacherNote must be a string/
+  );
+  stored = await repo.get('lessons', lesson.id);
+  assert.equal(stored.mark, 17);
+  assert.equal(stored.attendance, 'PRESENT');
+  assert.equal(stored.teacherNote, 'Original note.');
+  assert.equal(stored.version, lesson.version);
+});
