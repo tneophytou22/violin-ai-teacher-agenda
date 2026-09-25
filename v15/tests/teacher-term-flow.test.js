@@ -81,3 +81,30 @@ test('TeacherTermService rejects an unknown term without creating programme item
 
   assert.deepEqual(await repo.list('programmeItems'), []);
 });
+
+
+test('TeacherTermService rejects a term whose student record is missing without creating programme items', async () => {
+  const repo = new InMemoryRepository();
+  const terms = new TermService(repo);
+  const teacherTerm = new TeacherTermService(repo);
+
+  const term = await terms.create({
+    studentId: 'missing-student',
+    name: 'Orphan Term',
+    level: 3,
+    termNumber: 1,
+    startDate: '2026-09-01',
+    endDate: '2027-01-31',
+  });
+
+  await assert.rejects(
+    teacherTerm.getContext(term.id),
+    /Term student not found/
+  );
+  await assert.rejects(
+    teacherTerm.activateCard(term.id),
+    /Term student not found/
+  );
+
+  assert.deepEqual(await repo.list('programmeItems'), []);
+});
