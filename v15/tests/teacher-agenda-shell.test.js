@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { InMemoryRepository, StudentService, TermService, TeacherTermService, WeeklyProgrammeService, LessonService, LessonProgrammeService, HomeworkService, StudentIntelligenceService } from '../index.js';
+import { InMemoryRepository, StudentService, TermService, TeacherTermService, WeeklyProgrammeService, LessonService, LessonProgrammeService, HomeworkService, StudentIntelligenceService, ScaleMasteryService } from '../index.js';
 import { TeacherAgendaViewModel } from '../ui/teacher-agenda-view-model.js';
 import { TeacherAgendaController, localDateString } from '../ui/teacher-agenda-controller.js';
 import { TeacherAgendaShell } from '../ui/teacher-agenda-shell.js';
@@ -1234,4 +1234,82 @@ test('shell rejects review of a foreign programme item without mutating the acti
 
   const stored = await repo.get('lessons', lesson.id);
   assert.deepEqual(stored.reviewedProgrammeItemIds ?? [], []);
+});
+
+
+test('shell routes scale mastery assessment through the controller and refreshes the rendered scale state', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const homework = new HomeworkService(repo);
+  const scaleMasteryService = new ScaleMasteryService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService: weekly,
+    lessonService: lessons,
+    lessonProgrammeService: lessonProgramme,
+    homeworkService: homework,
+    scaleMasteryService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-25' });
+
+  const student = await studentService.create({ name: 'Scale Mastery Shell Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L5T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 5,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  shell.render();
+
+  const scaleItem = controller.snapshot().weekly.items.find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(scaleItem);
+
+  root.fields.set(`[data-scale-status="${scaleItem.id}"]`, { value: 'SECURE' });
+  root.fields.set(`[data-scale-current-tempo="${scaleItem.id}"]`, { value: '72' });
+  root.fields.set(`[data-scale-target-tempo="${scaleItem.id}"]`, { value: '80' });
+  root.fields.set(`[data-scale-intonation="${scaleItem.id}"]`, { value: 'SECURE' });
+  root.fields.set(`[data-scale-bow="${scaleItem.id}"]`, { value: 'DEVELOPING' });
+  root.fields.set(`[data-scale-consistency="${scaleItem.id}"]`, { value: 'SECURE' });
+  root.fields.set(`[data-scale-note="${scaleItem.id}"]`, { value: '  Stable intonation; build consistency.  ' });
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'assess-scale', scaleId: scaleItem.id },
+      closest: () => ({ dataset: { action: 'assess-scale', scaleId: scaleItem.id } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedTermId, term.id);
+  assert.equal(state.error, null);
+  assert.equal(state.loading, false);
+  assert.equal(state.scaleProgress.items.find(item => item.id === scaleItem.id).details.mastery.status, 'SECURE');
+  assert.match(root.innerHTML, /SECURE/);
+  assert.match(root.innerHTML, /72/);
+  assert.match(root.innerHTML, /80/);
+
+  const stored = await repo.get('programmeItems', scaleItem.id);
+  assert.equal(stored.details.mastery.status, 'SECURE');
+  assert.equal(stored.details.mastery.currentTempo, 72);
+  assert.equal(stored.details.mastery.targetTempo, 80);
+  assert.equal(stored.details.mastery.intonation, 'SECURE');
+  assert.equal(stored.details.mastery.bowControl, 'DEVELOPING');
+  assert.equal(stored.details.mastery.consistency, 'SECURE');
+  assert.equal(stored.details.mastery.note, 'Stable intonation; build consistency.');
 });
