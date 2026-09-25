@@ -158,3 +158,19 @@ test('homework assignment rejects an unknown lesson without creating a record', 
 
   assert.equal((await repo.list('homework')).length, 0);
 });
+
+
+test('lesson creation rejects an unknown term without creating a record', async () => {
+  const repo = new InMemoryRepository();
+  const lessons = new LessonService(repo);
+
+  await assert.rejects(
+    () => lessons.create({
+      termId: 'missing-term',
+      date: '2026-09-25',
+    }),
+    /Cannot create lesson for unknown term/
+  );
+
+  assert.equal((await repo.list('lessons')).length, 0);
+});
