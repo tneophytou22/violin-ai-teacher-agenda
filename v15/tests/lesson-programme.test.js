@@ -210,3 +210,38 @@ test('term-aware carry-forward rejects a programme item from another term', asyn
   );
   assert.equal((await repo.get('programmeItems', foreignItem.id)).targetWeek, 1);
 });
+
+
+test('complete rejects an unknown programme item without creating or mutating items', async () => {
+  const { repo } = await setup();
+  const service = new LessonProgrammeService(repo);
+
+  await assert.rejects(
+    () => service.completeItems(['missing-programme-item']),
+    /ProgrammeItem not found/
+  );
+
+  assert.equal((await repo.list('programmeItems')).length > 0, true);
+});
+
+test('uncomplete rejects an unknown programme item', async () => {
+  const { repo } = await setup();
+  const service = new LessonProgrammeService(repo);
+
+  await assert.rejects(
+    () => service.uncompleteItem('missing-programme-item'),
+    /ProgrammeItem not found/
+  );
+});
+
+test('carry-forward rejects an unknown programme item without creating a record', async () => {
+  const { repo } = await setup();
+  const service = new LessonProgrammeService(repo);
+
+  await assert.rejects(
+    () => service.carryForward('missing-programme-item', 4),
+    /ProgrammeItem not found/
+  );
+
+  assert.equal((await repo.list('programmeItems')).length > 0, true);
+});
