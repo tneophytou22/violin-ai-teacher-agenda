@@ -47,6 +47,21 @@ test('reviewing additional items preserves earlier lesson review records', async
 });
 
 
+
+test('review rejects an unknown programme item without mutating the lesson review record', async () => {
+  const { repo, lesson } = await setup();
+  const service = new LessonProgrammeService(repo);
+
+  await assert.rejects(
+    () => service.reviewWeeklyItems(lesson.id, ['missing-programme-item']),
+    /does not belong to the lesson term/
+  );
+
+  const savedLesson = await repo.get('lessons', lesson.id);
+  assert.deepEqual(savedLesson.reviewedProgrammeItemIds ?? [], []);
+});
+
+
 test('reviewing an item does not complete it; completion is explicit', async () => {
   const { repo, term, lesson } = await setup();
   const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
