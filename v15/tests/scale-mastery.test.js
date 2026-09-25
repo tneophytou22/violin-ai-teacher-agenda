@@ -68,6 +68,49 @@ test('scale mastery tempo values follow the assessment input boundary', async ()
   assert.equal(assessed.details.mastery.targetTempo, 300);
 });
 
+
+test('invalid scale assessment dimension does not mutate an existing mastery record', async () => {
+  const repo = new InMemoryRepository();
+  const service = new ScaleMasteryService(repo);
+  const item = await repo.put('programmeItems', createProgrammeItem({
+    termId: 'term_1',
+    curriculumId: 'scales-v1',
+    curriculumDomain: 'SCALES',
+    objectId: 'L1T1:SCALES:mutation-boundary',
+    title: 'G major — 1 octave',
+    targetWeek: 1,
+  }));
+
+  await service.assess({
+    programmeItemId: item.id,
+    status: 'SECURE',
+    currentTempo: 80,
+    targetTempo: 90,
+    intonation: 'SECURE',
+    bowControl: 'SECURE',
+    consistency: 'DEVELOPING',
+    note: 'Stable baseline.',
+  });
+  const before = await repo.get('programmeItems', item.id);
+
+  await assert.rejects(
+    () => service.assess({
+      programmeItemId: item.id,
+      status: 'PERFORMANCE_READY',
+      currentTempo: 100,
+      targetTempo: 110,
+      intonation: 'INVALID',
+      bowControl: 'SECURE',
+      consistency: 'SECURE',
+      note: 'Should not replace baseline.',
+    }),
+    /Invalid scale assessment dimension/
+  );
+
+  const after = await repo.get('programmeItems', item.id);
+  assert.deepEqual(after.details.mastery, before.details.mastery);
+});
+
 test('scale mastery summary uses explicit teacher-assessed mastery, not completion', async () => {
   const items = [
     { details: { mastery: { status: 'NOT_STARTED' } } },
