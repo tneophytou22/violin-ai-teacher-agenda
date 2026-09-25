@@ -1174,3 +1174,63 @@ test('shell rejects carry-forward of a foreign programme item without mutating t
   const stored = await repo.get('programmeItems', foreignItem.id);
   assert.equal(stored.targetWeek, originalTargetWeek);
 });
+
+
+test('shell rejects review of a foreign programme item without mutating the active lesson', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService, lessonService, lessonProgrammeService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Shell Foreign Review Test' });
+  const term1 = await termService.create({
+    studentId: student.id, name: 'L3T1', startDate: '2026-09-01',
+    endDate: '2026-12-31', level: 3, termNumber: 1,
+  });
+  const term2 = await termService.create({
+    studentId: student.id, name: 'L3T2', startDate: '2027-01-01',
+    endDate: '2027-04-30', level: 3, termNumber: 2,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term2.id);
+  const foreignItem = (await repo.list('programmeItems'))
+    .find(item => item.termId === term2.id && item.curriculumDomain !== 'SCALES');
+  assert.ok(foreignItem);
+  await controller.selectTerm(term1.id);
+  const lesson = await controller.createLesson('2026-09-24', {
+    teacherNote: 'Preserve this lesson note.'
+  });
+
+  controller.state.selectedItemIds = [foreignItem.id];
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'review' },
+      closest: () => ({ dataset: { action: 'review' } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedTermId, term1.id);
+  assert.equal(state.activeLessonId, lesson.id);
+  assert.equal(state.activeLesson.teacherNote, 'Preserve this lesson note.');
+  assert.deepEqual(state.reviewedItemIds, []);
+  assert.equal(state.error, 'ProgrammeItem does not belong to the lesson term');
+  assert.match(root.innerHTML, /ProgrammeItem does not belong to the lesson term/);
+  assert.equal(state.loading, false);
+
+  const stored = await repo.get('lessons', lesson.id);
+  assert.deepEqual(stored.reviewedProgrammeItemIds ?? [], []);
+});
