@@ -30,3 +30,24 @@ test('storage service can use the repository contract without changing domain ow
   const result = await storage.health();
   assert.deepEqual(result, { ok: true, schemaVersion: STORAGE_SCHEMA_VERSION });
 });
+
+test('in-memory repository preserves clone isolation and deletion semantics', async () => {
+  const repository = new InMemoryRepository();
+  const source = { id: 'student-1', name: 'Repository Boundary', details: { tags: ['L1'] } };
+
+  assert.equal(await repository.get('students', source.id), null);
+
+  const saved = await repository.put('students', source);
+  source.details.tags.push('MUTATED_AFTER_PUT');
+  saved.details.tags.push('MUTATED_AFTER_RETURN');
+
+  const stored = await repository.get('students', source.id);
+  assert.deepEqual(stored, {
+    id: 'student-1',
+    name: 'Repository Boundary',
+    details: { tags: ['L1'] },
+  });
+
+  assert.equal(await repository.delete('students', source.id), true);
+  assert.equal(await repository.get('students', source.id), null);
+});
