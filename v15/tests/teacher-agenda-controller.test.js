@@ -1485,3 +1485,55 @@ test('controller rejects review of a foreign programme item without mutating the
   const stored = await repo.get('lessons', lesson.id);
   assert.deepEqual(stored.reviewedProgrammeItemIds ?? [], []);
 });
+
+
+test('controller rejects homework save without an active lesson and preserves prior homework state', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Homework Boundary Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  const before = controller.snapshot();
+
+  await assert.rejects(
+    () => controller.saveHomework([{ text: 'Should not save', completed: false }]),
+    /No lesson selected/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.selectedTermId, term.id);
+  assert.equal(after.activeLessonId, null);
+  assert.equal(after.homework, before.homework);
+  assert.deepEqual(after.weekly, before.weekly);
+  assert.equal(after.error, 'No lesson selected');
+  assert.equal(after.loading, false);
+  assert.equal((await repo.list('homework')).length, 0);
+});
