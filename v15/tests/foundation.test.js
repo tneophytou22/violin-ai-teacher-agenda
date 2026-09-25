@@ -142,3 +142,19 @@ test('invalid teacher readiness decision does not mutate the term', async () => 
   assert.equal(afterInvalidAttempt.version, beforeInvalidAttempt.version);
   assert.equal(afterInvalidAttempt.version, recorded.version);
 });
+
+
+test('homework assignment rejects an unknown lesson without creating a record', async () => {
+  const repo = new InMemoryRepository();
+  const homework = new HomeworkService(repo);
+
+  await assert.rejects(
+    () => homework.assignHomework({
+      lessonId: 'missing-lesson',
+      items: [{ text: 'Should not save', completed: false }],
+    }),
+    /Cannot assign homework to unknown lesson/
+  );
+
+  assert.equal((await repo.list('homework')).length, 0);
+});
