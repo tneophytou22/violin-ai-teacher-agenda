@@ -174,3 +174,20 @@ test('lesson creation rejects an unknown term without creating a record', async 
 
   assert.equal((await repo.list('lessons')).length, 0);
 });
+
+
+test('lesson detail update rejects an unknown lesson without creating a record', async () => {
+  const repo = new InMemoryRepository();
+  const lessons = new LessonService(repo);
+
+  await assert.rejects(
+    () => lessons.updateDetails('missing-lesson', {
+      mark: 18,
+      attendance: 'LATE',
+      teacherNote: 'Should not save.',
+    }),
+    /Lesson not found/
+  );
+
+  assert.equal((await repo.list('lessons')).length, 0);
+});
