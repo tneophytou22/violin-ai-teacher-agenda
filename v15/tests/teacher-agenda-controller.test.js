@@ -1404,14 +1404,14 @@ test('controller rejects review of a foreign programme item without mutating the
   await controller.loadStudents();
   await controller.selectStudent(student.id);
   await controller.selectTerm(term1.id);
-  const lesson = await controller.createLesson('2026-09-24', {
-    teacherNote: 'Keep the current bow distribution.'
-  });
   await controller.selectTerm(term2.id);
   const foreignItem = (await repo.list('programmeItems'))
     .find(item => item.termId === term2.id && item.curriculumDomain !== 'SCALES');
   assert.ok(foreignItem);
   await controller.selectTerm(term1.id);
+  const lesson = await controller.createLesson('2026-09-24', {
+    teacherNote: 'Keep the current bow distribution.'
+  });
 
   const before = controller.snapshot();
   await assert.rejects(
