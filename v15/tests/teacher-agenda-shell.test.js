@@ -1355,7 +1355,7 @@ test('shell routes homework save through the controller and restores it when the
   shell.render();
 
   root.fields.set('[data-action="homework"]', {
-    value: '  Practise Dounis Op. 20  \\n  Review A major scale  \\n\\n',
+    value: '  Practise Dounis Op. 20  \n  Review A major scale  \n\n',
   });
 
   await root.dispatch('click', {
