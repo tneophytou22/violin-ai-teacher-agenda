@@ -108,3 +108,40 @@ test('TeacherTermService rejects a term whose student record is missing without 
 
   assert.deepEqual(await repo.list('programmeItems'), []);
 });
+
+test('TeacherTermService rejects a persisted term with malformed Level×Term identity before activation', async () => {
+  const repo = new InMemoryRepository();
+  const teacherTerm = new TeacherTermService(repo);
+  const student = await repo.put('students', { id: 'stu_legacy', name: 'Legacy Student' });
+
+  const malformedTerms = [
+    {
+      id: 'term_null_level',
+      studentId: student.id,
+      name: 'Missing Level',
+      level: null,
+      termNumber: 1,
+    },
+    {
+      id: 'term_invalid_number',
+      studentId: student.id,
+      name: 'Invalid Term Number',
+      level: 3,
+      termNumber: 3,
+    },
+  ];
+
+  for (const term of malformedTerms) {
+    await repo.put('terms', term);
+    await assert.rejects(
+      teacherTerm.getContext(term.id),
+      /Term level must be an integer from 1 to 10|Term termNumber must be 1 or 2/
+    );
+    await assert.rejects(
+      teacherTerm.activateCard(term.id),
+      /Term level must be an integer from 1 to 10|Term termNumber must be 1 or 2/
+    );
+  }
+
+  assert.deepEqual(await repo.list('programmeItems'), []);
+});
