@@ -121,6 +121,14 @@ test('student intelligence timeline is chronological and factual', async () => {
   assert.equal(lessonEvents[1].teacherNote, '');
 });
 
+test('student intelligence timeline rejects unknown students', async () => {
+  const { intelligence } = await setup();
+  await assert.rejects(
+    () => intelligence.getStudentTimeline('missing-student'),
+    /Student not found/
+  );
+});
+
 test('student intelligence rejects unknown students', async () => {
   const { intelligence } = await setup();
   await assert.rejects(
