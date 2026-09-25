@@ -161,6 +161,42 @@ test('teacher readiness decision rejects an unknown term without creating or mut
 
 
 
+test('invalid readiness note type does not mutate the term', async () => {
+  const repo = new InMemoryRepository();
+  const students = new StudentService(repo);
+  const terms = new TermService(repo);
+  const student = await students.create({ name: 'Readiness Note Validation' });
+  const term = await terms.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2027-01-31',
+  });
+
+  const recorded = await terms.setReadinessDecision(term.id, {
+    decision: 'CONTINUE_CURRENT_TERM',
+    note: 'Keep current target.',
+  });
+  const beforeInvalidAttempt = await terms.get(term.id);
+
+  await assert.rejects(
+    () => terms.setReadinessDecision(term.id, {
+      decision: 'ADVANCE_TO_NEXT_TERM',
+      note: 123,
+    }),
+    /Teacher readiness decision note must be a string/
+  );
+
+  const afterInvalidAttempt = await terms.get(term.id);
+  assert.equal(afterInvalidAttempt.readinessDecision, beforeInvalidAttempt.readinessDecision);
+  assert.equal(afterInvalidAttempt.readinessDecisionNote, beforeInvalidAttempt.readinessDecisionNote);
+  assert.equal(afterInvalidAttempt.readinessDecisionAt, beforeInvalidAttempt.readinessDecisionAt);
+  assert.equal(afterInvalidAttempt.version, beforeInvalidAttempt.version);
+  assert.equal(afterInvalidAttempt.version, recorded.version);
+});
+
+
+
 test('homework assignment rejects an unknown lesson without creating a record', async () => {
   const repo = new InMemoryRepository();
   const homework = new HomeworkService(repo);
