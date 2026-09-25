@@ -1167,7 +1167,7 @@ test('shell rejects carry-forward of a foreign programme item without mutating t
   assert.equal(state.selectedTermId, term1.id);
   assert.equal(state.week, before.week);
   assert.deepEqual(state.weekly, before.weekly);
-  assert.equal(state.error, 'ProgrammeItem does not belong to selected term');
+  assert.equal(state.error, 'ProgrammeItem does not belong to the selected term');
   assert.match(root.innerHTML, /ProgrammeItem does not belong to selected term/);
   assert.equal(state.loading, false);
 
