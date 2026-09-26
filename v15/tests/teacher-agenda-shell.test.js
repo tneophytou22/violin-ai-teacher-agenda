@@ -1430,3 +1430,43 @@ test('shell reports term creation without a selected student without creating a 
   assert.match(root.innerHTML, /No student selected/);
   assert.deepEqual(await repo.list('terms'), []);
 });
+
+
+test('shell reports lesson creation without a selected term without creating a lesson', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  const student = await studentService.create({ name: 'Lesson Shell Boundary' });
+  await shell.start();
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'lesson' },
+      closest: () => ({ dataset: { action: 'lesson' } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedStudentId, student.id);
+  assert.equal(state.selectedTermId, null);
+  assert.equal(state.activeLessonId, null);
+  assert.equal(state.error, 'No term selected');
+  assert.match(root.innerHTML, /No term selected/);
+  assert.deepEqual(await repo.list('lessons'), []);
+});
