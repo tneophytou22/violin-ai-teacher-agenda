@@ -1607,6 +1607,35 @@ test('shell routes term creation through the controller boundary', async () => {
   assert.match(root.innerHTML, /Current term/);
 });
 
+test('shell renders an initial student-load failure through the controller error boundary', async () => {
+  const repo = {
+    async list() {
+      throw new Error('Storage unavailable');
+    },
+  };
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root });
+
+  const result = await shell.start();
+
+  assert.equal(result, shell);
+  assert.equal(controller.snapshot().error, 'Storage unavailable');
+  assert.equal(controller.snapshot().loading, false);
+  assert.match(root.innerHTML, /Storage unavailable/);
+});
+
 test('shell reports term creation without a selected student without creating a term', async () => {
   const repo = new InMemoryRepository();
   const studentService = new StudentService(repo);
