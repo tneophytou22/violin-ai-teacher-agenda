@@ -1667,6 +1667,67 @@ test('shell reports lesson review without an active lesson without mutating revi
   assert.deepEqual(lessonsAfter, []);
 });
 
+test('shell routes review through the controller boundary for an active lesson', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  const student = await studentService.create({ name: 'Review Shell Success Boundary' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 3,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.createLesson('2026-09-26');
+  shell.render();
+
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  assert.ok(item);
+
+  await root.dispatch('change', {
+    target: {
+      dataset: { item: item.id },
+      matches: selector => selector === '[data-item]',
+    },
+  });
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'review' },
+      closest: () => ({ dataset: { action: 'review' } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.error, null);
+  assert.equal(state.activeLessonId != null, true);
+  assert.deepEqual(state.reviewedItemIds, [item.id]);
+  assert.match(root.innerHTML, /Lesson activity: 1 reviewed/);
+  assert.match(root.innerHTML, /\(reviewed\)/);
+
+  const storedLesson = await repo.get('lessons', state.activeLessonId);
+  assert.deepEqual(storedLesson.reviewedProgrammeItemIds, [item.id]);
+});
+
 test('shell routes weekly selection controls through the controller boundary', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
