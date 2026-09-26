@@ -19,6 +19,49 @@ const setup = async (level = 7, termNumber = 1) => {
   return { repo, term };
 };
 
+test('activating the same TKTL card twice is idempotent and preserves existing item state', async () => {
+  const { repo, term } = await setup(7, 1);
+  const teacherTerms = new TeacherTermService(repo);
+
+  const first = await teacherTerms.activateCard(term.id);
+  const core = first.programmeItems.find(item => item.curriculumDomain === 'PURE_TECHNICAL');
+  const scale = first.programmeItems.find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(core);
+  assert.ok(scale);
+
+  core.targetWeek = 4;
+  core.status = 'COMPLETED';
+  core.completedAt = '2026-09-20T10:00:00.000Z';
+  await repo.put('programmeItems', core);
+
+  scale.details = {
+    ...(scale.details ?? {}),
+    mastery: {
+      status: 'SECURE',
+      currentTempo: 72,
+      targetTempo: 80,
+      note: 'Preserve assessment.',
+    },
+  };
+  await repo.put('programmeItems', scale);
+
+  const second = await teacherTerms.activateCard(term.id);
+  const records = await repo.list('programmeItems');
+
+  assert.equal(records.length, 25);
+  assert.equal(second.programmeItems.length, 25);
+  assert.equal(new Set(records.map(item => item.id)).size, 25);
+
+  const restoredCore = await repo.get('programmeItems', core.id);
+  const restoredScale = await repo.get('programmeItems', scale.id);
+  assert.equal(restoredCore.targetWeek, 4);
+  assert.equal(restoredCore.status, 'COMPLETED');
+  assert.equal(restoredCore.completedAt, '2026-09-20T10:00:00.000Z');
+  assert.equal(restoredScale.details.mastery.status, 'SECURE');
+  assert.equal(restoredScale.details.mastery.currentTempo, 72);
+  assert.equal(restoredScale.details.mastery.note, 'Preserve assessment.');
+});
+
 test('activated TKTL card creates 15 core items plus scale requirements', async () => {
   const { repo, term } = await setup(7, 1);
   const weekly = new WeeklyProgrammeService(repo);
