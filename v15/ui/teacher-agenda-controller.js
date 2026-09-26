@@ -220,6 +220,7 @@ export class TeacherAgendaController {
     return this.#run(async () => {
       if (!this.state.selectedTermId) throw new Error('No term selected');
       const item = await this.viewModel.assessScale(programmeItemId, assessment, this.state.selectedTermId);
+      await this.#reloadWeek();
       if (this.state.selectedTermId) {
         this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
       }
