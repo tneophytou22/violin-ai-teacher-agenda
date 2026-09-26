@@ -99,3 +99,23 @@ test('teacher agenda view model loadWeek preserves repository state for an inval
 
   assert.deepEqual(await repo.list('programmeItems'), before);
 });
+
+
+test('teacher agenda view model loadTerm rejects an unknown term without creating programme state', async () => {
+  const repo = new InMemoryRepository();
+  const agenda = new TeacherAgendaViewModel({
+    studentService: new StudentService(repo),
+    termService: new TermService(repo),
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+  });
+
+  await assert.rejects(
+    () => agenda.loadTerm('missing-term'),
+    /Term not found/
+  );
+
+  assert.deepEqual(await repo.list('programmeItems'), []);
+});
