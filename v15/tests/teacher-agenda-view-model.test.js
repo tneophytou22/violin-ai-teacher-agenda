@@ -62,3 +62,40 @@ test('teacher agenda view model rejects an unknown student without creating term
   assert.deepEqual(await repo.list('students'), []);
   assert.deepEqual(await repo.list('terms'), []);
 });
+
+
+test('teacher agenda view model loadWeek preserves repository state for an invalid week', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const agenda = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+  });
+
+  const student = await studentService.create({ name: 'Week Boundary' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L7T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 7,
+    termNumber: 1,
+  });
+  await teacherTermService.activateCard(term.id);
+  const before = await repo.list('programmeItems');
+
+  await assert.rejects(
+    () => agenda.loadWeek(term.id, 0),
+    /Week must be a positive integer/
+  );
+
+  assert.deepEqual(await repo.list('programmeItems'), before);
+});
