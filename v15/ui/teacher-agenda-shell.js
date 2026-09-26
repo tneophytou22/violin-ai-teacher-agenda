@@ -1,6 +1,6 @@
 import { TeacherAgendaController, localDateString } from './teacher-agenda-controller.js';
 
-const esc = value => String(value ?? '').replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = value => String(value ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export class TeacherAgendaShell {
   constructor({ controller, root, now = localDateString }) {
