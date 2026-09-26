@@ -79,6 +79,49 @@ test('teacher agenda controller keeps UI selection state separate from business 
   assert.equal(state.termProgress.completed, 1);
 });
 
+test('controller rejects an unknown student without mutating the selected student state', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+    studentIntelligenceService: new StudentIntelligenceService(repo),
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Student Selection Boundary' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L7T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 7,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const before = controller.snapshot();
+
+  await assert.rejects(
+    () => controller.selectStudent('missing-student'),
+    /Student not found/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.selectedStudentId, before.selectedStudentId);
+  assert.equal(after.selectedTermId, before.selectedTermId);
+  assert.deepEqual(after.terms, before.terms);
+  assert.equal(after.termContext?.card?.id, before.termContext?.card?.id);
+});
+
 test('controller rejects an unknown term without mutating the selected term', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
