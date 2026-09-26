@@ -1482,6 +1482,54 @@ test('shell routes homework save through the controller and restores it when the
 });
 
 
+test('shell routes term creation through the controller boundary', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  const student = await studentService.create({ name: 'Shell Term Boundary Test' });
+  await shell.start();
+  await controller.selectStudent(student.id);
+
+  root.fields.set('[data-action="new-term-name"]', { value: 'Shell Created Term' });
+  root.fields.set('[data-action="new-term-level"]', { value: '1' });
+  root.fields.set('[data-action="new-term-number"]', { value: '1' });
+  root.fields.set('[data-action="new-term-start"]', { value: '2026-09-01' });
+  root.fields.set('[data-action="new-term-end"]', { value: '2026-12-31' });
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'create-term' },
+      closest: () => ({ dataset: { action: 'create-term' } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  const storedTerms = await repo.list('terms');
+  assert.equal(storedTerms.length, 1);
+  assert.equal(storedTerms[0].name, 'Shell Created Term');
+  assert.equal(storedTerms[0].studentId, student.id);
+  assert.equal(state.selectedStudentId, student.id);
+  assert.equal(state.selectedTermId, storedTerms[0].id);
+  assert.equal(state.terms.length, 1);
+  assert.equal(state.error, null);
+  assert.match(root.innerHTML, /Shell Created Term/);
+  assert.match(root.innerHTML, /Current term/);
+});
+
 test('shell reports term creation without a selected student without creating a term', async () => {
   const repo = new InMemoryRepository();
   const studentService = new StudentService(repo);
