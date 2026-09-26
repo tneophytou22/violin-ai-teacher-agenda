@@ -1528,3 +1528,50 @@ test('shell reports lesson review without an active lesson without mutating revi
   const lessonsAfter = await repo.list('lessons');
   assert.deepEqual(lessonsAfter, []);
 });
+
+test('shell reports an invalid previous week without mutating the current week', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  const student = await studentService.create({ name: 'Week Shell Boundary' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L2T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 2,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+  const before = controller.snapshot();
+  assert.equal(before.week, 1);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'week-prev' },
+      closest: () => ({ dataset: { action: 'week-prev' } }),
+    },
+  });
+
+  const after = controller.snapshot();
+  assert.equal(after.week, 1);
+  assert.equal(after.error, 'Week must be an integer >= 1');
+  assert.match(root.innerHTML, /Week must be an integer &gt;= 1/);
+  assert.equal(after.loading, false);
+});
