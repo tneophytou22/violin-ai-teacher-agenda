@@ -119,6 +119,26 @@ test('lesson service review path rejects scale programme items', async () => {
   assert.deepEqual(savedLesson.reviewedProgrammeItemIds ?? [], []);
 });
 
+test('legacy programme status path rejects scale programme items', async () => {
+  const { repo, term } = await setup();
+  const weekly = new WeeklyProgrammeService(repo);
+  const programmes = new ProgrammeService(repo);
+  const scale = (await weekly.listForTerm(term.id, 1)).find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(scale);
+
+  await assert.rejects(
+    () => programmes.setStatus(scale.id, 'COMPLETED'),
+    /Scale ProgrammeItem cannot be changed through core programme status workflow/
+  );
+  assert.equal((await repo.get('programmeItems', scale.id)).status, 'PLANNED');
+
+  await assert.rejects(
+    () => programmes.setStatus(scale.id, 'PLANNED'),
+    /Scale ProgrammeItem cannot be changed through core programme status workflow/
+  );
+  assert.equal((await repo.get('programmeItems', scale.id)).status, 'PLANNED');
+});
+
 test('review rejects scale programme items because scale review is separate from core lesson workflow', async () => {
   const { repo, term, lesson } = await setup();
   const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
