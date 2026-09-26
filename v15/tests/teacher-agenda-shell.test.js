@@ -934,6 +934,42 @@ test('shell reports invalid lesson details without mutating the active lesson', 
   assert.equal(stored.teacherNote, 'Original shell lesson note.');
 });
 
+test('shell routes new student creation through the controller boundary', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  await shell.start();
+  root.fields.set('[data-action="new-student-name"]', { value: 'Shell Created Student' });
+
+  await root.dispatch('click', {
+    target: {
+      closest: () => ({
+        dataset: { action: 'create-student' },
+      }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedStudentId !== null, true);
+  assert.match(root.innerHTML, /Shell Created Student/);
+  assert.equal(state.students.some(student => student.name === 'Shell Created Student'), true);
+});
+
 test('shell reports an unknown student selection without mutating the selected student', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
