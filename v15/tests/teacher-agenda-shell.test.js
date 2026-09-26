@@ -934,6 +934,60 @@ test('shell reports invalid lesson details without mutating the active lesson', 
   assert.equal(stored.teacherNote, 'Original shell lesson note.');
 });
 
+test('shell reports an unknown student selection without mutating the selected student', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    homeworkService: homework, repository: repo,
+  });
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+    studentIntelligenceService: intelligence,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-24' });
+
+  const student = await studentService.create({ name: 'Invalid Student Shell Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L1T1',
+    startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 1, termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  await root.dispatch('change', {
+    target: {
+      value: 'missing-student',
+      matches: selector => selector === '[data-action="student"]',
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedStudentId, student.id);
+  assert.equal(state.selectedTermId, term.id);
+  assert.equal(state.termContext.term.id, term.id);
+  assert.equal(state.error, 'Student not found');
+  assert.match(root.innerHTML, /Student not found/);
+  assert.match(root.innerHTML, /Invalid Student Shell Test/);
+});
+
+
 test('shell reports an invalid term selection without mutating the selected term', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
