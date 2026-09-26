@@ -13,7 +13,12 @@ export class TeacherAgendaShell {
   }
 
   async start() {
-    await this.controller.loadStudents();
+    try {
+      await this.controller.loadStudents();
+    } catch (error) {
+      this.#showError();
+      return this;
+    }
     this.render();
     return this;
   }
@@ -354,7 +359,7 @@ export class TeacherAgendaShell {
     }
   }
 
-  #showError(error) {
+  #showError() {
     // Controller operations record their own error state and rollback before rejecting.
     // The Shell only re-renders that state; it must not mutate Controller state directly.
     this.render();
