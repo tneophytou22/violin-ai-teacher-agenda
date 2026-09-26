@@ -1470,3 +1470,61 @@ test('shell reports lesson creation without a selected term without creating a l
   assert.match(root.innerHTML, /No term selected/);
   assert.deepEqual(await repo.list('lessons'), []);
 });
+
+
+test('shell reports lesson review without an active lesson without mutating review state', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const { HomeworkService } = await import('../services/homework-service.js');
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService: weekly,
+    lessonService: lessons,
+    lessonProgrammeService: lessonProgramme,
+    homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  const student = await studentService.create({ name: 'Review Shell Boundary' });
+  await termService.create({
+    studentId: student.id, name: 'L3T1',
+    startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 3, termNumber: 1,
+  });
+  await shell.start();
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  assert.ok(item);
+
+  controller.toggleItemSelection(item.id);
+  shell.render();
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'review' },
+      closest: () => ({ dataset: { action: 'review' } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.activeLessonId, null);
+  assert.deepEqual(state.reviewedItemIds, []);
+  assert.equal(state.error, 'No lesson selected');
+  assert.match(root.innerHTML, /No lesson selected/);
+  const lessonsAfter = await repo.list('lessons');
+  assert.deepEqual(lessonsAfter, []);
+});
