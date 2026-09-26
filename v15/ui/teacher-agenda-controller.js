@@ -231,6 +231,7 @@ export class TeacherAgendaController {
 
   async completeItems(programmeItemIds) {
     return this.#run(async () => {
+      if (!this.state.selectedTermId) throw new Error('No term selected');
       await this.viewModel.completeProgrammeItems(this.state.selectedTermId, programmeItemIds);
       this.state.selectedItemIds = [];
       await this.#reloadWeek();
@@ -245,6 +246,7 @@ export class TeacherAgendaController {
 
   async uncompleteItem(programmeItemId) {
     return this.#run(async () => {
+      if (!this.state.selectedTermId) throw new Error('No term selected');
       await this.viewModel.uncompleteProgrammeItem(this.state.selectedTermId, programmeItemId);
       this.state.selectedItemIds = [];
       await this.#reloadWeek();
@@ -259,6 +261,7 @@ export class TeacherAgendaController {
 
   async carryForward(programmeItemId, targetWeek) {
     return this.#run(async () => {
+      if (!this.state.selectedTermId) throw new Error('No term selected');
       await this.viewModel.carryForward(this.state.selectedTermId, programmeItemId, targetWeek);
       this.state.week = targetWeek;
       this.state.selectedItemIds = [];
