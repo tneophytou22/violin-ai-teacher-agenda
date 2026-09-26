@@ -1788,6 +1788,69 @@ test('shell routes review through the controller boundary for an active lesson',
   assert.deepEqual(storedLesson.reviewedProgrammeItemIds, [item.id]);
 });
 
+test('shell routes programme-item checkbox changes through the controller boundary', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  const student = await studentService.create({ name: 'Checkbox Shell Boundary' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L2T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 2,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  assert.ok(item);
+  assert.deepEqual(controller.snapshot().selectedItemIds, []);
+
+  await root.dispatch('change', {
+    target: {
+      dataset: { item: item.id },
+      matches: selector => selector === '[data-item]',
+    },
+  });
+
+  let state = controller.snapshot();
+  assert.deepEqual(state.selectedItemIds, [item.id]);
+  assert.match(root.innerHTML, /Clear selection \(1\)/);
+  assert.match(root.innerHTML, /Complete selected \(1\)/);
+  assert.match(root.innerHTML, /Review selected \(1\)/);
+
+  await root.dispatch('change', {
+    target: {
+      dataset: { item: item.id },
+      matches: selector => selector === '[data-item]',
+    },
+  });
+
+  state = controller.snapshot();
+  assert.deepEqual(state.selectedItemIds, []);
+  assert.match(root.innerHTML, /Clear selection \(0\)/);
+  assert.match(root.innerHTML, /Complete selected \(0\)/);
+  assert.match(root.innerHTML, /Review selected \(0\)/);
+});
+
+
 test('shell routes weekly selection controls through the controller boundary', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
