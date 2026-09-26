@@ -1824,3 +1824,34 @@ test('controller rejects invalid term creation without mutating selected student
   assert.deepEqual(after.terms, before.terms);
   assert.deepEqual(await repo.list('terms'), []);
 });
+
+
+test('controller rejects lesson detail updates without an active lesson without mutating state', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const student = await studentService.create({ name: 'Lesson Detail Boundary' });
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const before = controller.snapshot();
+
+  await assert.rejects(
+    () => controller.updateLessonDetails({ mark: 18, attendance: 'PRESENT', teacherNote: 'Should not save.' }),
+    /No lesson selected/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.activeLessonId, before.activeLessonId);
+  assert.equal(after.activeLesson, before.activeLesson);
+  assert.deepEqual(await repo.list('lessons'), []);
+});
