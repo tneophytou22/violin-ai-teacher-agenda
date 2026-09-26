@@ -1855,3 +1855,56 @@ test('controller rejects lesson detail updates without an active lesson without 
   assert.equal(after.activeLesson, before.activeLesson);
   assert.deepEqual(await repo.list('lessons'), []);
 });
+
+test('controller rejects term-dependent actions without a selected term', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+    scaleMasteryService: new ScaleMasteryService(repo),
+  });
+  const controller = new TeacherAgendaController(viewModel);
+  const student = await studentService.create({ name: 'Term Context Boundary' });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const before = controller.snapshot();
+
+  await assert.rejects(
+    () => controller.selectLesson('missing-lesson'),
+    /No term selected/
+  );
+  await assert.rejects(
+    () => controller.assessScale('missing-scale-item', {
+      status: 'SECURE',
+      currentTempo: 60,
+      targetTempo: 72,
+      intonation: 'SECURE',
+      bowControl: 'SECURE',
+      consistency: 'SECURE',
+      note: 'Should not save.',
+    }),
+    /No term selected/
+  );
+  await assert.rejects(
+    () => controller.selectWeek(2),
+    /No term selected/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.selectedStudentId, before.selectedStudentId);
+  assert.equal(after.selectedTermId, null);
+  assert.equal(after.activeLessonId, null);
+  assert.equal(after.week, before.week);
+  assert.deepEqual(after.weekly, before.weekly);
+  assert.deepEqual(await repo.list('lessons'), []);
+  assert.equal(after.error, 'No term selected');
+  assert.equal(after.loading, false);
+});
