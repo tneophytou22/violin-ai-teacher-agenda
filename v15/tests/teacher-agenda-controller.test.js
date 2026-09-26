@@ -1674,3 +1674,34 @@ test('controller rejects term creation without a selected student without mutati
   assert.deepEqual(after.terms, before.terms);
   assert.deepEqual(await repo.list('terms'), []);
 });
+
+
+test('controller rejects lesson creation without a selected term without creating lesson state', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const before = controller.snapshot();
+
+  await assert.rejects(
+    () => controller.createLesson('2026-09-26'),
+    /No term selected/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.selectedTermId, before.selectedTermId);
+  assert.equal(after.activeLessonId, before.activeLessonId);
+  assert.equal(after.activeLesson, before.activeLesson);
+  assert.deepEqual(after.lessonHistory, before.lessonHistory);
+  assert.deepEqual(await repo.list('lessons'), []);
+});
