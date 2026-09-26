@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { InMemoryRepository, StudentService, TermService, TeacherTermService, LessonService, LessonProgrammeService, ProgrammeService } from '../index.js';
+import { WeeklyProgrammeService } from '../services/weekly-programme-service.js';
 import { registerV1Curricula } from '../curriculum/v1-registration.js';
 
 async function setup() {
@@ -23,7 +24,7 @@ async function setup() {
 
 test('lesson reviews only weekly programme items belonging to its term', async () => {
   const { repo, term, lesson } = await setup();
-  const weekly = new (await import('../services/weekly-programme-service.js')).WeeklyProgrammeService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
   const lessonProgramme = new LessonProgrammeService(repo);
   const weekItems = await weekly.listForTerm(term.id, 1);
   const selected = weekItems.slice(0, 2);
@@ -110,7 +111,7 @@ test('lesson service review path rejects scale programme items', async () => {
   assert.ok(scale);
 
   await assert.rejects(
-    () => new (await import('../services/lesson-service.js')).LessonService(repo).reviewProgrammeItems(lesson.id, [scale.id]),
+    () => new LessonService(repo).reviewProgrammeItems(lesson.id, [scale.id]),
     /Scale ProgrammeItem cannot be reviewed through core lesson workflow/
   );
 
