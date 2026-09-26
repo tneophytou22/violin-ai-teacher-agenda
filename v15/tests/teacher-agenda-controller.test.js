@@ -1585,14 +1585,14 @@ test('controller rejects scale mastery assessment for an unknown item without mu
       consistency: 'SECURE',
       note: 'Should not be stored.',
     }),
-    /Scale ProgrammeItem not found/
+    /Scale ProgrammeItem does not belong to the selected term/
   );
 
   const after = controller.snapshot();
   assert.equal(after.selectedTermId, term.id);
   assert.deepEqual(after.weekly, before.weekly);
   assert.deepEqual(after.scaleProgress, before.scaleProgress);
-  assert.equal(after.error, 'Scale ProgrammeItem not found');
+  assert.equal(after.error, 'Scale ProgrammeItem does not belong to the selected term');
   assert.equal(after.loading, false);
   assert.equal((await repo.list('programmeItems')).filter(item => item.details?.mastery).length, 0);
 });
