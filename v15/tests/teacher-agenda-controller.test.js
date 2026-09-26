@@ -345,6 +345,56 @@ test('controller creates students and terms and can reopen a historical lesson',
 });
 
 
+test('controller reuses an existing lesson for the same date instead of creating a duplicate', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Duplicate Lesson Boundary' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L2T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 2,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+
+  const first = await controller.createLesson('2026-09-26', {
+    mark: 17,
+    teacherNote: 'Original lesson.',
+  });
+  const second = await controller.createLesson('2026-09-26', {
+    mark: 19,
+    teacherNote: 'Should not replace the original.',
+  });
+
+  assert.equal(second.id, first.id);
+  assert.equal(controller.snapshot().activeLessonId, first.id);
+
+  const storedLessons = await repo.list('lessons');
+  assert.equal(storedLessons.length, 1);
+  assert.equal(storedLessons[0].id, first.id);
+  assert.equal(storedLessons[0].mark, 17);
+  assert.equal(storedLessons[0].teacherNote, 'Original lesson.');
+});
+
+
 test('controller clears stale programme selection when changing week or carrying an item forward', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
