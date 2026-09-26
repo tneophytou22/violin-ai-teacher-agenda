@@ -1667,6 +1667,65 @@ test('shell reports lesson review without an active lesson without mutating revi
   assert.deepEqual(lessonsAfter, []);
 });
 
+test('shell routes weekly selection controls through the controller boundary', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  const student = await studentService.create({ name: 'Selection Shell Boundary' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L2T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 2,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  assert.equal(controller.snapshot().selectedItemIds.length, 0);
+  assert.match(root.innerHTML, /Select all pending core \(15\)/);
+  assert.match(root.innerHTML, /Clear selection \(0\)/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'select-all-pending' },
+      closest: () => ({ dataset: { action: 'select-all-pending' } }),
+    },
+  });
+
+  let state = controller.snapshot();
+  assert.equal(state.selectedItemIds.length, 15);
+  assert.equal(new Set(state.selectedItemIds).size, 15);
+  assert.match(root.innerHTML, /Clear selection \(15\)/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'clear-selection' },
+      closest: () => ({ dataset: { action: 'clear-selection' } }),
+    },
+  });
+
+  state = controller.snapshot();
+  assert.deepEqual(state.selectedItemIds, []);
+  assert.match(root.innerHTML, /Clear selection \(0\)/);
+});
+
 test('shell routes week-next through the controller and refreshes the weekly agenda', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
