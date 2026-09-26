@@ -1537,3 +1537,62 @@ test('controller rejects homework save without an active lesson and preserves pr
   assert.equal(after.loading, false);
   assert.equal((await repo.list('homework')).length, 0);
 });
+
+test('controller rejects scale mastery assessment for an unknown item without mutating term state', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const scaleMasteryService = new ScaleMasteryService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService,
+    lessonService,
+    lessonProgrammeService,
+    homeworkService,
+    scaleMasteryService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Unknown Scale Assessment Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L2T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 2,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const before = controller.snapshot();
+
+  await assert.rejects(
+    () => controller.assessScale('missing-scale-item', {
+      status: 'SECURE',
+      currentTempo: 60,
+      targetTempo: 72,
+      intonation: 'SECURE',
+      bowControl: 'SECURE',
+      consistency: 'SECURE',
+      note: 'Should not be stored.',
+    }),
+    /Scale ProgrammeItem not found/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.selectedTermId, term.id);
+  assert.deepEqual(after.weekly, before.weekly);
+  assert.deepEqual(after.scaleProgress, before.scaleProgress);
+  assert.equal(after.error, 'Scale ProgrammeItem not found');
+  assert.equal(after.loading, false);
+  assert.equal((await repo.list('programmeItems')).filter(item => item.details?.mastery).length, 0);
+});
