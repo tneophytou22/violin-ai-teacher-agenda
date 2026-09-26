@@ -1775,6 +1775,87 @@ test('shell routes week-next through the controller and refreshes the weekly age
   assert.match(root.innerHTML, /Week 2/);
 });
 
+test('shell routes complete, uncomplete, and carry actions through the controller boundary', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  const student = await studentService.create({ name: 'Programme Action Shell Boundary' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L2T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 2,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  assert.ok(item);
+
+  await root.dispatch('change', {
+    target: {
+      dataset: { item: item.id },
+      matches: selector => selector === '[data-item]',
+    },
+  });
+  assert.deepEqual(controller.snapshot().selectedItemIds, [item.id]);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'complete-selected' },
+      closest: () => ({ dataset: { action: 'complete-selected' } }),
+    },
+  });
+
+  let state = controller.snapshot();
+  assert.equal(state.weekly.items.find(candidate => candidate.id === item.id).status, 'COMPLETED');
+  assert.equal(state.selectedItemIds.length, 0);
+  assert.match(root.innerHTML, /Uncomplete/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { uncomplete: item.id },
+      closest: () => ({ dataset: { uncomplete: item.id } }),
+    },
+  });
+
+  state = controller.snapshot();
+  assert.equal(state.week, 1);
+  assert.equal(state.weekly.items.find(candidate => candidate.id === item.id).status, 'PLANNED');
+  assert.match(root.innerHTML, /Carry to Week 2/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { carry: item.id },
+      closest: () => ({ dataset: { carry: item.id } }),
+    },
+  });
+
+  state = controller.snapshot();
+  assert.equal(state.week, 2);
+  assert.equal(state.error, null);
+  assert.equal(state.weekly.items.some(candidate => candidate.id === item.id), true);
+  assert.equal((await repo.get('programmeItems', item.id)).targetWeek, 2);
+  assert.equal(term.id, state.selectedTermId);
+});
+
 test('shell reports an invalid previous week without mutating the current week', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
