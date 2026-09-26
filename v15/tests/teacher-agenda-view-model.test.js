@@ -139,3 +139,22 @@ test('teacher agenda view model loadTermProgress rejects an unknown term without
 
   assert.deepEqual(await repo.list('programmeItems'), []);
 });
+
+test('teacher agenda view model loadScaleProgress rejects an unknown term without creating scale progress state', async () => {
+  const repo = new InMemoryRepository();
+  const agenda = new TeacherAgendaViewModel({
+    studentService: new StudentService(repo),
+    termService: new TermService(repo),
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+  });
+
+  await assert.rejects(
+    () => agenda.loadScaleProgress('missing-term'),
+    /Term not found/
+  );
+
+  assert.deepEqual(await repo.list('programmeItems'), []);
+});
