@@ -92,7 +92,6 @@ test('controller rejects an unknown student without mutating the selected studen
     lessonService: new LessonService(repo),
     lessonProgrammeService: new LessonProgrammeService(repo),
     homeworkService: new HomeworkService(repo),
-    studentIntelligenceService: new StudentIntelligenceService(repo),
   });
   const controller = new TeacherAgendaController(viewModel);
 
