@@ -355,7 +355,8 @@ export class TeacherAgendaShell {
   }
 
   #showError(error) {
-    this.controller.state.error = error instanceof Error ? error.message : String(error);
+    // Controller operations record their own error state and rollback before rejecting.
+    // The Shell only re-renders that state; it must not mutate Controller state directly.
     this.render();
   }
 }
