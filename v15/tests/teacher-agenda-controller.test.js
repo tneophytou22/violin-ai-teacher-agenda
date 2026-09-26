@@ -1749,3 +1749,39 @@ test('controller rejects lesson review without an active lesson without mutating
   assert.deepEqual(after.reviewedItemIds, before.reviewedItemIds);
   assert.deepEqual((await repo.list('lessons')), []);
 });
+
+
+test('controller rejects programme mutations without a selected term', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(viewModel);
+  const student = await studentService.create({ name: 'Programme Action Boundary' });
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+
+  const before = controller.snapshot();
+  for (const action of [
+    () => controller.completeItems([]),
+    () => controller.uncompleteItem('missing-programme-item'),
+    () => controller.carryForward('missing-programme-item', 2),
+  ]) {
+    await assert.rejects(action, /No term selected/);
+  }
+
+  const after = controller.snapshot();
+  assert.equal(after.selectedStudentId, before.selectedStudentId);
+  assert.equal(after.selectedTermId, null);
+  assert.equal(after.week, before.week);
+  assert.deepEqual(after.selectedItemIds, before.selectedItemIds);
+  assert.deepEqual(await repo.list('programmeItems'), []);
+});
