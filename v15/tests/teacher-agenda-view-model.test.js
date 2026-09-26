@@ -39,3 +39,26 @@ test('teacher agenda view model composes the teacher workflow without owning bus
   const reviewed = await agenda.reviewLessonItems(lesson.id, selected);
   assert.deepEqual(reviewed.lesson.reviewedProgrammeItemIds, selected);
 });
+
+
+test('teacher agenda view model rejects an unknown student without creating term state', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const agenda = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+  });
+
+  await assert.rejects(
+    () => agenda.loadStudent('missing-student'),
+    /Student not found/
+  );
+
+  assert.deepEqual(await repo.list('students'), []);
+  assert.deepEqual(await repo.list('terms'), []);
+});
