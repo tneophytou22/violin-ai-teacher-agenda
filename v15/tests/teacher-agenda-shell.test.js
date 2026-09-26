@@ -1570,6 +1570,66 @@ test('shell reports term creation without a selected student without creating a 
 });
 
 
+test('shell routes lesson creation through the controller boundary', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  const student = await studentService.create({ name: 'Lesson Creation Shell Test' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  shell.render();
+
+  assert.match(root.innerHTML, /data-action="lesson"/);
+  assert.match(root.innerHTML, /Start lesson · 2026-09-26/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'lesson' },
+      closest: () => ({ dataset: { action: 'lesson' } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  const storedLessons = await repo.list('lessons');
+  assert.equal(storedLessons.length, 1);
+  assert.equal(storedLessons[0].studentId, student.id);
+  assert.equal(storedLessons[0].termId, term.id);
+  assert.equal(storedLessons[0].date, '2026-09-26');
+  assert.equal(state.selectedStudentId, student.id);
+  assert.equal(state.selectedTermId, term.id);
+  assert.equal(state.activeLessonId, storedLessons[0].id);
+  assert.equal(state.error, null);
+  assert.match(root.innerHTML, /Lesson active ✓/);
+  assert.match(root.innerHTML, /Lesson History/);
+  assert.match(root.innerHTML, /2026-09-26 · PRESENT/);
+  assert.doesNotMatch(root.innerHTML, /Start lesson · 2026-09-26/);
+});
+
+
 test('shell reports lesson creation without a selected term without creating a lesson', async () => {
   const repo = new InMemoryRepository();
   const studentService = new StudentService(repo);
