@@ -1705,3 +1705,47 @@ test('controller rejects lesson creation without a selected term without creatin
   assert.deepEqual(after.lessonHistory, before.lessonHistory);
   assert.deepEqual(await repo.list('lessons'), []);
 });
+
+
+test('controller rejects lesson review without an active lesson without mutating review state', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Review Boundary' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L3T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 3,
+    termNumber: 1,
+  });
+
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  assert.ok(item);
+
+  const before = controller.snapshot();
+  await assert.rejects(
+    () => controller.reviewItems([item.id]),
+    /No lesson selected/
+  );
+
+  const after = controller.snapshot();
+  assert.equal(after.activeLessonId, before.activeLessonId);
+  assert.deepEqual(after.reviewedItemIds, before.reviewedItemIds);
+  assert.deepEqual((await repo.list('lessons')), []);
+});
