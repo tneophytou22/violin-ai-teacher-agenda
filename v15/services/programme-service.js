@@ -15,6 +15,9 @@ export class ProgrammeService {
     if (!PROGRAMME_ITEM_STATUSES.includes(status)) throw new Error('ProgrammeItem.status must be PLANNED or COMPLETED');
     const item = await this.repo.get('programmeItems', itemId);
     if (!item) throw new Error('ProgrammeItem not found');
+    if (item.curriculumDomain === 'SCALES') {
+      throw new Error('Scale ProgrammeItem cannot be changed through core programme status workflow');
+    }
     item.status = status;
     item.completedAt = status === 'COMPLETED' ? (item.completedAt ?? new Date().toISOString()) : null;
     return this.repo.put('programmeItems', item);
