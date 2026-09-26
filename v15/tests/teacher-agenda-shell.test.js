@@ -34,6 +34,29 @@ test('teacher agenda shell renders the V15 workspace from controller state', asy
 
 test('shell requires the V15 controller boundary', () => assert.throws(() => new TeacherAgendaShell({ controller: {}, root: new FakeRoot() }), /TeacherAgendaController/));
 
+test('shell escaping preserves backslashes while escaping HTML characters', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService: new TermService(repo),
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  await studentService.create({ name: 'C:\\\\Practice <&"' });
+  await shell.start();
+
+  assert.match(root.innerHTML, /C:\\\\Practice &lt;&amp;&quot;/);
+  assert.doesNotMatch(root.innerHTML, /undefined/);
+});
+
 test('shell renders lesson-session controls after a student and term are selected', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
