@@ -65,9 +65,20 @@ export class IndexedDBRepository {
     const db = await this.#db();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(name, 'readwrite');
-      tx.objectStore(name).delete(id);
-      tx.oncomplete = () => resolve(true);
+      const store = tx.objectStore(name);
+      let existed = false;
+      const lookup = store.get(id);
+      lookup.onsuccess = () => {
+        existed = lookup.result !== undefined;
+        store.delete(id);
+      };
+      lookup.onerror = () => {
+        tx.abort();
+        reject(lookup.error ?? new Error(`Failed to read ${name} before delete`));
+      };
+      tx.oncomplete = () => resolve(existed);
       tx.onerror = () => reject(tx.error ?? new Error(`Failed to delete ${name}`));
+      tx.onabort = () => reject(tx.error ?? new Error(`Delete aborted for ${name}`));
     });
   }
 
