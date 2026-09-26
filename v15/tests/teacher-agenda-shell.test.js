@@ -59,25 +59,56 @@ test('shell escaping preserves backslashes while escaping HTML characters', asyn
 
 test('shell escapes persisted scale tempo attribute values', async () => {
   const repo = new InMemoryRepository();
+  registerV1Curricula();
   const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTerms = new TeacherTermService(repo);
   const vm = new TeacherAgendaViewModel({
     studentService,
-    termService: new TermService(repo),
-    teacherTermService: new TeacherTermService(repo),
+    termService,
+    teacherTermService: teacherTerms,
     weeklyProgrammeService: new WeeklyProgrammeService(repo),
     lessonService: new LessonService(repo),
     lessonProgrammeService: new LessonProgrammeService(repo),
     homeworkService: new HomeworkService(repo),
+    scaleMasteryService: new ScaleMasteryService(repo),
   });
   const controller = new TeacherAgendaController(vm);
   const root = new FakeRoot();
   const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
 
-  await studentService.create({ name: 'C:\\\\Practice <&"' });
-  await shell.start();
+  const student = await studentService.create({ name: 'Scale Tempo Escaping' });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L1T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 1,
+    termNumber: 1,
+  });
+  await teacherTerms.activateCard(term.id);
+  const scale = (await new WeeklyProgrammeService(repo).listForTerm(term.id, 1))
+    .find(item => item.curriculumDomain === 'SCALES');
+  assert.ok(scale);
+  scale.details.mastery = {
+    status: 'DEVELOPING',
+    currentTempo: '1" onfocus="alert(1)',
+    targetTempo: '2" data-break="yes',
+    intonation: null,
+    bowControl: null,
+    consistency: null,
+    note: '',
+  };
+  await repo.put('programmeItems', scale);
 
-  assert.match(root.innerHTML, /C:\\\\Practice &lt;&amp;&quot;/);
-  assert.doesNotMatch(root.innerHTML, /undefined/);
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  assert.match(root.innerHTML, /data-scale-current-tempo="1&amp;quot; onfocus=&amp;quot;alert(1)"/);
+  assert.match(root.innerHTML, /data-scale-target-tempo="2&amp;quot; data-break=&amp;quot;yes"/);
+  assert.doesNotMatch(root.innerHTML, /value="1" onfocus=/);
+  assert.doesNotMatch(root.innerHTML, /value="2" data-break=/);
 });
 
 test('shell renders lesson-session controls after a student and term are selected', async () => {
