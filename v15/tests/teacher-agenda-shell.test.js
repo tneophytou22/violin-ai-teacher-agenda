@@ -1390,3 +1390,43 @@ test('shell routes homework save through the controller and restores it when the
   assert.match(root.innerHTML, /Review A major scale/);
   assert.match(root.innerHTML, /2 homework item\(s\)/);
 });
+
+
+test('shell reports term creation without a selected student without creating a term', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-26' });
+
+  await shell.start();
+  root.fields.set('[data-action="new-term-name"]', { value: 'Term without student' });
+  root.fields.set('[data-action="new-term-level"]', { value: '1' });
+  root.fields.set('[data-action="new-term-number"]', { value: '1' });
+  root.fields.set('[data-action="new-term-start"]', { value: '2026-09-01' });
+  root.fields.set('[data-action="new-term-end"]', { value: '2026-12-31' });
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'create-term' },
+      closest: () => ({ dataset: { action: 'create-term' } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedStudentId, null);
+  assert.equal(state.selectedTermId, null);
+  assert.equal(state.error, 'No student selected');
+  assert.match(root.innerHTML, /No student selected/);
+  assert.deepEqual(await repo.list('terms'), []);
+});
