@@ -3,21 +3,6 @@ import { generateViberHomeworkMessage, generateParentHomeworkMessage } from '../
 
 const esc = value => String(value ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-const homeworkItemsFromText = (text, existingItems = []) => {
-  const lines = String(text ?? '').split('\n').map(value => value.trim()).filter(Boolean);
-  const unused = new Set(existingItems.map((_, index) => index));
-  return lines.map((line, lineIndex) => {
-    const exactIndex = existingItems.findIndex((item, index) => unused.has(index) && String(item?.title ?? item?.text ?? '').trim() === line);
-    const sourceIndex = exactIndex >= 0 ? exactIndex : (unused.has(lineIndex) ? lineIndex : -1);
-    if (sourceIndex < 0) return { text: line, completed: false };
-    unused.delete(sourceIndex);
-    const source = { ...existingItems[sourceIndex], completed: false };
-    if (Object.prototype.hasOwnProperty.call(source, 'title')) source.title = line;
-    else source.text = line;
-    return source;
-  });
-};
-
 export class TeacherAgendaShell {
   constructor({ controller, root, now = localDateString }) {
     if (!controller || !(controller instanceof TeacherAgendaController)) throw new Error('TeacherAgendaShell requires TeacherAgendaController');
@@ -198,30 +183,60 @@ export class TeacherAgendaShell {
       </label>
       <button type="button" data-action="save-details">Save lesson details</button>
     </div>
+
     <div data-view="homework" aria-label="Homework workspace">
       <div data-view="homework-header">
-        <div><h3>Homework Workspace</h3><p>Teacher-selected work → focused home-practice plan.</p></div>
-        <span data-view="homework-count">${homeworkItems.length} task(s)</span>
+        <div><h3>Homework</h3><p>Teacher-selected work → focused home-practice plan.</p></div>
+        ${homeworkItems.length ? '<span data-view="homework-count">' + homeworkItems.length + ' assigned</span>' : '<span data-view="homework-count">0 assigned</span>'}
       </div>
-      <textarea data-action="homework" rows="4" placeholder="One homework task per line">${esc(homeworkText)}</textarea>
+
+      ${homeworkItems.length
+        ? '<div data-view="homework-list" aria-label="Assigned homework">' +
+          homeworkItems.map((item, index) => {
+            const title = item.title ?? item.text ?? 'Homework task';
+            const domain = item.curriculumDomain ? item.curriculumDomain.replace('_', ' ') : 'Custom';
+            return '<article data-view="homework-item">' +
+              '<div data-view="homework-item-main"><span data-view="homework-item-number">' + (index + 1) + '</span><div><strong>' + esc(title) + '</strong><span>' + esc(domain) + '</span></div></div>' +
+              '<button type="button" data-action="remove-homework-item" data-homework-index="' + index + '" aria-label="Remove ' + esc(title) + '">×</button>' +
+            '</article>';
+          }).join('') +
+        '</div>'
+        : '<div data-view="homework-empty"><strong>No homework assigned yet.</strong><span>Select work from the weekly agenda or add a custom task.</span></div>'}
+
+      <details data-view="custom-homework">
+        <summary>+ Add custom task</summary>
+        <div data-view="custom-homework-row">
+          <input data-action="custom-homework-input" type="text" placeholder="e.g. Practise Ravel opening from bar 12">
+          <button type="button" data-action="add-custom-homework">Add</button>
+        </div>
+      </details>
+
       <div data-view="homework-actions">
         <button type="button" data-action="add-selected-to-homework" ${state.selectedItemIds.length ? '' : 'disabled'}>Add selected work</button>
-        <button type="button" data-action="generate-practice-plan" ${homeworkText.trim() ? '' : 'disabled'}>Create Practice Plan</button>
+        <button type="button" data-action="generate-practice-plan" ${homeworkItems.length ? '' : 'disabled'}>${practicePlan ? 'Regenerate Practice Plan' : 'Create Practice Plan'}</button>
         <button type="button" data-action="save-homework" ${homeworkItems.length ? '' : 'disabled'}>Save Homework</button>
       </div>
-      ${practicePlan ? `
-        <div data-view="practice-plan" aria-label="Practice Plan">
-          <div data-view="practice-plan-header"><div><strong>Practice Plan</strong><span>Planner V1 · teacher approval required</span></div><strong>${practicePlan.totalMinutes} min</strong></div>
-          <div data-view="practice-plan-tasks">
-            ${practicePlan.tasks.map((task, index) => {
-              const item = homeworkItems[task.homeworkItemIndex] ?? {};
-              return `<article data-view="practice-task"><div data-view="practice-task-title"><span>${index + 1}</span><strong>${esc(item.text ?? item.title ?? 'Homework task')}</strong></div><label>Min <input type="number" min="0" max="180" data-plan-minutes="${index}" value="${esc(task.minutes)}" aria-label="Minutes for task ${index + 1}"></label><label>Focus <input type="text" data-plan-focus="${index}" value="${esc(task.focus)}" aria-label="Practice focus for task ${index + 1}"></label></article>`;
-            }).join('')}
-          </div>
-          <p data-view="practice-plan-note">The planner organises how to practise teacher-selected material; it does not change curriculum or progression.</p>
-        </div>
-      ` : `<div data-view="practice-plan-empty"><strong>No practice plan yet.</strong><span>Create one after entering the tasks you want the student to practise.</span></div>`}
-      ${homeworkItems.length ? `<details data-view="homework-communication"><summary>Communication · Viber / Parent</summary><div data-view="message-preview"><strong>Viber</strong><pre>${esc(viberMessage)}</pre><button type="button" data-action="copy-viber">Copy Viber Message</button></div><div data-view="message-preview"><strong>Parent support</strong><pre>${esc(parentMessage)}</pre><button type="button" data-action="copy-parent">Copy Parent Message</button></div><p>Messages are generated from the saved Homework + Practice Plan. V15 does not send Viber automatically.</p></details>` : ''}
+
+      ${practicePlan
+        ? '<div data-view="practice-plan" aria-label="Practice Plan">' +
+          '<div data-view="practice-plan-header"><div><strong>Practice Plan</strong><span>Suggested structure · teacher approval required</span></div><strong>' + practicePlan.totalMinutes + ' min</strong></div>' +
+          '<div data-view="practice-plan-tasks">' +
+          practicePlan.tasks.map((task, index) => {
+            const item = homeworkItems[task.homeworkItemIndex] ?? {};
+            const title = item.text ?? item.title ?? 'Homework task';
+            return '<article data-view="practice-task">' +
+              '<div data-view="practice-task-title"><span>' + (index + 1) + '</span><strong>' + esc(title) + '</strong></div>' +
+              '<label>Min <input type="number" min="0" max="180" data-plan-minutes="' + index + '" value="' + esc(task.minutes) + '" aria-label="Minutes for ' + esc(title) + '"></label>' +
+              '<label>Focus <input type="text" data-plan-focus="' + index + '" value="' + esc(task.focus) + '" aria-label="Practice focus for ' + esc(title) + '"></label>' +
+            '</article>';
+          }).join('') +
+          '</div><p data-view="practice-plan-note">The planner organises how to practise the teacher-selected work. It does not change curriculum or progression.</p>' +
+        '</div>'
+        : '<div data-view="practice-plan-empty"><strong>Practice Plan</strong><span>Create a suggested plan after assigning the homework tasks.</span></div>'}
+
+      ${homeworkItems.length
+        ? '<details data-view="homework-communication"><summary>Communication · Viber / Parent</summary><div data-view="message-preview"><strong>Viber</strong><pre>' + esc(viberMessage) + '</pre><button type="button" data-action="copy-viber">Copy Viber Message</button></div><div data-view="message-preview"><strong>Parent support</strong><pre>' + esc(parentMessage) + '</pre><button type="button" data-action="copy-parent">Copy Parent Message</button></div><p>Messages are generated from the saved Homework + Practice Plan. V15 does not send Viber automatically.</p></details>'
+        : ''}
     </div>
   ` : '<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>'}
 </section>
@@ -451,21 +466,36 @@ export class TeacherAgendaShell {
             objective: item.details?.objective ?? item.objective ?? null, completed: false
           }));
           this.controller.setHomeworkDraftItems([...current, ...additions]);
+        } else if (action === 'add-custom-homework') {
+          const input = this.root.querySelector('[data-action="custom-homework-input"]');
+          const text = input?.value?.trim() ?? '';
+          if (!text) throw new Error('Custom homework task cannot be empty');
+          const snapshot = this.controller.snapshot();
+          this.controller.setHomeworkDraftItems([
+            ...(snapshot.homeworkDraftItems ?? []),
+            { text, completed: false }
+          ]);
+        } else if (action === 'remove-homework-item') {
+          const index = Number(target.dataset.homeworkIndex);
+          const snapshot = this.controller.snapshot();
+          const items = snapshot.homeworkDraftItems ?? [];
+          if (!Number.isInteger(index) || index < 0 || index >= items.length) throw new Error('Invalid homework item');
+          this.controller.setHomeworkDraftItems(items.filter((_, itemIndex) => itemIndex !== index));
         } else if (action === 'generate-practice-plan') {
-          const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
           const snapshot = this.controller.snapshot();
-          const items = homeworkItemsFromText(text, snapshot.homeworkDraftItems ?? []);
-          await this.controller.generatePracticePlan(items);
+          await this.controller.generatePracticePlan(snapshot.homeworkDraftItems ?? []);
         } else if (action === 'save-homework') {
-          const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
           const snapshot = this.controller.snapshot();
-          const items = homeworkItemsFromText(text, snapshot.homeworkDraftItems ?? []);
           let plan = snapshot.practicePlanDraft;
           if (plan) {
-            const tasks = plan.tasks.map((task, index) => ({ ...task, minutes: Number(this.root.querySelector(`[data-plan-minutes="${index}"]`)?.value ?? task.minutes), focus: this.root.querySelector(`[data-plan-focus="${index}"]`)?.value ?? task.focus }));
+            const tasks = plan.tasks.map((task, index) => ({
+              ...task,
+              minutes: Number(this.root.querySelector(`[data-plan-minutes="${index}"]`)?.value ?? task.minutes),
+              focus: this.root.querySelector(`[data-plan-focus="${index}"]`)?.value ?? task.focus
+            }));
             plan = { ...plan, totalMinutes: tasks.reduce((sum, task) => sum + task.minutes, 0), tasks };
           }
-          await this.controller.saveHomework(items, plan);
+          await this.controller.saveHomework(snapshot.homeworkDraftItems ?? [], plan);
         } else if (action === 'save-teacher-readiness-decision') {
           const decision = this.root.querySelector('[data-action="teacher-readiness-decision"]')?.value ?? '';
           const note = this.root.querySelector('[data-action="teacher-readiness-note"]')?.value ?? '';
