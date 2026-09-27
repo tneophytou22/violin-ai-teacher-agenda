@@ -993,3 +993,144 @@
   }
   [data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li button { width: 100%; }
 }
+
+/* Weekly programme items — teacher-friendly row hierarchy */
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 48px;
+  padding: 7px 9px 7px 10px;
+  border-top: 1px solid #edf0f4;
+  transition: background .15s ease, box-shadow .15s ease;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li:first-child {
+  border-top: 0;
+}
+[data-v15="teacher-agenda"] [data-view="programme-item-main"] {
+  min-width: 0;
+}
+[data-v15="teacher-agenda"] [data-view="programme-item-main"] label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  margin: 0;
+  cursor: pointer;
+}
+[data-v15="teacher-agenda"] [data-view="programme-item-main"] input[data-item] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
+  accent-color: var(--ta-blue);
+}
+[data-v15="teacher-agenda"] [data-view="programme-item-title"] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #26313d;
+  font-size: .82rem;
+  line-height: 1.35;
+}
+[data-v15="teacher-agenda"] [data-view="programme-item-meta"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 3px 0 0 25px;
+}
+[data-v15="teacher-agenda"] [data-status-chip] {
+  display: inline-flex;
+  align-items: center;
+  min-height: 18px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: .62rem;
+  line-height: 1;
+  font-weight: 750;
+  letter-spacing: .02em;
+}
+[data-v15="teacher-agenda"] [data-status-chip="planned"] {
+  background: #f1f5fa;
+  color: #647384;
+}
+[data-v15="teacher-agenda"] [data-status-chip="completed"] {
+  background: #eaf8f1;
+  color: #18764d;
+}
+[data-v15="teacher-agenda"] [data-status-chip="reviewed"] {
+  background: #edf4ff;
+  color: #2f64c7;
+}
+[data-v15="teacher-agenda"] [data-view="programme-item-actions"] {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+[data-v15="teacher-agenda"] [data-view="programme-item-actions"] button {
+  min-width: 94px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: #fff;
+  color: #566473;
+  border-color: #d7dee7;
+  font-size: .67rem;
+  white-space: nowrap;
+}
+[data-v15="teacher-agenda"] [data-view="programme-item-actions"] button:hover {
+  background: #f7f9fc;
+}
+[data-v15="teacher-agenda"] [data-status="completed"] [data-view="programme-item-title"] {
+  color: #687584;
+}
+[data-v15="teacher-agenda"] [data-status="completed"] [data-view="programme-item-title"] {
+  text-decoration: line-through;
+  text-decoration-color: #c5cdd6;
+}
+[data-v15="teacher-agenda"] [data-status="completed"] [data-view="programme-item-main"] {
+  opacity: .86;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li:has(input[data-item]:checked) {
+  background: #f3f7ff;
+  box-shadow: inset 3px 0 var(--ta-blue);
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li:has(input[data-item]:checked) [data-view="programme-item-title"] {
+  color: #204f9e;
+  font-weight: 700;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li:has(input[data-item]:disabled) {
+  background: #fafbfc;
+}
+
+/* Make the weekly summary read like a compact control bar */
+[data-v15="teacher-agenda"] [data-view="weekly-summary"] > strong {
+  font-size: .9rem;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-selection-count"] {
+  color: var(--ta-muted);
+  font-size: .78rem;
+}
+[data-v15="teacher-agenda"] [data-view="programme-actions"] {
+  border-bottom: 1px solid #e7ebf0;
+}
+[data-v15="teacher-agenda"] [data-view="programme-actions"] [data-action="select-all-pending"] {
+  font-weight: 700;
+}
+[data-v15="teacher-agenda"] [data-view="programme-actions"] [data-action="clear-selection"] {
+  color: #657383;
+}
+[data-v15="teacher-agenda"] [data-view="programme-actions"] [data-action="complete-selected"],
+[data-v15="teacher-agenda"] [data-view="programme-actions"] [data-action="review"] {
+  min-width: 128px;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-action-hint"] {
+  flex: 1 1 100%;
+  margin-top: 1px;
+}
+
+/* Domain headers carry the progress identity without adding vertical bulk */
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain] h3 {
+  letter-spacing: .06em;
+}
