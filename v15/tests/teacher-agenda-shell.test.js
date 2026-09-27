@@ -2035,6 +2035,7 @@ test('shell routes programme-item checkbox changes through the controller bounda
   assert.match(root.innerHTML, /Clear selection \(0\)/);
   assert.match(root.innerHTML, /Complete selected \(0\)/);
   assert.match(root.innerHTML, /Review selected \(0\)/);
+  assert.match(root.innerHTML, /Add selected to homework/);
 });
 
 
