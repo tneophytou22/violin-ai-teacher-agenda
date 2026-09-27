@@ -1,7 +1,7 @@
 import { ScaleMasteryService } from '../services/scale-mastery-service.js';
 
 export class TeacherAgendaViewModel {
-  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, scaleMasteryService = null, studentIntelligenceService = null }) {
+  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, practicePlannerService = null, scaleMasteryService = null, studentIntelligenceService = null }) {
     this.students = studentService;
     this.terms = termService;
     this.teacherTerms = teacherTermService;
@@ -9,6 +9,7 @@ export class TeacherAgendaViewModel {
     this.lessons = lessonService;
     this.lessonProgramme = lessonProgrammeService;
     this.homework = homeworkService;
+    this.practicePlanner = practicePlannerService;
     this.scaleMastery = scaleMasteryService;
     this.studentIntelligence = studentIntelligenceService;
   }
@@ -150,8 +151,13 @@ export class TeacherAgendaViewModel {
     return this.scaleMastery.assess({ programmeItemId, ...assessment });
   }
 
-  async saveHomework(lessonId, items) {
-    return this.homework.assignHomework({ lessonId, items });
+  generatePracticePlan({ level, items }) {
+    if (!this.practicePlanner) throw new Error('Practice Planner service is not configured');
+    return this.practicePlanner.plan({ level, items });
+  }
+
+  async saveHomework(lessonId, items, practicePlan = null) {
+    return this.homework.assignHomework({ lessonId, items, practicePlan });
   }
 
   async loadHomework(lessonId) {
