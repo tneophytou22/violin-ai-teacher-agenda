@@ -197,8 +197,10 @@ export class TeacherAgendaShell {
           homeworkItems.map((item, index) => {
             const title = item.title ?? item.text ?? 'Homework task';
             const domain = item.curriculumDomain ? item.curriculumDomain.replace('_', ' ') : 'Custom';
+            const planTask = practicePlan?.tasks?.find(task => task.homeworkItemIndex === index);
+            const itemMeta = planTask ? domain + ' · ' + planTask.minutes + ' min' : domain;
             return '<article data-view="homework-item">' +
-              '<div data-view="homework-item-main"><span data-view="homework-item-number">' + (index + 1) + '</span><div><strong>' + esc(title) + '</strong><span>' + esc(domain) + '</span></div></div>' +
+              '<div data-view="homework-item-main"><span data-view="homework-item-number">' + (index + 1) + '</span><div><strong>' + esc(title) + '</strong><span>' + esc(itemMeta) + '</span></div></div>' +
               '<button type="button" data-action="remove-homework-item" data-homework-index="' + index + '" aria-label="Remove ' + esc(title) + '">×</button>' +
             '</article>';
           }).join('') +
