@@ -1188,3 +1188,104 @@
     justify-content: flex-start;
   }
 }
+
+/* Lesson Session — compact live teaching console */
+[data-v15="teacher-agenda"] [data-view="lesson-column"] [data-view="lesson"] {
+  position: relative;
+  border-top: 3px solid var(--ta-green);
+  box-shadow: 0 6px 18px rgba(27, 49, 67, .06);
+}
+[data-v15="teacher-agenda"] [data-view="lesson"] > h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+[data-v15="teacher-agenda"] [data-view="lesson"] > button[data-action="lesson"] {
+  margin-top: -2px;
+  border-radius: 999px;
+  font-weight: 750;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-status"] {
+  clear: both;
+  margin: 12px 0 0;
+  padding: 9px 10px;
+  border: 1px solid #e3e9ef;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #43505e;
+  font-size: .75rem;
+  line-height: 1.45;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-status"] strong {
+  color: #26313d;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-details"] {
+  margin: 10px 0 0;
+  padding: 10px;
+  border: 1px solid #e5eaf0;
+  border-radius: 9px;
+  background: #fbfcfe;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-details"] label {
+  font-size: .68rem;
+  font-weight: 750;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: #667483;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-details"] select,
+[data-v15="teacher-agenda"] [data-view="lesson-details"] input,
+[data-v15="teacher-agenda"] [data-view="lesson-details"] textarea {
+  border-color: #d7dfe8;
+  background: white;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-details"] textarea {
+  min-height: 82px;
+  resize: vertical;
+  font-size: .76rem;
+  line-height: 1.45;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-details"] > [data-action="save-details"] {
+  margin-top: 2px;
+  border-radius: 7px;
+  font-weight: 700;
+  background: white;
+}
+[data-v15="teacher-agenda"] [data-view="homework"] {
+  margin-top: 13px;
+  padding: 13px 0 0;
+  border-top: 1px solid #e6ebf0;
+}
+[data-v15="teacher-agenda"] [data-view="homework"] h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 7px;
+  color: #5d6b79;
+  font-size: .7rem;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+[data-v15="teacher-agenda"] [data-view="homework"] textarea {
+  min-height: 78px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  resize: vertical;
+  font-size: .76rem;
+  line-height: 1.45;
+}
+[data-v15="teacher-agenda"] [data-view="homework"] button {
+  border-radius: 7px;
+  font-weight: 700;
+}
+[data-v15="teacher-agenda"] [data-view="homework"] p {
+  margin: 7px 0 0;
+  color: var(--ta-muted);
+  font-size: .7rem;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-column"] [data-view="lesson"] > p:not([data-view="lesson-status"]) {
+  margin: 8px 0;
+  color: var(--ta-muted);
+  font-size: .76rem;
+}
