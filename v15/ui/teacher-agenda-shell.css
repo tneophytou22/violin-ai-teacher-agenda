@@ -2497,3 +2497,48 @@
   [data-v15="teacher-agenda"] [data-view="progress-header"] { flex-direction: column; }
   [data-v15="teacher-agenda"] [data-view="progress-term-row"] { grid-template-columns: 1fr 1fr; }
 }
+
+
+/* Week View — compact domain groups */
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) {
+  margin-top: 10px;
+  padding: 0 11px 9px;
+  border: 1px solid var(--ta-border);
+  border-radius: 9px;
+  background: var(--ta-surface);
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) > summary {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  min-height:42px; cursor:pointer; list-style:none;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) > summary::-webkit-details-marker { display:none; }
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) > summary > span:first-child {
+  display:grid; gap:2px; min-width:0;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) > summary strong {
+  font-size:.76rem; letter-spacing:.02em;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) > summary small {
+  color:var(--ta-muted); font-size:.65rem; font-weight:600;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-view="domain-summary-progress"] {
+  color:var(--ta-muted); font-size:.67rem; font-weight:750;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) > [data-view="domain-bar"] {
+  margin:0 0 7px;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) ul {
+  border-top:1px solid var(--ta-border);
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) li {
+  min-height:44px; padding:7px 2px;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]):not([open]) {
+  padding-bottom:0;
+}
+@media (max-width:760px) {
+  [data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) li { align-items:flex-start; }
+  [data-v15="teacher-agenda"] [data-view="weekly-agenda"] details[data-domain]:not([data-domain="SCALES"]) li button {
+    font-size:.65rem; padding:5px 7px;
+  }
+}
