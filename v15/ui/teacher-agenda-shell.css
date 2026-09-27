@@ -578,6 +578,50 @@
 }
 
 /* Lesson history */
+[data-v15="teacher-agenda"] [data-view="history-insight"] {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+  margin:9px 0;
+}
+[data-v15="teacher-agenda"] [data-view="history-insight"] span {
+  padding:7px 8px;
+  border:1px solid #e4e9ef;
+  border-radius:8px;
+  background:#f9fbfd;
+  color:#74808b;
+  font-size:.61rem;
+}
+[data-v15="teacher-agenda"] [data-view="history-insight"] strong {
+  color:#344351;
+  font-size:.82rem;
+  margin-right:3px;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-history"] li button {
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  text-align:left;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-history"] li button span:first-child {
+  font-weight:700;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-history"] li button span:nth-child(2) {
+  color:#71808d;
+  font-size:.63rem;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-history"] li button em {
+  font-style:normal;
+  color:#167449;
+  font-size:.59rem;
+  font-weight:750;
+}
+@media (max-width:620px) {
+  [data-v15="teacher-agenda"] [data-view="history-insight"] { grid-template-columns:1fr; }
+  [data-v15="teacher-agenda"] [data-view="lesson-history"] li button { grid-template-columns:1fr; gap:2px; }
+}
 [data-v15="teacher-agenda"] [data-view="lesson-history"] {
   padding: 16px;
   border: 1px solid var(--ta-border);
