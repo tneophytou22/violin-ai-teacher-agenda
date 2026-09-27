@@ -36,10 +36,12 @@ export class TeacherAgendaShell {
     }));
     const lesson = state.activeLesson;
     const homeworkItems = state.homeworkDraftItems ?? state.homework?.items ?? [];
-    const homeworkText = homeworkItems.map(item => item.text ?? item.title ?? '').join('\n');
     const practicePlan = state.practicePlanDraft;
-    const viberMessage = student ? generateViberHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, termNumber: state.termContext?.term?.termNumber, items: homeworkItems, practicePlan }) : '';
-    const parentMessage = student ? generateParentHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, items: homeworkItems, practicePlan }) : '';
+    const savedHomeworkItems = state.homework?.items ?? [];
+    const savedPracticePlan = state.homework?.practicePlan ?? null;
+    const hasSavedHomework = Boolean(state.homework);
+    const viberMessage = student ? generateViberHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, termNumber: state.termContext?.term?.termNumber, items: savedHomeworkItems, practicePlan: savedPracticePlan }) : '';
+    const parentMessage = student ? generateParentHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, items: savedHomeworkItems, practicePlan: savedPracticePlan }) : '';
     const scaleProgressMarkup = state.scaleProgress ? '<section id="scale-progress" data-view="scale-progress" aria-label="Scale Progress and Mastery"><div data-view="scale-progress-header"><div><h2>Scale Progress / Mastery</h2><p>' + state.scaleProgress.completed + '/' + state.scaleProgress.total + ' completed · ' + state.scaleProgress.masteryPercent + '% assessed mastery</p></div><strong data-view="scale-mastery">' + state.scaleProgress.masteryPercent + '%</strong></div><div data-view="scale-category-list">' + Object.entries(state.scaleProgress.byCategory).map(([category, summary]) => '<div data-scale-category><div data-view="scale-category-heading"><strong>' + esc(category) + '</strong><span>' + summary.completed + '/' + summary.total + '</span></div><div data-view="scale-category-track"><progress max="100" value="' + summary.masteryPercent + '"></progress><span>' + summary.masteryPercent + '%</span></div></div>').join('') + '</div><div data-view="scale-progress-footer"><span>Mastery: Developing 40 · Secure 75 · Performance Ready 100</span><span>Mastery is teacher-assessed; completion is tracked separately.</span></div></section>' : '';
 
     this.root.innerHTML = `
@@ -234,8 +236,8 @@ export class TeacherAgendaShell {
         '</div>'
         : '<div data-view="practice-plan-empty"><strong>Practice Plan</strong><span>Create a suggested plan after assigning the homework tasks.</span></div>'}
 
-      ${homeworkItems.length
-        ? '<details data-view="homework-communication"><summary>Communication · Viber / Parent</summary><div data-view="message-preview"><strong>Viber</strong><pre>' + esc(viberMessage) + '</pre><button type="button" data-action="copy-viber">Copy Viber Message</button></div><div data-view="message-preview"><strong>Parent support</strong><pre>' + esc(parentMessage) + '</pre><button type="button" data-action="copy-parent">Copy Parent Message</button></div><p>Messages are generated from the saved Homework + Practice Plan. V15 does not send Viber automatically.</p></details>'
+      ${hasSavedHomework && savedHomeworkItems.length
+        ? '<details data-view="homework-communication"><summary>Communication · Viber / Parent</summary><div data-view="message-preview"><strong>Viber</strong><pre>' + esc(viberMessage) + '</pre><button type="button" data-action="copy-viber">Copy Viber Message</button></div><div data-view="message-preview"><strong>Parent support</strong><pre>' + esc(parentMessage) + '</pre><button type="button" data-action="copy-parent">Copy Parent Message</button></div><p>Messages use the last saved Homework + Practice Plan. V15 does not send Viber automatically.</p></details>'
         : ''}
     </div>
   ` : '<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>'}
