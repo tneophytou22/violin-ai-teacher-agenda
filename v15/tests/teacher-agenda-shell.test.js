@@ -2406,3 +2406,89 @@ test('shell renders the compact Progress intelligence dashboard from current evi
   assert.match(root.innerHTML, /Average mark/);
   assert.match(root.innerHTML, /Term development · 1 term\(s\)/);
 });
+
+test('shell enables weekly homework action after selection and completes the homework workflow', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const homework = new HomeworkService(repo);
+  const intelligence = new StudentIntelligenceService({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    homeworkService: homework, repository: repo,
+  });
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+    studentIntelligenceService: intelligence,
+    practicePlannerService: new PracticePlannerService(),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-27' });
+
+  const student = await studentService.create({ name: 'Homework Workflow Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L4T1', startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 4, termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  await controller.createLesson('2026-09-27');
+  shell.render();
+
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain !== 'SCALES');
+  assert.ok(item);
+
+  controller.toggleItemSelection(item.id);
+  shell.render();
+
+  assert.doesNotMatch(root.innerHTML, /data-action="add-selected-to-homework" disabled/);
+  assert.match(root.innerHTML, /Add selected work \(1\)/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'add-selected-to-homework' },
+      closest: () => ({ dataset: { action: 'add-selected-to-homework' } }),
+    },
+  });
+
+  let state = controller.snapshot();
+  assert.equal(state.error, null);
+  assert.equal(state.homeworkDraftItems.length, 1);
+  assert.match(root.innerHTML, /Create Practice Plan/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'generate-practice-plan' },
+      closest: () => ({ dataset: { action: 'generate-practice-plan' } }),
+    },
+  });
+
+  state = controller.snapshot();
+  assert.equal(state.error, null);
+  assert.ok(state.practicePlanDraft);
+  assert.equal(state.practicePlanDraft.tasks.length, 1);
+  assert.match(root.innerHTML, /Practice Plan/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'save-homework' },
+      closest: () => ({ dataset: { action: 'save-homework' } }),
+    },
+  });
+
+  state = controller.snapshot();
+  assert.equal(state.error, null);
+  assert.equal(state.homework.items.length, 1);
+  assert.ok(state.homework.practicePlan);
+  assert.match(root.innerHTML, /1 assigned/);
+});
