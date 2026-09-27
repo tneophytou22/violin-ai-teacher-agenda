@@ -7,6 +7,7 @@ import { WeeklyProgrammeService } from '../services/weekly-programme-service.js'
 import { LessonService } from '../services/lesson-service.js';
 import { LessonProgrammeService } from '../services/lesson-programme-service.js';
 import { HomeworkService } from '../services/homework-service.js';
+import { PracticePlannerService } from '../services/practice-planner-service.js';
 import { ScaleMasteryService } from '../services/scale-mastery-service.js';
 import { TeacherAgendaViewModel } from './teacher-agenda-view-model.js';
 import { TeacherAgendaController } from './teacher-agenda-controller.js';
@@ -24,13 +25,14 @@ export function createTeacherAgendaApp({ root, dbName, repository } = {}) {
   const lessonService = new LessonService(repo);
   const lessonProgrammeService = new LessonProgrammeService(repo);
   const homeworkService = new HomeworkService(repo);
+  const practicePlannerService = new PracticePlannerService();
   const scaleMasteryService = new ScaleMasteryService(repo);
   const studentIntelligenceService = new StudentIntelligenceService({
     studentService, termService, weeklyProgrammeService, lessonService, homeworkService, teacherTermService, repository: repo,
   });
   const controller = new TeacherAgendaController(new TeacherAgendaViewModel({
     studentService, termService, teacherTermService, weeklyProgrammeService,
-    lessonService, lessonProgrammeService, homeworkService, scaleMasteryService,
+    lessonService, lessonProgrammeService, homeworkService, practicePlannerService, scaleMasteryService,
     studentIntelligenceService,
   }));
   const shell = new TeacherAgendaShell({ controller, root });
