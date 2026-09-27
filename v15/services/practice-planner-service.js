@@ -17,7 +17,15 @@ const fallbackFocus = 'Focused practice: slow work first, then one controlled re
 
 const domainForItem = item => item.curriculumDomain ?? item.domain ?? null;
 
-const focusForItem = item => FOCUS_BY_DOMAIN[domainForItem(item)] ?? fallbackFocus;
+const asText = value => Array.isArray(value) ? value.join('; ') : String(value ?? '').trim();
+
+const focusForItem = item => {
+  const base = FOCUS_BY_DOMAIN[domainForItem(item)] ?? fallbackFocus;
+  const requirement = asText(item.requirements);
+  const objective = asText(item.objective);
+  const detail = requirement ? `Assigned requirement: ${requirement}` : objective ? `Lesson objective: ${objective}` : '';
+  return detail ? `${base} ${detail}.` : base;
+};
 
 const targetMinutesForLevel = level => TARGET_MINUTES_BY_LEVEL[level] ?? 35;
 
