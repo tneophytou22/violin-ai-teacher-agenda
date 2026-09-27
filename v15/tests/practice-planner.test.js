@@ -80,3 +80,18 @@ test('Homework rejects a practice plan whose task references a missing homework 
 
   assert.equal((await repo.list('homework')).length, 0);
 });
+
+test('Practice Planner carries teacher-assigned requirements into the practice focus', () => {
+  const planner = new PracticePlannerService();
+  const plan = planner.plan({
+    level: 5,
+    items: [{
+      id: 'pi-1',
+      title: 'Kreutzer No. 12',
+      curriculumDomain: 'ETUDE',
+      requirements: ['détaché', 'intonation'],
+    }],
+  });
+
+  assert.match(plan.tasks[0].focus, /Assigned requirement: détaché; intonation/);
+});
