@@ -10,9 +10,14 @@ export const TEACHER_READINESS_DECISIONS = Object.freeze([
 
 const id = (prefix) => `${prefix}_${crypto.randomUUID()}`;
 
-export function createStudent({ name, schoolType = 'PRIVATE', instrument = 'VIOLIN' }) {
+export function createStudent({ name, phone = '', schoolType = 'PRIVATE', schoolName = '', instrument = 'VIOLIN' }) {
   if (!name?.trim()) throw new Error('Student name is required');
-  return { id: id('stu'), name: name.trim(), schoolType, instrument, createdAt: new Date().toISOString() };
+  if (typeof phone !== 'string') throw new Error('Student.phone must be a string');
+  if (typeof schoolName !== 'string') throw new Error('Student.schoolName must be a string');
+  return {
+    id: id('stu'), name: name.trim(), phone: phone.trim(), schoolType, schoolName: schoolName.trim(), instrument,
+    createdAt: new Date().toISOString(),
+  };
 }
 
 export function createTerm({ studentId, name, startDate, endDate, level = null, termNumber = 1, readinessDecision = null, readinessDecisionNote = '', readinessDecisionAt = null }) {
