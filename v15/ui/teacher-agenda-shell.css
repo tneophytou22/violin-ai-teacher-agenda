@@ -1771,3 +1771,58 @@
     flex-direction: column;
   }
 }
+
+
+[data-v15="teacher-agenda"] [data-view="homework-communication"] {
+  margin-top: 9px;
+  border: 1px solid #e2e7ec;
+  border-radius: 8px;
+  background: #fff;
+}
+[data-v15="teacher-agenda"] [data-view="homework-communication"] > summary {
+  padding: 8px 9px;
+  color: #596674;
+  font-size: .67rem;
+  font-weight: 800;
+}
+[data-v15="teacher-agenda"] [data-view="message-preview"] {
+  margin: 0 9px 8px;
+  padding: 8px;
+  border: 1px solid #e7ebef;
+  border-radius: 7px;
+  background: #fafbfc;
+}
+[data-v15="teacher-agenda"] [data-view="message-preview"] > strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #52606e;
+  font-size: .64rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+[data-v15="teacher-agenda"] [data-view="message-preview"] pre {
+  max-height: 150px;
+  margin: 0 0 6px;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: #4a5562;
+  font: inherit;
+  font-size: .64rem;
+  line-height: 1.4;
+}
+[data-v15="teacher-agenda"] [data-view="message-preview"] button {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: white;
+  color: #596675;
+  font-size: .64rem;
+  font-weight: 750;
+}
+[data-v15="teacher-agenda"] [data-view="homework-communication"] > p {
+  margin: 0;
+  padding: 0 9px 8px;
+  color: #89929b;
+  font-size: .58rem;
+  line-height: 1.35;
+}
