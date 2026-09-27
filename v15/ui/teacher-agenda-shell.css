@@ -1132,3 +1132,59 @@
 [data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain] h3 {
   letter-spacing: .06em;
 }
+
+/* Domain progress header — compact visual scanning */
+[data-v15="teacher-agenda"] [data-view="domain-heading"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 10px;
+}
+[data-v15="teacher-agenda"] [data-view="domain-heading"] h3 {
+  padding: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+}
+[data-v15="teacher-agenda"] [data-view="domain-count"] {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.78);
+  color: #5e6b79;
+  font-size: .68rem;
+  font-weight: 800;
+}
+[data-v15="teacher-agenda"] [data-view="domain-bar"] {
+  height: 3px;
+  margin: 0 10px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(120,135,150,.14);
+}
+[data-v15="teacher-agenda"] [data-view="domain-bar"] span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: .72;
+  transition: width .2s ease;
+}
+[data-v15="teacher-agenda"] [data-domain="PURE_TECHNICAL"] [data-view="domain-bar"] { color: #2f6fed; }
+[data-v15="teacher-agenda"] [data-domain="ETUDE"] [data-view="domain-bar"] { color: #24a36a; }
+[data-v15="teacher-agenda"] [data-domain="REPERTOIRE"] [data-view="domain-bar"] { color: #df6484; }
+
+@media (max-width: 560px) {
+  [data-v15="teacher-agenda"] [data-view="programme-item-title"] {
+    white-space: normal;
+  }
+  [data-v15="teacher-agenda"] [data-view="programme-item-meta"] {
+    margin-left: 0;
+  }
+  [data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li {
+    grid-template-columns: 1fr;
+  }
+  [data-v15="teacher-agenda"] [data-view="programme-item-actions"] {
+    justify-content: flex-start;
+  }
+}
