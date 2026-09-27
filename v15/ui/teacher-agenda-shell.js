@@ -406,7 +406,7 @@ export class TeacherAgendaShell {
               `).join('') : '<p>No evidence-linked decision prompts for the current data.</p>'}
             </details>
           <details id="lesson-history" data-view="lesson-history">
-             <summary>Recent lesson history · ${state.lessonHistory.length} lesson(s)</summary>
+             <summary><span>Recent lesson history · ${state.lessonHistory.length} lesson(s)</span>${state.lessonHistory.length ? ` <small>${state.lessonHistory.filter(entry => (entry.reviewedProgrammeItemIds ?? []).length).length} reviewed lessons · ${state.lessonHistory.reduce((sum, entry) => sum + (entry.reviewedProgrammeItemIds ?? []).length, 0)} reviewed records</small>` : ''} </summary>
              ${state.lessonHistory.length ? `<div data-view="history-insight">
                <span><strong>${state.lessonHistory.filter(entry => (entry.reviewedProgrammeItemIds ?? []).length).length}</strong> lessons with reviewed work</span>
                <span><strong>${state.lessonHistory.reduce((sum, entry) => sum + (entry.reviewedProgrammeItemIds ?? []).length, 0)}</strong> reviewed records</span>
