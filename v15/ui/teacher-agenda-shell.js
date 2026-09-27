@@ -173,7 +173,7 @@ export class TeacherAgendaShell {
               <label>Start date <input type="date" data-action="new-term-start" aria-label="New term start date"></label>
               <label>End date <input type="date" data-action="new-term-end" aria-label="New term end date"></label>
               <button type="button" data-action="create-term">Create term</button>
-            </fieldset>
+            </fieldset></details>
           </section>
           <section id="weekly-agenda" data-view="weekly-agenda">
             <h2>Weekly Agenda</h2>
