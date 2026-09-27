@@ -1012,6 +1012,81 @@ test('shell reports invalid lesson details without mutating the active lesson', 
   assert.equal(stored.teacherNote, 'Original shell lesson note.');
 });
 
+test('shell edits the selected student profile through the controller boundary', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const profileDialog = { showModal() { this.opened = true; }, close() { this.closed = true; } };
+  root.fields.set('[data-view="student-profile-dialog"]', profileDialog);
+  root.fields.set('[data-action="student-profile-name"]', { value: 'Updated Student' });
+  root.fields.set('[data-action="student-profile-phone"]', { value: '+357 99123456' });
+  root.fields.set('[data-action="student-profile-school-type"]', { value: 'MUSIC_SCHOOL' });
+  root.fields.set('[data-action="student-profile-school-name"]', { value: 'Paphos Music School' });
+  root.fields.set('[data-action="student-profile-instrument"]', { value: 'VIOLIN' });
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-27' });
+
+  const student = await studentService.create({
+    name: 'Original Student',
+    phone: '+357 99000000',
+    schoolType: 'PRIVATE',
+    schoolName: 'Private Studio',
+    instrument: 'VIOLIN',
+  });
+  const term = await termService.create({
+    studentId: student.id,
+    name: 'L4T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 4,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  shell.render();
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'open-student-profile' },
+      closest: () => ({ dataset: { action: 'open-student-profile' } }),
+    },
+  });
+  assert.equal(profileDialog.opened, true);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'save-student-profile' },
+      closest: () => ({ dataset: { action: 'save-student-profile' } }),
+    },
+  });
+
+  const state = controller.snapshot();
+  const stored = await repo.get('students', student.id);
+  assert.equal(stored.name, 'Updated Student');
+  assert.equal(stored.phone, '+357 99123456');
+  assert.equal(stored.schoolType, 'MUSIC_SCHOOL');
+  assert.equal(stored.schoolName, 'Paphos Music School');
+  assert.equal(stored.instrument, 'VIOLIN');
+  assert.equal(state.students.find(item => item.id === student.id).name, 'Updated Student');
+  assert.equal(state.terms[0].id, term.id);
+  assert.equal(state.terms[0].level, 4);
+  assert.equal(profileDialog.closed, true);
+  assert.match(root.innerHTML, /Updated Student/);
+});
+
 test('shell routes new student creation through the controller boundary', async () => {
   const repo = new InMemoryRepository();
   const studentService = new StudentService(repo);
