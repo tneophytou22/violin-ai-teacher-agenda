@@ -53,7 +53,20 @@ export function createLesson({ termId, date, mark = null, attendance = 'PRESENT'
   return { id: id('lesson'), termId, date, mark, attendance, teacherNote: teacherNote.trim(), reviewedProgrammeItemIds: [...reviewedProgrammeItemIds], version: 1 };
 }
 
-export function createHomework({ id: homeworkId = null, lessonId, items = [] }) {
+export function createHomework({ id: homeworkId = null, lessonId, items = [], practicePlan = null }) {
   if (!lessonId) throw new Error('Homework.lessonId is required');
-  return { id: homeworkId ?? id('hw'), lessonId, items: items.map(item => ({ ...item })), version: 1 };
+  if (!Array.isArray(items)) throw new Error('Homework.items must be an array');
+  if (practicePlan !== null && typeof practicePlan !== 'object') throw new Error('Homework.practicePlan must be an object or null');
+  return {
+    id: homeworkId ?? id('hw'),
+    lessonId,
+    items: items.map(item => ({ ...item })),
+    practicePlan: practicePlan ? {
+      totalMinutes: practicePlan.totalMinutes,
+      tasks: (practicePlan.tasks ?? []).map(task => ({ ...task })),
+      generatedBy: practicePlan.generatedBy,
+      generatedAt: practicePlan.generatedAt,
+    } : null,
+    version: 1,
+  };
 }
