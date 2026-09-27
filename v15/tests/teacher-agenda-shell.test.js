@@ -1520,11 +1520,11 @@ test('shell routes homework save through the controller and restores it when the
   await controller.selectStudent(student.id);
   await controller.selectTerm(term.id);
   const lesson = await controller.createLesson('2026-09-25');
+  controller.setHomeworkDraftItems([
+    { text: 'Practise Dounis Op. 20', completed: false },
+    { text: 'Review A major scale', completed: false },
+  ]);
   shell.render();
-
-  root.fields.set('[data-action="homework"]', {
-    value: '  Practise Dounis Op. 20  \n  Review A major scale  \n\n',
-  });
 
   await root.dispatch('click', {
     target: {
@@ -1541,7 +1541,8 @@ test('shell routes homework save through the controller and restores it when the
     { text: 'Practise Dounis Op. 20', completed: false },
     { text: 'Review A major scale', completed: false },
   ]);
-  assert.match(root.innerHTML, /2 homework item\(s\)/);
+  assert.match(root.innerHTML, /2 assigned/);
+  assert.doesNotMatch(root.innerHTML, /data-action="homework"/);
 
   const stored = await repo.get('homework', state.homework.id);
   assert.equal(stored.lessonId, lesson.id);
@@ -1556,9 +1557,8 @@ test('shell routes homework save through the controller and restores it when the
   shell.render();
   assert.match(root.innerHTML, /Practise Dounis Op\. 20/);
   assert.match(root.innerHTML, /Review A major scale/);
-  assert.match(root.innerHTML, /2 homework item\(s\)/);
+  assert.match(root.innerHTML, /2 assigned/);
 });
-
 
 test('shell routes term creation through the controller boundary', async () => {
   const repo = new InMemoryRepository();
