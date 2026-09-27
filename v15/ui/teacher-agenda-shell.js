@@ -132,6 +132,7 @@ export class TeacherAgendaShell {
       </div>
       <textarea data-action="homework" rows="4" placeholder="One homework task per line">${esc(homeworkText)}</textarea>
       <div data-view="homework-actions">
+        <button type="button" data-action="add-selected-to-homework" ${state.selectedItemIds.length ? '' : 'disabled'}>Add selected work</button>
         <button type="button" data-action="generate-practice-plan" ${homeworkText.trim() ? '' : 'disabled'}>Create Practice Plan</button>
         <button type="button" data-action="save-homework">Save Homework</button>
       </div>
@@ -347,6 +348,17 @@ export class TeacherAgendaShell {
           });
           if (!navigator.clipboard?.writeText) throw new Error('Clipboard is unavailable in this browser');
           await navigator.clipboard.writeText(message);
+        } else if (action === 'add-selected-to-homework') {
+          const snapshot = this.controller.snapshot();
+          const selected = (snapshot.weekly?.items ?? []).filter(item => snapshot.selectedItemIds.includes(item.id));
+          const current = snapshot.homeworkDraftItems ?? [];
+          const existingIds = new Set(current.map(item => item.id).filter(Boolean));
+          const additions = selected.filter(item => !existingIds.has(item.id)).map(item => ({
+            id: item.id, title: item.title, curriculumId: item.curriculumId, curriculumDomain: item.curriculumDomain,
+            cardId: item.cardId, objectId: item.objectId, requirements: item.details?.requirements ?? item.requirements ?? null,
+            objective: item.details?.objective ?? item.objective ?? null, completed: false
+          }));
+          await this.controller.generatePracticePlan([...current, ...additions]);
         } else if (action === 'generate-practice-plan') {
           const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
           const items = text.split('\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
