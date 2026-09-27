@@ -39,6 +39,8 @@ export class TeacherAgendaShell {
     const practicePlan = state.practicePlanDraft;
     const savedHomeworkItems = state.homework?.items ?? [];
     const savedPracticePlan = state.homework?.practicePlan ?? null;
+    const homeworkNeedsSave = JSON.stringify(homeworkItems) !== JSON.stringify(savedHomeworkItems)
+      || JSON.stringify(practicePlan ?? null) !== JSON.stringify(savedPracticePlan ?? null);
     const reviewedTitles = (weekly?.items ?? []).filter(item => state.reviewedItemIds.includes(item.id)).map(item => item.title).slice(0, 3);
     const hasSavedHomework = Boolean(state.homework);
     const viberMessage = student ? generateViberHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, termNumber: state.termContext?.term?.termNumber, items: savedHomeworkItems, practicePlan: savedPracticePlan }) : '';
@@ -235,7 +237,7 @@ export class TeacherAgendaShell {
     </div>
     <div data-view="lesson-next-action" aria-live="polite">
       <span>Next action</span>
-      <strong>${!state.reviewedItemIds.length ? 'Select and review today’s work in Week View' : !homeworkItems.length ? 'Add reviewed work to Homework' : !practicePlan ? 'Create a Practice Plan for the assigned work' : !hasSavedHomework ? 'Review the plan, then Save Homework' : 'Homework saved · lesson workflow ready'}</strong>
+      <strong>${!state.reviewedItemIds.length ? 'Select and review today’s work in Week View' : !homeworkItems.length ? 'Add reviewed work to Homework' : !practicePlan ? 'Create a Practice Plan for the assigned work' : homeworkNeedsSave ? 'Review the plan, then Save Homework' : 'Homework saved · lesson workflow ready'}</strong>
     </div>
     <div data-view="lesson-session-summary" aria-label="Lesson session summary">
       <div><span>Reviewed</span><strong>${state.reviewedItemIds.length}</strong></div>
@@ -264,7 +266,7 @@ export class TeacherAgendaShell {
     <div data-view="homework" aria-label="Homework workspace">
       <div data-view="homework-header">
         <div><h3>Homework</h3><p>Teacher-selected work → focused home-practice plan.</p></div>
-        ${homeworkItems.length ? '<span data-view="homework-count">' + homeworkItems.length + ' assigned</span>' : '<span data-view="homework-count">0 assigned</span>'}
+        ${homeworkItems.length ? '<span data-view="homework-count">' + homeworkItems.length + ' assigned' + (homeworkNeedsSave ? ' · Draft' : '') + '</span>' : '<span data-view="homework-count">0 assigned</span>'}
       </div>
 
       ${homeworkItems.length
