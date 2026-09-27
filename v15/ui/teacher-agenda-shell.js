@@ -132,7 +132,7 @@ export class TeacherAgendaShell {
         </section>
         ${student ? `
           <section data-view="student-dashboard">
-            <div data-view="student-identity"><div data-view="student-avatar" aria-hidden="true">${esc(student.name.slice(0, 2).toUpperCase())}</div><div><h2>${esc(student.name)}</h2><p>${state.termContext ? `Level ${esc(state.termContext.term.level)} · Term ${esc(state.termContext.term.termNumber)}` : 'Select a term'}</p></div></div>
+            <div data-view="student-identity"><div data-view="student-avatar" aria-hidden="true">${esc(student.name.slice(0, 2).toUpperCase())}</div><div><h2>${esc(student.name)}</h2><p>${state.termContext ? `Level ${esc(state.termContext.term.level)} · Term ${esc(state.termContext.term.termNumber)}` : 'Select a term'}${student.schoolType ? ` · ${esc(student.schoolType.replaceAll('_', ' '))}` : ''}</p><small>${esc(student.schoolName || '')}${student.phone ? ` · ${esc(student.phone)}` : ''}</small></div></div>
             <nav data-view="dashboard-tabs" aria-label="Agenda sections"><a href="#weekly-agenda">Week View</a><a href="#scale-progress">Scales</a><a href="#student-intelligence">Progress</a><a href="#lesson-history">History</a><a href="#current-term">Term Details</a></nav>
             <section data-view="lesson-dashboard" aria-label="Lesson dashboard">
               <div data-lesson-dashboard-card>
