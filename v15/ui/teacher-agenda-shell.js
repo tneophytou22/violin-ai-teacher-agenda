@@ -679,6 +679,7 @@ export class TeacherAgendaShell {
     const completeButton = this.root.querySelector('[data-action="complete-selected"]');
     const clearButton = this.root.querySelector('[data-action="clear-selection"]');
     const reviewButton = this.root.querySelector('[data-action="review"]');
+    const addHomeworkButton = this.root.querySelector('[data-action="add-selected-to-homework"]');
     const selectionCount = this.root.querySelector('[data-view="weekly-selection-count"]');
     if (clearButton) {
       clearButton.disabled = state.selectedItemIds.length === 0;
@@ -696,6 +697,10 @@ export class TeacherAgendaShell {
     if (reviewButton) {
       reviewButton.disabled = !state.activeLessonId || state.selectedItemIds.length === 0;
       reviewButton.textContent = `Review selected (${state.selectedItemIds.length})`;
+    }
+    if (addHomeworkButton) {
+      addHomeworkButton.disabled = !state.activeLessonId || state.selectedItemIds.length === 0;
+      addHomeworkButton.textContent = `Add selected work${state.selectedItemIds.length ? ` (${state.selectedItemIds.length})` : ''}`;
     }
   }
 
