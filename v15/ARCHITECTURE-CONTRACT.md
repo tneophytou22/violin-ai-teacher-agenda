@@ -110,3 +110,19 @@ The V15 MVP currently has:
 The distinction is intentional:
 
 **Controller serialization solves operation ordering inside one controller instance. It does not create a database transaction boundary.**
+
+## 7. Homework / Practice Plan Contract
+
+Homework remains **lesson-owned** and the single source of truth for teacher-assigned home practice.
+
+The V15 Homework record may contain an optional `practicePlan`:
+- `totalMinutes`;
+- `tasks[]` referencing homework items by stable array index for the current record;
+- task `minutes` and teacher-editable `focus`;
+- `generatedBy` and `generatedAt` provenance.
+
+The V1 Practice Planner is deterministic and domain-aware. It organises **how to practise teacher-selected homework**; it does not select curriculum, alter ProgrammeItems, change progression, or assess mastery.
+
+The practice plan is a derived/teacher-approved layer attached to Homework. It is not a second curriculum source of truth.
+
+V15 does not persist Viber or parent communication text. Those are derived outputs from the saved Homework + Practice Plan and remain outside the persistence contract.
