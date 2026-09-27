@@ -209,10 +209,21 @@ export class TeacherAgendaShell {
             <aside data-view="agenda-side-rail" aria-label="Lesson and scale summary">
               <div data-view="lesson-column">
 <section data-view="lesson">
-  <h2>Lesson Session</h2>
-  <button type="button" data-action="lesson" ${state.activeLessonId ? 'disabled' : ''}>${state.activeLessonId ? 'Lesson active ✓' : `Start lesson · ${this.now()}`}</button>
+  <div data-view="lesson-header">
+    <div><h2>Lesson Session</h2><p>Record the lesson, review work and assign focused practice.</p></div>
+    <button type="button" data-action="lesson" ${state.activeLessonId || !state.selectedTermId ? 'disabled' : ''}>${state.activeLessonId ? 'Lesson active ✓' : `Start lesson · ${this.now()}`}</button>
+  </div>
   ${lesson ? `
     <p data-view="lesson-status"><strong>${esc(lesson.date)}</strong> · ${esc(lesson.attendance)} · ${lesson.mark ?? 'No mark'} · ${state.reviewedItemIds.length} item(s) reviewed.</p>
+    <div data-view="lesson-session-summary" aria-label="Lesson session summary">
+      <div><span>Reviewed</span><strong>${state.reviewedItemIds.length}</strong></div>
+      <div><span>Homework</span><strong>${homeworkItems.length}</strong></div>
+      <div><span>Mark</span><strong>${lesson.mark ?? '—'}</strong></div>
+    </div>
+    <div data-view="lesson-reviewed-work">
+      <div><strong>Reviewed work</strong><span>${state.reviewedItemIds.length ? 'Recorded in this lesson' : 'Nothing reviewed yet'}</span></div>
+      ${state.reviewedItemIds.length ? `<ul>${reviewedTitles.map(title=>`<li>${esc(title)}</li>`).join('')}${state.reviewedItemIds.length>3 ? `<li>+${state.reviewedItemIds.length-3} more</li>` : ''}</ul>` : ''}
+    </div>
     <div data-view="lesson-details">
       <label>Attendance
         <select data-action="attendance">
@@ -227,8 +238,7 @@ export class TeacherAgendaShell {
       </label>
       <button type="button" data-action="save-details">Save lesson details</button>
     </div>
-
-    <div data-view="homework" aria-label="Homework workspace">
+<div data-view="homework" aria-label="Homework workspace">
       <div data-view="homework-header">
         <div><h3>Homework</h3><p>Teacher-selected work → focused home-practice plan.</p></div>
         ${homeworkItems.length ? '<span data-view="homework-count">' + homeworkItems.length + ' assigned</span>' : '<span data-view="homework-count">0 assigned</span>'}
@@ -285,6 +295,8 @@ export class TeacherAgendaShell {
         : ''}
     </div>
   ` : '<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>'}
+
+  ` : `<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>${!state.selectedTermId ? '<span data-view="lesson-disabled-hint">Select a term first.</span>' : ''}`}
 </section>
               </div>
               ${scaleProgressMarkup}
