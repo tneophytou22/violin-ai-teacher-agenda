@@ -1368,3 +1368,98 @@
   font-size: .66rem;
   line-height: 1.35;
 }
+
+/* Current Term — context card, not an admin form */
+[data-v15="teacher-agenda"] [data-view="term-and-context"] {
+  gap: 8px;
+}
+[data-v15="teacher-agenda"] [data-view="current-term"] {
+  padding: 13px 14px 12px;
+  border-top: 3px solid var(--ta-blue);
+  box-shadow: 0 5px 16px rgba(27, 49, 67, .045);
+}
+[data-v15="teacher-agenda"] [data-view="current-term"] legend {
+  padding: 0 5px;
+  font-size: .78rem;
+  font-weight: 800;
+}
+[data-v15="teacher-agenda"] [data-view="current-term"] > select {
+  height: 38px;
+  margin-bottom: 9px;
+  font-weight: 700;
+}
+[data-v15="teacher-agenda"] [data-view="term-context"] {
+  display: block;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--ta-blue-soft);
+  color: #3c5574;
+  font-size: .76rem;
+  line-height: 1.45;
+}
+[data-v15="teacher-agenda"] [data-view="term-context"] strong {
+  color: #234f91;
+}
+[data-v15="teacher-agenda"] [data-view="scales-curriculum"] {
+  margin-top: 8px;
+  border: 1px solid #e1e6ec;
+  border-radius: 8px;
+  background: #fff;
+}
+[data-v15="teacher-agenda"] [data-view="scales-curriculum"] > summary {
+  padding: 8px 10px;
+  font-size: .72rem;
+  font-weight: 750;
+}
+[data-v15="teacher-agenda"] [data-view="scale-requirements"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 12px;
+  padding: 9px 10px 11px;
+  border-top: 1px solid #edf0f4;
+  color: #586676;
+  font-size: .69rem;
+  line-height: 1.35;
+}
+[data-v15="teacher-agenda"] [data-view="term-progress"] {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+[data-v15="teacher-agenda"] [data-view="term-progress"] > strong {
+  width: 100%;
+  font-size: .78rem;
+}
+[data-v15="teacher-agenda"] [data-view="term-progress"] > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+[data-v15="teacher-agenda"] [data-view="term-progress"] > div span {
+  padding: 4px 7px;
+  border: 1px solid #e1e6ec;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #627080;
+  font-size: .65rem;
+  font-weight: 700;
+}
+
+/* Don't let the sticky tab bar visually swallow the work surface while scrolling. */
+[data-v15="teacher-agenda"] [data-view="dashboard-tabs"] {
+  top: 0;
+  box-shadow: 0 3px 12px rgba(24,33,43,.07);
+}
+@media (min-width: 821px) {
+  [data-v15="teacher-agenda"] [data-view="dashboard-tabs"] {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+@media (max-width: 560px) {
+  [data-v15="teacher-agenda"] [data-view="scale-requirements"] {
+    grid-template-columns: 1fr;
+  }
+}
