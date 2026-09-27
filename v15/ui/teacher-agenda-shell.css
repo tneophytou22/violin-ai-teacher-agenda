@@ -1086,8 +1086,6 @@
   color: #687584;
 }
 [data-v15="teacher-agenda"] [data-status="completed"] [data-view="programme-item-title"] {
-  text-decoration: line-through;
-  text-decoration-color: #c5cdd6;
 }
 [data-v15="teacher-agenda"] [data-status="completed"] [data-view="programme-item-main"] {
   opacity: .86;
