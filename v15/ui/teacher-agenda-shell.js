@@ -53,7 +53,8 @@ export class TeacherAgendaShell {
         </section>
         ${student ? `
           <section data-view="student-dashboard">
-            <h2>${esc(student.name)}</h2>
+            <div data-view="student-identity"><div data-view="student-avatar" aria-hidden="true">${esc(student.name.slice(0, 2).toUpperCase())}</div><div><h2>${esc(student.name)}</h2><p>${state.termContext ? `Level ${esc(state.termContext.term.level)} · Term ${esc(state.termContext.term.termNumber)}` : 'Select a term'}</p></div></div>
+            <nav data-view="dashboard-tabs" aria-label="Agenda sections"><a href="#weekly-agenda">Week View</a><a href="#scale-progress">Scales</a><a href="#student-intelligence">Progress</a><a href="#lesson-history">History</a><a href="#current-term">Term Details</a></nav>
             ${state.studentIntelligence ? (() => {
               const profile = state.studentIntelligence;
               const current = profile.termProfiles.find(entry => entry.term.id === state.selectedTermId) ?? profile.termProfiles.at(-1);
@@ -63,7 +64,7 @@ export class TeacherAgendaShell {
                 const summary = programme[domain] ?? { total: 0, completed: 0, reviewed: 0 };
                 return `<span>${domain.replace('_', ' ')} ${summary.completed}/${summary.total} completed · ${summary.reviewed} reviewed</span>`;
               }).join('');
-              return `<section data-view="student-intelligence" aria-label="Student Intelligence">
+              return `<section id="student-intelligence" data-view="student-intelligence" aria-label="Student Intelligence">
                 <h2>Student Intelligence</h2>
                 <div data-view="intelligence-overview">
                   <span>Terms: ${profile.terms.length}</span>
@@ -92,8 +93,8 @@ export class TeacherAgendaShell {
                 ${current.tktl ? `<details data-view="intelligence-tktl"><summary>Current TKTL context · ${esc(current.tktl.cardId)}</summary><p>${esc(current.tktl.technicalIntent ?? 'No technical intent recorded.')}</p></details>` : ''}
               </section>`;
             })() : ''}
-            <section data-view="teacher-readiness-review" aria-label="Teacher Readiness Review">
-              <h2>Teacher Readiness Review</h2>
+            <details data-view="teacher-readiness-review" aria-label="Teacher Readiness Review">
+              <summary>Readiness Checklist · ${state.teacherReadinessReview?.checklist?.[0]?.cardId ?? "Current term"}</summary>
               ${state.teacherReadinessReview?.checklist?.length ? state.teacherReadinessReview.checklist.map(check => `
                 <article data-view="teacher-readiness-checklist">
                   <strong>Teacher review checklist · ${esc(check.cardId ?? 'No TKTL card')}</strong>
@@ -117,9 +118,9 @@ export class TeacherAgendaShell {
                   <p data-view="teacher-decision-status">${check.decision ? `Recorded: ${esc(check.decision.replaceAll('_', ' ').toLowerCase())}` : 'Not recorded — teacher review required.'}</p>
                 </article>
               `).join('') : '<p>No current-term readiness checklist is available.</p>'}
-            </section>
-            <section data-view="teacher-decision-layer" aria-label="Teacher Decision Prompts">
-              <h2>Teacher Decision Prompts</h2>
+            </details>
+            <details data-view="teacher-decision-layer" aria-label="Teacher Decision Prompts">
+              <summary>Teacher Decision Support · ${state.teacherDecisionPrompts?.prompts?.length ?? 0} evidence signal(s)</summary>
               ${state.teacherDecisionPrompts?.prompts?.length ? state.teacherDecisionPrompts.prompts.map(prompt => `
                 <article data-view="teacher-decision-prompt">
                   <strong>${esc(prompt.signalType.replaceAll('_', ' '))}</strong>
@@ -133,7 +134,7 @@ export class TeacherAgendaShell {
                   </details>
                 </article>
               `).join('') : '<p>No evidence-linked decision prompts for the current data.</p>'}
-            </section>
+            </details>
             <section data-view="lesson-dashboard" aria-label="Lesson dashboard">
               <div data-lesson-dashboard-card>
                 <strong>Week ${state.week}</strong>
@@ -153,18 +154,18 @@ export class TeacherAgendaShell {
               </div>
             </section>
             <div data-view="term-overview-grid">
-            <fieldset data-view="current-term">
+            <fieldset id="current-term" data-view="current-term">
               <legend>Current term</legend>
               <select data-action="term" aria-label="Current term">
                 ${state.terms.map(t => `<option value="${esc(t.id)}" ${t.id === state.selectedTermId ? 'selected' : ''}>${esc(t.name)} · L${t.level}T${t.termNumber}</option>`).join('')}
               </select>
               ${state.termContext ? `<div data-view="term-context"><strong>L${state.termContext.term.level} · Term ${state.termContext.term.termNumber}</strong><span> — ${esc(state.termContext.card.technicalIntent ?? '')}</span></div>` : ''}
-              ${state.termContext?.scales ? `<section data-view="scales-curriculum"><h3>SCALES CURRICULUM · L${state.termContext.term.level}T${state.termContext.term.termNumber}</h3><div data-view="scale-requirements"><div><strong>Major:</strong> ${esc((state.termContext.scales.major ?? []).join(' · ') || '—')}</div><div><strong>Minor:</strong> ${esc((state.termContext.scales.minor ?? []).join(' · ') || '—')}</div><div><strong>Arpeggios:</strong> ${esc((state.termContext.scales.arpeggios ?? []).join(' · ') || '—')}</div><div><strong>Dominant 7th:</strong> ${esc((state.termContext.scales.dominant7 ?? []).join(' · ') || '—')}</div><div><strong>Diminished 7th:</strong> ${esc((state.termContext.scales.diminished7 ?? []).join(' · ') || '—')}</div><div><strong>Chromatic:</strong> ${esc((state.termContext.scales.chromatic ?? []).join(' · ') || '—')}</div><div><strong>Double Stops:</strong> ${esc((state.termContext.scales.doubleStops ?? []).join(' · ') || '—')}</div><div><strong>One String:</strong> ${esc((state.termContext.scales.oneString ?? []).join(' · ') || '—')}</div><div><strong>Positions:</strong> ${esc(state.termContext.scales.positions ?? '—')} · <strong>Tempo:</strong> ${esc(state.termContext.scales.tempo ?? '—')}</div><div><strong>Objective:</strong> ${esc(state.termContext.scales.objective ?? '—')}</div><div><strong>Mastery:</strong> ${esc(state.termContext.scales.mastery ?? '—')}</div></section>` : ''}
+              ${state.termContext?.scales ? `<details data-view="scales-curriculum"><summary>Scales curriculum · L${state.termContext.term.level}T${state.termContext.term.termNumber}</summary><div data-view="scale-requirements"><div><strong>Major:</strong> ${esc((state.termContext.scales.major ?? []).join(' · ') || '—')}</div><div><strong>Minor:</strong> ${esc((state.termContext.scales.minor ?? []).join(' · ') || '—')}</div><div><strong>Arpeggios:</strong> ${esc((state.termContext.scales.arpeggios ?? []).join(' · ') || '—')}</div><div><strong>Dominant 7th:</strong> ${esc((state.termContext.scales.dominant7 ?? []).join(' · ') || '—')}</div><div><strong>Diminished 7th:</strong> ${esc((state.termContext.scales.diminished7 ?? []).join(' · ') || '—')}</div><div><strong>Chromatic:</strong> ${esc((state.termContext.scales.chromatic ?? []).join(' · ') || '—')}</div><div><strong>Double Stops:</strong> ${esc((state.termContext.scales.doubleStops ?? []).join(' · ') || '—')}</div><div><strong>One String:</strong> ${esc((state.termContext.scales.oneString ?? []).join(' · ') || '—')}</div><div><strong>Positions:</strong> ${esc(state.termContext.scales.positions ?? '—')} · <strong>Tempo:</strong> ${esc(state.termContext.scales.tempo ?? '—')}</div><div><strong>Objective:</strong> ${esc(state.termContext.scales.objective ?? '—')}</div><div><strong>Mastery:</strong> ${esc(state.termContext.scales.mastery ?? '—')}</div></div></details>` : ''}
               ${state.termProgress ? `<div data-view="term-progress"><strong>Term progress: ${state.termProgress.completed}/${state.termProgress.total}</strong><div>${['PURE_TECHNICAL', 'ETUDE', 'REPERTOIRE'].map(domain => { const summary = state.termProgress.byDomain?.[domain] ?? { completed: 0, total: 0 }; return `<span>${domain.replace('_', ' ')} ${summary.completed}/${summary.total}</span>`; }).join('')}</div></div>` : ''}
             </fieldset>
-            ${state.scaleProgress ? '<section data-view="scale-progress" aria-label="Scale Progress and Mastery"><div data-view="scale-progress-header"><div><h2>Scale Progress / Mastery</h2><p>' + state.scaleProgress.completed + '/' + state.scaleProgress.total + ' completed · ' + state.scaleProgress.masteryPercent + '% assessed mastery</p></div><strong data-view="scale-mastery">' + state.scaleProgress.masteryPercent + '%</strong></div><div data-view="scale-category-list">' + Object.entries(state.scaleProgress.byCategory).map(([category, summary]) => '<div data-scale-category><div><strong>' + esc(category) + '</strong><span>' + summary.completed + '/' + summary.total + ' · ' + summary.masteryPercent + '%</span></div><progress max="100" value="' + summary.masteryPercent + '"></progress></div>').join('') + '</div><div data-view="scale-progress-footer"><span>Mastery: Developing 40 · Secure 75 · Performance Ready 100</span><span>Mastery is teacher-assessed; completion is tracked separately.</span></div></section>' : ''}
+            ${state.scaleProgress ? '<section id="scale-progress" data-view="scale-progress" aria-label="Scale Progress and Mastery"><div data-view="scale-progress-header"><div><h2>Scale Progress / Mastery</h2><p>' + state.scaleProgress.completed + '/' + state.scaleProgress.total + ' completed · ' + state.scaleProgress.masteryPercent + '% assessed mastery</p></div><strong data-view="scale-mastery">' + state.scaleProgress.masteryPercent + '%</strong></div><div data-view="scale-category-list">' + Object.entries(state.scaleProgress.byCategory).map(([category, summary]) => '<div data-scale-category><div><strong>' + esc(category) + '</strong><span>' + summary.completed + '/' + summary.total + ' · ' + summary.masteryPercent + '%</span></div><progress max="100" value="' + summary.masteryPercent + '"></progress></div>').join('') + '</div><div data-view="scale-progress-footer"><span>Mastery: Developing 40 · Secure 75 · Performance Ready 100</span><span>Mastery is teacher-assessed; completion is tracked separately.</span></div></section>' : ''}
             </div>
-            <fieldset data-view="term-create">
+            <details data-view="term-create"><summary>Create new term</summary><fieldset>
               <legend>Create new term</legend>
               <label>Term name <input data-action="new-term-name" placeholder="e.g. 2026–27 Term 1" aria-label="New term name"></label>
               <label>Level <select data-action="new-term-level" aria-label="New term level"><option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option><option value="5">Level 5</option><option value="6">Level 6</option><option value="7">Level 7</option><option value="8">Level 8</option><option value="9">Level 9</option><option value="10">Level 10</option></select></label>
@@ -174,7 +175,7 @@ export class TeacherAgendaShell {
               <button type="button" data-action="create-term">Create term</button>
             </fieldset>
           </section>
-          <section data-view="weekly-agenda">
+          <section id="weekly-agenda" data-view="weekly-agenda">
             <h2>Weekly Agenda</h2>
             <div><button type="button" data-action="week-prev" ${state.week <= 1 ? 'disabled' : ''}>←</button> Week ${state.week} <button type="button" data-action="week-next">→</button></div>
             ${weekly ? `<div data-view="weekly-summary" aria-label="Weekly progress">
@@ -195,7 +196,7 @@ export class TeacherAgendaShell {
               ${!state.activeLessonId ? '<span data-view="lesson-action-hint">Start a lesson below to enable Review selected.</span>' : `<span data-view="lesson-action-hint">Review records lesson activity; Complete selected updates progress.</span><span data-view="lesson-action-status" aria-live="polite">Lesson activity: ${state.reviewedItemIds.length} reviewed</span>`}
             </div>
             ${grouped.map(group => `<section data-domain="${group.domain}"><h3>${group.domain.replace('_', ' ')}</h3><ul>${group.items.map(item => `<li><label><input type="checkbox" data-item="${esc(item.id)}" ${state.selectedItemIds.includes(item.id) ? 'checked' : ''} ${item.status === 'COMPLETED' ? 'disabled' : ''}> ${esc(item.title)}${item.status === 'COMPLETED' ? ' <small>(completed)</small>' : ''}${state.reviewedItemIds.includes(item.id) ? ' <small>(reviewed)</small>' : ''}</label><button type="button" ${item.status === 'COMPLETED' ? `data-uncomplete="${esc(item.id)}"` : `data-carry="${esc(item.id)}"`}>${item.status === 'COMPLETED' ? 'Uncomplete' : `Carry to Week ${state.week + 1}`}</button></li>`).join('')}</ul></section>`).join('')}
-            ${weekly?.items?.some(item => item.curriculumDomain === 'SCALES') ? `<section data-domain="SCALES"><h3>Scales · Mastery Assessment</h3><ul>${weekly.items.filter(item => item.curriculumDomain === 'SCALES').map(item => { const mastery = item.details?.mastery ?? {}; const status = mastery.status ?? 'NOT_STARTED'; return `<li data-scale-item><div><strong>${esc(item.title)}</strong><small> · ${esc(item.details?.category ?? 'Other')} · ${esc(status).replaceAll('_', ' ')}</small></div><div data-view="scale-assessment-row"><select data-scale-status="${esc(item.id)}" aria-label="Mastery status for ${esc(item.title)}">${['NOT_STARTED','DEVELOPING','SECURE','PERFORMANCE_READY'].map(value => `<option value="${value}" ${status === value ? 'selected' : ''}>${value.replaceAll('_', ' ')}</option>`).join('')}</select><input type="number" min="1" max="300" data-scale-current-tempo="${esc(item.id)}" value="${esc(mastery.currentTempo ?? '')}" placeholder="Current bpm" aria-label="Current tempo"><input type="number" min="1" max="300" data-scale-target-tempo="${esc(item.id)}" value="${esc(mastery.targetTempo ?? '')}" placeholder="Target bpm" aria-label="Target tempo"><select data-scale-intonation="${esc(item.id)}" aria-label="Intonation"><option value="">Intonation</option><option value="DEVELOPING" ${mastery.intonation === 'DEVELOPING' ? 'selected' : ''}>Intonation · Developing</option><option value="SECURE" ${mastery.intonation === 'SECURE' ? 'selected' : ''}>Intonation · Secure</option></select><select data-scale-bow="${esc(item.id)}" aria-label="Bow control"><option value="">Bow control</option><option value="DEVELOPING" ${mastery.bowControl === 'DEVELOPING' ? 'selected' : ''}>Bow · Developing</option><option value="SECURE" ${mastery.bowControl === 'SECURE' ? 'selected' : ''}>Bow · Secure</option></select><select data-scale-consistency="${esc(item.id)}" aria-label="Consistency"><option value="">Consistency</option><option value="DEVELOPING" ${mastery.consistency === 'DEVELOPING' ? 'selected' : ''}>Consistency · Developing</option><option value="SECURE" ${mastery.consistency === 'SECURE' ? 'selected' : ''}>Consistency · Secure</option></select><input type="text" data-scale-note="${esc(item.id)}" value="${esc(mastery.note ?? '')}" placeholder="Teacher note" aria-label="Teacher note"><button type="button" data-action="assess-scale" data-scale-id="${esc(item.id)}">Save assessment</button></div></li>`; }).join('')}</ul></section>` : ''}
+            ${weekly?.items?.some(item => item.curriculumDomain === 'SCALES') ? `<details data-domain="SCALES"><summary>Scales · Mastery Assessment</summary><ul>${weekly.items.filter(item => item.curriculumDomain === 'SCALES').map(item => { const mastery = item.details?.mastery ?? {}; const status = mastery.status ?? 'NOT_STARTED'; return `<li data-scale-item><div><strong>${esc(item.title)}</strong><small> · ${esc(item.details?.category ?? 'Other')} · ${esc(status).replaceAll('_', ' ')}</small></div><div data-view="scale-assessment-row"><select data-scale-status="${esc(item.id)}" aria-label="Mastery status for ${esc(item.title)}">${['NOT_STARTED','DEVELOPING','SECURE','PERFORMANCE_READY'].map(value => `<option value="${value}" ${status === value ? 'selected' : ''}>${value.replaceAll('_', ' ')}</option>`).join('')}</select><input type="number" min="1" max="300" data-scale-current-tempo="${esc(item.id)}" value="${esc(mastery.currentTempo ?? '')}" placeholder="Current bpm" aria-label="Current tempo"><input type="number" min="1" max="300" data-scale-target-tempo="${esc(item.id)}" value="${esc(mastery.targetTempo ?? '')}" placeholder="Target bpm" aria-label="Target tempo"><select data-scale-intonation="${esc(item.id)}" aria-label="Intonation"><option value="">Intonation</option><option value="DEVELOPING" ${mastery.intonation === 'DEVELOPING' ? 'selected' : ''}>Intonation · Developing</option><option value="SECURE" ${mastery.intonation === 'SECURE' ? 'selected' : ''}>Intonation · Secure</option></select><select data-scale-bow="${esc(item.id)}" aria-label="Bow control"><option value="">Bow control</option><option value="DEVELOPING" ${mastery.bowControl === 'DEVELOPING' ? 'selected' : ''}>Bow · Developing</option><option value="SECURE" ${mastery.bowControl === 'SECURE' ? 'selected' : ''}>Bow · Secure</option></select><select data-scale-consistency="${esc(item.id)}" aria-label="Consistency"><option value="">Consistency</option><option value="DEVELOPING" ${mastery.consistency === 'DEVELOPING' ? 'selected' : ''}>Consistency · Developing</option><option value="SECURE" ${mastery.consistency === 'SECURE' ? 'selected' : ''}>Consistency · Secure</option></select><input type="text" data-scale-note="${esc(item.id)}" value="${esc(mastery.note ?? '')}" placeholder="Teacher note" aria-label="Teacher note"><button type="button" data-action="assess-scale" data-scale-id="${esc(item.id)}">Save assessment</button></div></li>`; }).join('')}</ul></details>` : ''}
           </section>
           <section data-view="lesson">
             <h2>Lesson Session</h2>
@@ -225,10 +226,10 @@ export class TeacherAgendaShell {
             ` : '<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>'}
           </section>
 
-          <section data-view="lesson-history">
-            <h2>Lesson History</h2>
+          <details id="lesson-history" data-view="lesson-history">
+            <summary>Recent lesson history · ${state.lessonHistory.length} lesson(s)</summary>
             ${state.lessonHistory.length ? `<ul>${state.lessonHistory.map(entry => { const selected = entry.id === state.activeLessonId; return `<li data-lesson-history-item="${esc(entry.id)}"${selected ? ' data-selected="true"' : ''}><button type="button" data-action="select-lesson" data-lesson-id="${esc(entry.id)}"${selected ? ' aria-current="true" disabled' : ''}>${esc(entry.date)} · ${esc(entry.attendance)} · ${entry.mark ?? 'No mark'} · ${(entry.reviewedProgrammeItemIds ?? []).length} reviewed${selected ? ' · Selected' : ''}</button></li>`; }).join('')}</ul>` : '<p>No lessons recorded for this term.</p>'}
-          </section>
+          </details>
         ` : '<p>Select a student to begin.</p>'}
       </section>`;
 
