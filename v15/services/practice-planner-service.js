@@ -53,6 +53,7 @@ export class PracticePlannerService {
     }
 
     const totalMinutes = targetMinutesForLevel(level);
+    if (normalized.length > totalMinutes) throw new Error('Practice Planner has too many homework tasks for the target practice time');
     const minutes = distribute(totalMinutes, normalized.length);
 
     return {
