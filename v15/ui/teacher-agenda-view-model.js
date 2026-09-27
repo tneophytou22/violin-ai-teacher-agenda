@@ -21,6 +21,10 @@ export class TeacherAgendaViewModel {
     return { student, terms };
   }
 
+  async updateStudent(studentId, changes) {
+    return this.students.update(studentId, changes);
+  }
+
   async loadStudentIntelligence(studentId) {
     if (!this.studentIntelligence) return null;
     return this.studentIntelligence.getStudentProfile(studentId);
