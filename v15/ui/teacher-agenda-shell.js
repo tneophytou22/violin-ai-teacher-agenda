@@ -68,9 +68,67 @@ export class TeacherAgendaShell {
             ${state.students.map(s => `<option value="${esc(s.id)}" ${s.id === state.selectedStudentId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}
           </select>
           <div data-view="student-create">
-            <input data-action="new-student-name" placeholder="Student name" aria-label="New student name">
-            <button type="button" data-action="create-student">New student</button>
+            <button type="button" data-action="open-new-student">+ New student</button>
           </div>
+          <dialog data-view="new-student-dialog" aria-labelledby="new-student-title">
+            <form method="dialog" data-view="new-student-form">
+              <div data-view="new-student-header">
+                <div><h2 id="new-student-title">New Student</h2><p>Create the student profile and, if known, the first term.</p></div>
+                <button type="button" data-action="close-new-student" aria-label="Close">×</button>
+              </div>
+              <div data-view="new-student-grid">
+                <label>Full name *
+                  <input data-action="new-student-name" required placeholder="Student name">
+                </label>
+                <label>Phone
+                  <input data-action="new-student-phone" type="tel" placeholder="+357 …">
+                </label>
+                <label>School type
+                  <select data-action="new-student-school-type">
+                    <option value="PRIVATE">Private</option>
+                    <option value="MUSIC_SCHOOL">Music School</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </label>
+                <label>School / Music School
+                  <input data-action="new-student-school-name" placeholder="School name">
+                </label>
+                <label>Instrument
+                  <select data-action="new-student-instrument">
+                    <option value="VIOLIN">Violin</option>
+                    <option value="VIOLA">Viola</option>
+                    <option value="CELLO">Cello</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </label>
+                <label>Level
+                  <select data-action="new-student-level">
+                    <option value="">Not set yet</option>
+                    <option value="1">Level 1</option><option value="2">Level 2</option><option value="3">Level 3</option><option value="4">Level 4</option><option value="5">Level 5</option><option value="6">Level 6</option><option value="7">Level 7</option><option value="8">Level 8</option><option value="9">Level 9</option><option value="10">Level 10</option>
+                  </select>
+                </label>
+                <label>Term
+                  <select data-action="new-student-term-number">
+                    <option value="1">Term 1</option>
+                    <option value="2">Term 2</option>
+                  </select>
+                </label>
+                <label>Term name
+                  <input data-action="new-student-term-name" value="Term 1" placeholder="e.g. 2026–27 Term 1">
+                </label>
+                <label>Start date
+                  <input data-action="new-student-term-start" type="date">
+                </label>
+                <label>End date
+                  <input data-action="new-student-term-end" type="date">
+                </label>
+              </div>
+              <div data-view="new-student-actions">
+                <button type="button" data-action="close-new-student">Cancel</button>
+                <button type="button" data-action="create-student" class="primary">Create student</button>
+              </div>
+            </form>
+          </dialog>
         </section>
         ${student ? `
           <section data-view="student-dashboard">
@@ -308,9 +366,28 @@ export class TeacherAgendaShell {
       if (!target) return;
       try {
         const action = target.dataset.action;
-        if (action === 'create-student') {
+        if (action === 'open-new-student') {
+          const dialog = this.root.querySelector('[data-view="new-student-dialog"]');
+          dialog?.showModal();
+        } else if (action === 'close-new-student') {
+          const dialog = this.root.querySelector('[data-view="new-student-dialog"]');
+          dialog?.close();
+        } else if (action === 'create-student') {
           const name = this.root.querySelector('[data-action="new-student-name"]')?.value?.trim() ?? '';
-          await this.controller.createStudent({ name });
+          const phone = this.root.querySelector('[data-action="new-student-phone"]')?.value?.trim() ?? '';
+          const schoolType = this.root.querySelector('[data-action="new-student-school-type"]')?.value ?? 'PRIVATE';
+          const schoolName = this.root.querySelector('[data-action="new-student-school-name"]')?.value?.trim() ?? '';
+          const instrument = this.root.querySelector('[data-action="new-student-instrument"]')?.value ?? 'VIOLIN';
+          const levelRaw = this.root.querySelector('[data-action="new-student-level"]')?.value ?? '';
+          const termNumber = Number(this.root.querySelector('[data-action="new-student-term-number"]')?.value ?? 1);
+          const termName = this.root.querySelector('[data-action="new-student-term-name"]')?.value?.trim() ?? '';
+          const startDate = this.root.querySelector('[data-action="new-student-term-start"]')?.value ?? '';
+          const endDate = this.root.querySelector('[data-action="new-student-term-end"]')?.value ?? '';
+          await this.controller.createStudent({
+            name, phone, schoolType, schoolName, instrument,
+            initialTerm: levelRaw === '' ? null : { name: termName || `Term ${termNumber}`, level: Number(levelRaw), termNumber, startDate, endDate },
+          });
+          this.root.querySelector('[data-view="new-student-dialog"]')?.close();
         } else if (action === 'create-term') {
           const name = this.root.querySelector('[data-action="new-term-name"]')?.value?.trim() ?? '';
           const level = Number(this.root.querySelector('[data-action="new-term-level"]')?.value);
