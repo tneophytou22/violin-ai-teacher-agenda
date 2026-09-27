@@ -60,7 +60,7 @@ export class PracticePlannerService {
       tasks: normalized.map(({ item, index }, taskIndex) => ({
         homeworkItemId: item.id ?? null,
         homeworkItemIndex: index,
-        minutes: Math.max(minutes[taskIndex], 5),
+        minutes: minutes[taskIndex],
         focus: focusForItem(item),
       })),
       generatedBy: 'practice-planner-v1',
