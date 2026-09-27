@@ -164,15 +164,15 @@ export class TeacherAgendaShell {
               return `<section id="student-intelligence" data-view="student-intelligence" aria-label="Student Intelligence">
                 <h2>Student Intelligence</h2>
                 <div data-view="intelligence-overview">
-                  <span>Terms: ${profile.terms.length}</span>
-                  <span>Lessons: ${current.lessons.count}</span>
-                  <span>Scales: ${current.scales.mastery.masteryPercent}% assessed mastery</span>
+                  <div data-view="intelligence-metric"><strong>${profile.terms.length}</strong><span>Terms</span></div>
+                  <div data-view="intelligence-metric"><strong>${current.lessons.count}</strong><span>Lessons</span></div>
+                  <div data-view="intelligence-metric"><strong>${current.scales.mastery.masteryPercent}%</strong><span>Scale mastery</span></div>
                 </div>
                 <div data-view="intelligence-programme">${domainSummary}</div>
                 <div data-view="intelligence-lessons">
-                  <span>Attendance: Present ${current.lessons.attendance.PRESENT} · Late ${current.lessons.attendance.LATE} · Absent ${current.lessons.attendance.ABSENT}</span>
-                  <span>Marks: ${current.lessons.marks.latest ?? '—'} latest · ${current.lessons.marks.average ?? '—'} average</span>
-                  <span>Homework: ${current.homework.itemCount} item(s) across ${current.homework.lessonCount} lesson(s)</span>
+                  <div><strong>Attendance</strong><span>Present ${current.lessons.attendance.PRESENT} · Late ${current.lessons.attendance.LATE} · Absent ${current.lessons.attendance.ABSENT}</span></div>
+                  <div><strong>Marks</strong><span>${current.lessons.marks.latest ?? '—'} latest · ${current.lessons.marks.average ?? '—'} average</span></div>
+                  <div><strong>Homework</strong><span>${current.homework.itemCount} item(s) · ${current.homework.lessonCount} lesson(s)</span></div>
                 </div>
                 <details data-view="intelligence-timeline">
                   <summary>Student timeline · ${profile.timeline.length} event(s)</summary>
