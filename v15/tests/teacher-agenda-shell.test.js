@@ -4,6 +4,7 @@ import { InMemoryRepository, StudentService, TermService, TeacherTermService, We
 import { TeacherAgendaViewModel } from '../ui/teacher-agenda-view-model.js';
 import { TeacherAgendaController, localDateString } from '../ui/teacher-agenda-controller.js';
 import { TeacherAgendaShell } from '../ui/teacher-agenda-shell.js';
+import { PracticePlannerService } from '../services/practice-planner-service.js';
 import { registerV1Curricula } from '../curriculum/v1-registration.js';
 
 class FakeRoot {
@@ -2191,4 +2192,83 @@ test('shell reports an invalid previous week without mutating the current week',
   assert.equal(after.error, 'Week must be an integer >= 1');
   assert.match(root.innerHTML, /Week must be an integer &gt;= 1/);
   assert.equal(after.loading, false);
+});
+
+
+test('shell presents homework as teacher-native rows with custom task and separate practice plan', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService,
+    weeklyProgrammeService: weekly,
+    lessonService: lessons,
+    lessonProgrammeService: lessonProgramme,
+    homeworkService: homework,
+    practicePlannerService: new PracticePlannerService(),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  root.fields.set('[data-action="custom-homework-input"]', { value: 'Practise Ravel opening from bar 12' });
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-27' });
+
+  const student = await studentService.create({ name: 'Homework UI Test' });
+  await termService.create({
+    studentId: student.id,
+    name: 'L4T1',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 4,
+    termNumber: 1,
+  });
+
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.createLesson('2026-09-27');
+  controller.setHomeworkDraftItems([
+    { id: 'pi-1', title: 'Wohlfahrt Op.38 No.40', curriculumDomain: 'ETUDE', completed: false },
+    { text: 'Ravel opening from bar 12', completed: false },
+  ]);
+  shell.render();
+
+  assert.match(root.innerHTML, /Homework/);
+  assert.match(root.innerHTML, /Wohlfahrt Op\.38 No\.40/);
+  assert.match(root.innerHTML, /Ravel opening from bar 12/);
+  assert.match(root.innerHTML, /\+ Add custom task/);
+  assert.match(root.innerHTML, /Practice Plan/);
+  assert.doesNotMatch(root.innerHTML, /data-action="homework"/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'add-custom-homework' },
+      closest: () => ({ dataset: { action: 'add-custom-homework' } }),
+    },
+  });
+  assert.equal(controller.snapshot().homeworkDraftItems.length, 3);
+  assert.match(root.innerHTML, /Practise Ravel opening from bar 12/);
+
+  await controller.generatePracticePlan();
+  shell.render();
+  assert.match(root.innerHTML, /Suggested structure · teacher approval required/);
+  assert.match(root.innerHTML, /data-plan-minutes="0"/);
+  assert.match(root.innerHTML, /data-plan-focus="0"/);
+
+  await root.dispatch('click', {
+    target: {
+      dataset: { action: 'remove-homework-item', homeworkIndex: '1' },
+      closest: () => ({ dataset: { action: 'remove-homework-item', homeworkIndex: '1' } }),
+    },
+  });
+  const state = controller.snapshot();
+  assert.equal(state.homeworkDraftItems.length, 2);
+  assert.equal(state.practicePlanDraft, null);
+  assert.doesNotMatch(root.innerHTML, /Ravel opening from bar 12/);
 });
