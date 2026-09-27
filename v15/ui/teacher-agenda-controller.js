@@ -164,6 +164,13 @@ export class TeacherAgendaController {
     return this.snapshot();
   }
 
+  setHomeworkDraftItems(items) {
+    if (!Array.isArray(items)) throw new Error('Homework draft items must be an array');
+    this.state.homeworkDraftItems = items.map(item => ({ ...item }));
+    this.state.practicePlanDraft = null;
+    return this.snapshot();
+  }
+
   async createLesson(date = this.today(), options = {}) {
     return this.#run(async () => {
       if (!this.state.selectedTermId) throw new Error('No term selected');
