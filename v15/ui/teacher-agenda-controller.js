@@ -59,6 +59,15 @@ export class TeacherAgendaController {
     });
   }
 
+  async updateStudent(changes = {}) {
+    return this.#run(async () => {
+      if (!this.state.selectedStudentId) throw new Error('No student selected');
+      const student = await this.viewModel.updateStudent(this.state.selectedStudentId, changes);
+      this.state.students = await this.viewModel.students.list();
+      return student;
+    });
+  }
+
   async createTerm(input) {
     return this.#run(async () => {
       if (!this.state.selectedStudentId) throw new Error('No student selected');
