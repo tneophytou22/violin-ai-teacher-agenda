@@ -3,6 +3,21 @@ import { generateViberHomeworkMessage, generateParentHomeworkMessage } from '../
 
 const esc = value => String(value ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+const homeworkItemsFromText = (text, existingItems = []) => {
+  const lines = String(text ?? '').split('\\n').map(value => value.trim()).filter(Boolean);
+  const unused = new Set(existingItems.map((_, index) => index));
+  return lines.map((line, lineIndex) => {
+    const exactIndex = existingItems.findIndex((item, index) => unused.has(index) && String(item?.title ?? item?.text ?? '').trim() === line);
+    const sourceIndex = exactIndex >= 0 ? exactIndex : (unused.has(lineIndex) ? lineIndex : -1);
+    if (sourceIndex < 0) return { text: line, completed: false };
+    unused.delete(sourceIndex);
+    const source = { ...existingItems[sourceIndex], completed: false };
+    if (Object.prototype.hasOwnProperty.call(source, 'title')) source.title = line;
+    else source.text = line;
+    return source;
+  });
+};
+
 export class TeacherAgendaShell {
   constructor({ controller, root, now = localDateString }) {
     if (!controller || !(controller instanceof TeacherAgendaController)) throw new Error('TeacherAgendaShell requires TeacherAgendaController');
@@ -358,15 +373,16 @@ export class TeacherAgendaShell {
             cardId: item.cardId, objectId: item.objectId, requirements: item.details?.requirements ?? item.requirements ?? null,
             objective: item.details?.objective ?? item.objective ?? null, completed: false
           }));
-          await this.controller.generatePracticePlan([...current, ...additions]);
+          this.controller.setHomeworkDraftItems([...current, ...additions]);
         } else if (action === 'generate-practice-plan') {
           const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
-          const items = text.split('\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
+          const snapshot = this.controller.snapshot();
+          const items = homeworkItemsFromText(text, snapshot.homeworkDraftItems ?? []);
           await this.controller.generatePracticePlan(items);
         } else if (action === 'save-homework') {
           const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
-          const items = text.split('\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
           const snapshot = this.controller.snapshot();
+          const items = homeworkItemsFromText(text, snapshot.homeworkDraftItems ?? []);
           let plan = snapshot.practicePlanDraft;
           if (plan) {
             const tasks = plan.tasks.map((task, index) => ({ ...task, minutes: Number(this.root.querySelector(`[data-plan-minutes="${index}"]`)?.value ?? task.minutes), focus: this.root.querySelector(`[data-plan-focus="${index}"]`)?.value ?? task.focus }));
