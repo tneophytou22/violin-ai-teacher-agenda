@@ -398,6 +398,46 @@ export class TeacherAgendaShell {
       </section>`;
 
     this.#bind();
+    this.#bindDialogActions();
+  }
+
+  #openDialog(selector) {
+    const dialog = this.root.querySelector(selector);
+    if (!dialog) throw new Error('Dialog not found');
+    if (typeof dialog.showModal === 'function') {
+      if (!dialog.open) dialog.showModal();
+    } else {
+      dialog.setAttribute('open', '');
+    }
+    dialog.setAttribute('aria-hidden', 'false');
+  }
+
+  #closeDialog(selector) {
+    const dialog = this.root.querySelector(selector);
+    if (!dialog) return;
+    if (typeof dialog.close === 'function' && dialog.open) dialog.close();
+    else dialog.removeAttribute('open');
+    dialog.setAttribute('aria-hidden', 'true');
+  }
+
+  #bindDialogActions() {
+    const bindings = [
+      ['[data-action="open-new-student"]', () => this.#openDialog('[data-view="new-student-dialog"]')],
+      ['[data-action="open-student-profile"]', () => this.#openDialog('[data-view="student-profile-dialog"]')],
+      ['[data-action="close-new-student"]', () => this.#closeDialog('[data-view="new-student-dialog"]')],
+      ['[data-action="close-student-profile"]', () => this.#closeDialog('[data-view="student-profile-dialog"]')],
+    ];
+    for (const [selector, handler] of bindings) {
+      const button = this.root.querySelector(selector);
+      if (button) button.addEventListener('click', async event => {
+        event.stopPropagation();
+        try {
+          await handler();
+        } catch (error) {
+          this.#showError(error);
+        }
+      });
+    }
   }
 
   #bind() {
@@ -428,17 +468,13 @@ export class TeacherAgendaShell {
       try {
         const action = target.dataset.action;
         if (action === 'open-new-student') {
-          const dialog = this.root.querySelector('[data-view="new-student-dialog"]');
-          dialog?.showModal();
+          this.#openDialog('[data-view="new-student-dialog"]');
         } else if (action === 'close-new-student') {
-          const dialog = this.root.querySelector('[data-view="new-student-dialog"]');
-          dialog?.close();
+          this.#closeDialog('[data-view="new-student-dialog"]');
         } else if (action === 'open-student-profile') {
-          const dialog = this.root.querySelector('[data-view="student-profile-dialog"]');
-          dialog?.showModal();
+          this.#openDialog('[data-view="student-profile-dialog"]');
         } else if (action === 'close-student-profile') {
-          const dialog = this.root.querySelector('[data-view="student-profile-dialog"]');
-          dialog?.close();
+          this.#closeDialog('[data-view="student-profile-dialog"]');
         } else if (action === 'save-student-profile') {
           const name = this.root.querySelector('[data-action="student-profile-name"]')?.value?.trim() ?? '';
           const phone = this.root.querySelector('[data-action="student-profile-phone"]')?.value?.trim() ?? '';
@@ -446,7 +482,8 @@ export class TeacherAgendaShell {
           const schoolName = this.root.querySelector('[data-action="student-profile-school-name"]')?.value?.trim() ?? '';
           const instrument = this.root.querySelector('[data-action="student-profile-instrument"]')?.value ?? 'VIOLIN';
           await this.controller.updateStudent({ name, phone, schoolType, schoolName, instrument });
-          this.root.querySelector('[data-view="student-profile-dialog"]')?.close();
+          this.#closeDialog('[data-view="student-profile-dialog"]');
+          this.render();
         } else if (action === 'create-student') {
           const name = this.root.querySelector('[data-action="new-student-name"]')?.value?.trim() ?? '';
           const phone = this.root.querySelector('[data-action="new-student-phone"]')?.value?.trim() ?? '';
@@ -462,7 +499,8 @@ export class TeacherAgendaShell {
             name, phone, schoolType, schoolName, instrument,
             initialTerm: levelRaw === '' ? null : { name: termName || `Term ${termNumber}`, level: Number(levelRaw), termNumber, startDate, endDate },
           });
-          this.root.querySelector('[data-view="new-student-dialog"]')?.close();
+          this.#closeDialog('[data-view="new-student-dialog"]');
+          this.render();
         } else if (action === 'create-term') {
           const name = this.root.querySelector('[data-action="new-term-name"]')?.value?.trim() ?? '';
           const level = Number(this.root.querySelector('[data-action="new-term-level"]')?.value);
