@@ -156,6 +156,11 @@ test('shell renders lesson-session controls after a student and term are selecte
   shell.render();
   assert.match(root.innerHTML, /data-action="lesson" disabled/);
   assert.match(root.innerHTML, /Lesson active ✓/);
+  assert.match(root.innerHTML, /data-view="lesson-session-summary"/);
+  assert.match(root.innerHTML, /<span>Reviewed<\/span><strong>0<\/strong>/);
+  assert.match(root.innerHTML, /<span>Homework<\/span><strong>0<\/strong>/);
+  assert.match(root.innerHTML, /<span>Mark<\/span><strong>—<\/strong>/);
+  assert.match(root.innerHTML, /Nothing reviewed yet/);
   assert.match(root.innerHTML, /data-action="teacher-note"/);
   assert.doesNotMatch(root.innerHTML, /Start lesson/);
   assert.match(root.innerHTML, /Lesson History/);
