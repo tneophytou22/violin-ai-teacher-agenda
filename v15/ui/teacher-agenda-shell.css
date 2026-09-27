@@ -2591,3 +2591,41 @@
     overflow: visible;
   }
 }
+
+
+/* Lesson Session — explicit next action */
+[data-v15="teacher-agenda"] [data-view="lesson-next-action"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0 10px;
+  padding: 8px 10px;
+  border: 1px solid #dbe7f5;
+  border-radius: 8px;
+  background: #f5f9ff;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-next-action"] span {
+  flex: 0 0 auto;
+  color: var(--ta-blue);
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-next-action"] strong {
+  color: #33475b;
+  font-size: .69rem;
+  font-weight: 700;
+  text-align: right;
+}
+@media (max-width: 560px) {
+  [data-v15="teacher-agenda"] [data-view="lesson-next-action"] {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+  [data-v15="teacher-agenda"] [data-view="lesson-next-action"] strong {
+    text-align: left;
+  }
+}
