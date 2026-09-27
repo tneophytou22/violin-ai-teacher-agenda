@@ -2492,3 +2492,43 @@ test('shell enables weekly homework action after selection and completes the hom
   assert.ok(state.homework.practicePlan);
   assert.match(root.innerHTML, /1 assigned/);
 });
+
+test('shell marks edited homework as Draft until it is saved again', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weekly = new WeeklyProgrammeService(repo);
+  const lessons = new LessonService(repo);
+  const lessonProgramme = new LessonProgrammeService(repo);
+  const homework = new HomeworkService(repo);
+  const vm = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService,
+    weeklyProgrammeService: weekly, lessonService: lessons,
+    lessonProgrammeService: lessonProgramme, homeworkService: homework,
+    studentIntelligenceService: new StudentIntelligenceService({
+      studentService, termService, teacherTermService,
+      weeklyProgrammeService: weekly, lessonService: lessons,
+      homeworkService: homework, repository: repo,
+    }),
+    practicePlannerService: new PracticePlannerService(),
+  });
+  const controller = new TeacherAgendaController(vm);
+  const root = new FakeRoot();
+  const shell = new TeacherAgendaShell({ controller, root, now: () => '2026-09-27' });
+  const student = await studentService.create({ name: 'Draft State Test' });
+  const term = await termService.create({ studentId: student.id, name: 'L4T1', level: 4, termNumber: 1, startDate: '2026-09-01', endDate: '2026-12-31' });
+  await shell.start();
+  await controller.selectStudent(student.id);
+  await controller.selectTerm(term.id);
+  await controller.createLesson('2026-09-27');
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain === 'ETUDE');
+  controller.setHomeworkDraftItems([{ id: item.id, title: item.title, curriculumDomain: item.curriculumDomain, completed: false }]);
+  await controller.generatePracticePlan();
+  await controller.saveHomework();
+  controller.setHomeworkDraftItems([...controller.snapshot().homeworkDraftItems, { text: 'Custom bow work', completed: false }]);
+  shell.render();
+  assert.match(root.innerHTML, /4 assigned · Draft|2 assigned · Draft|Draft/);
+  assert.match(root.innerHTML, /Review the plan, then Save Homework/);
+});
