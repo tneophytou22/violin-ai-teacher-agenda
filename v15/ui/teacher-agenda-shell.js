@@ -39,6 +39,7 @@ export class TeacherAgendaShell {
     const practicePlan = state.practicePlanDraft;
     const savedHomeworkItems = state.homework?.items ?? [];
     const savedPracticePlan = state.homework?.practicePlan ?? null;
+    const reviewedTitles = (weekly?.items ?? []).filter(item => state.reviewedItemIds.includes(item.id)).map(item => item.title).slice(0, 3);
     const hasSavedHomework = Boolean(state.homework);
     const viberMessage = student ? generateViberHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, termNumber: state.termContext?.term?.termNumber, items: savedHomeworkItems, practicePlan: savedPracticePlan }) : '';
     const parentMessage = student ? generateParentHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, items: savedHomeworkItems, practicePlan: savedPracticePlan }) : '';
@@ -222,7 +223,7 @@ export class TeacherAgendaShell {
     </div>
     <div data-view="lesson-reviewed-work">
       <div><strong>Reviewed work</strong><span>${state.reviewedItemIds.length ? 'Recorded in this lesson' : 'Nothing reviewed yet'}</span></div>
-      ${state.reviewedItemIds.length ? `<ul>${reviewedTitles.map(title=>`<li>${esc(title)}</li>`).join('')}${state.reviewedItemIds.length>3 ? `<li>+${state.reviewedItemIds.length-3} more</li>` : ''}</ul>` : ''}
+      ${state.reviewedItemIds.length ? `<ul>${reviewedTitles.map(title => `<li>${esc(title)}</li>`).join('')}${state.reviewedItemIds.length > 3 ? `<li>+${state.reviewedItemIds.length - 3} more</li>` : ''}</ul>` : ''}
     </div>
     <div data-view="lesson-details">
       <label>Attendance
@@ -238,7 +239,8 @@ export class TeacherAgendaShell {
       </label>
       <button type="button" data-action="save-details">Save lesson details</button>
     </div>
-<div data-view="homework" aria-label="Homework workspace">
+
+    <div data-view="homework" aria-label="Homework workspace">
       <div data-view="homework-header">
         <div><h3>Homework</h3><p>Teacher-selected work → focused home-practice plan.</p></div>
         ${homeworkItems.length ? '<span data-view="homework-count">' + homeworkItems.length + ' assigned</span>' : '<span data-view="homework-count">0 assigned</span>'}
@@ -294,8 +296,6 @@ export class TeacherAgendaShell {
         ? '<details data-view="homework-communication"><summary>Communication · Viber / Parent</summary><div data-view="message-preview"><strong>Viber</strong><pre>' + esc(viberMessage) + '</pre><button type="button" data-action="copy-viber">Copy Viber Message</button></div><div data-view="message-preview"><strong>Parent support</strong><pre>' + esc(parentMessage) + '</pre><button type="button" data-action="copy-parent">Copy Parent Message</button></div><p>Messages use the last saved Homework + Practice Plan. V15 does not send Viber automatically.</p></details>'
         : ''}
     </div>
-  ` : '<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>'}
-
   ` : `<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>${!state.selectedTermId ? '<span data-view="lesson-disabled-hint">Select a term first.</span>' : ''}`}
 </section>
               </div>
