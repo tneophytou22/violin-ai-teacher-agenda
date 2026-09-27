@@ -120,6 +120,48 @@ export class TeacherAgendaShell {
         ${student ? `
           <section data-view="student-dashboard">
             <div data-view="student-identity"><div data-view="student-avatar" aria-hidden="true">${esc(student.name.slice(0, 2).toUpperCase())}</div><div><h2>${esc(student.name)}</h2><p>${state.termContext ? `Level ${esc(state.termContext.term.level)} · Term ${esc(state.termContext.term.termNumber)}` : 'Select a term'}${student.schoolType ? ` · ${esc(student.schoolType.replaceAll('_', ' '))}` : ''}</p><small>${esc(student.schoolName || '')}${student.phone ? ` · ${esc(student.phone)}` : ''}</small></div></div>
+
+            <button type="button" data-action="open-student-profile">Edit profile</button>
+            <dialog data-view="student-profile-dialog" aria-labelledby="student-profile-title">
+              <form method="dialog" data-view="student-profile-form">
+                <div data-view="student-profile-header">
+                  <div><h2 id="student-profile-title">Student Profile</h2><p>Update contact and school information. Level remains owned by the selected Term.</p></div>
+                  <button type="button" data-action="close-student-profile" aria-label="Close">×</button>
+                </div>
+                <div data-view="student-profile-grid">
+                  <label>Full name *
+                    <input data-action="student-profile-name" required value="${esc(student.name)}">
+                  </label>
+                  <label>Phone
+                    <input data-action="student-profile-phone" type="tel" value="${esc(student.phone || '')}">
+                  </label>
+                  <label>School type
+                    <select data-action="student-profile-school-type">
+                      <option value="PRIVATE" ${student.schoolType === 'PRIVATE' ? 'selected' : ''}>Private</option>
+                      <option value="MUSIC_SCHOOL" ${student.schoolType === 'MUSIC_SCHOOL' ? 'selected' : ''}>Music School</option>
+                      <option value="OTHER" ${student.schoolType === 'OTHER' ? 'selected' : ''}>Other</option>
+                    </select>
+                  </label>
+                  <label>School / Music School
+                    <input data-action="student-profile-school-name" value="${esc(student.schoolName || '')}">
+                  </label>
+                  <label>Instrument
+                    <select data-action="student-profile-instrument">
+                      <option value="VIOLIN" ${student.instrument === 'VIOLIN' ? 'selected' : ''}>Violin</option>
+                      <option value="VIOLA" ${student.instrument === 'VIOLA' ? 'selected' : ''}>Viola</option>
+                      <option value="CELLO" ${student.instrument === 'CELLO' ? 'selected' : ''}>Cello</option>
+                      <option value="OTHER" ${student.instrument === 'OTHER' ? 'selected' : ''}>Other</option>
+                    </select>
+                  </label>
+                </div>
+                <p data-view="student-profile-term-note">Current level: ${state.termContext?.term?.level ? 'Level ' + esc(state.termContext.term.level) + ' · Term ' + esc(state.termContext.term.termNumber) : 'No level set'} · change level from Term Details.</p>
+                <div data-view="student-profile-actions">
+                  <button type="button" data-action="close-student-profile">Cancel</button>
+                  <button type="button" data-action="save-student-profile" class="primary">Save profile</button>
+                </div>
+              </form>
+            </dialog>
+
             <nav data-view="dashboard-tabs" aria-label="Agenda sections"><a href="#weekly-agenda">Week View</a><a href="#scale-progress">Scales</a><a href="#student-intelligence">Progress</a><a href="#lesson-history">History</a><a href="#current-term">Term Details</a></nav>
             <section data-view="lesson-dashboard" aria-label="Lesson dashboard">
               <div data-lesson-dashboard-card>
@@ -391,6 +433,20 @@ export class TeacherAgendaShell {
         } else if (action === 'close-new-student') {
           const dialog = this.root.querySelector('[data-view="new-student-dialog"]');
           dialog?.close();
+        } else if (action === 'open-student-profile') {
+          const dialog = this.root.querySelector('[data-view="student-profile-dialog"]');
+          dialog?.showModal();
+        } else if (action === 'close-student-profile') {
+          const dialog = this.root.querySelector('[data-view="student-profile-dialog"]');
+          dialog?.close();
+        } else if (action === 'save-student-profile') {
+          const name = this.root.querySelector('[data-action="student-profile-name"]')?.value?.trim() ?? '';
+          const phone = this.root.querySelector('[data-action="student-profile-phone"]')?.value?.trim() ?? '';
+          const schoolType = this.root.querySelector('[data-action="student-profile-school-type"]')?.value ?? 'PRIVATE';
+          const schoolName = this.root.querySelector('[data-action="student-profile-school-name"]')?.value?.trim() ?? '';
+          const instrument = this.root.querySelector('[data-action="student-profile-instrument"]')?.value ?? 'VIOLIN';
+          await this.controller.updateStudent({ name, phone, schoolType, schoolName, instrument });
+          this.root.querySelector('[data-view="student-profile-dialog"]')?.close();
         } else if (action === 'create-student') {
           const name = this.root.querySelector('[data-action="new-student-name"]')?.value?.trim() ?? '';
           const phone = this.root.querySelector('[data-action="new-student-phone"]')?.value?.trim() ?? '';
