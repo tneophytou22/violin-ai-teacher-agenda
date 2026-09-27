@@ -325,38 +325,66 @@ export class TeacherAgendaShell {
             ${state.studentIntelligence ? (() => {
               const profile = state.studentIntelligence;
               const current = profile.termProfiles.find(entry => entry.term.id === state.selectedTermId) ?? profile.termProfiles.at(-1);
+              const longitudinal = state.longitudinalDevelopment?.terms ?? [];
+              const currentLongitudinal = longitudinal.find(entry => entry.term.id === current?.term.id) ?? longitudinal.at(-1) ?? null;
               if (!current) return '';
-              const programme = current.programme;
-              const domainSummary = ['PURE_TECHNICAL', 'ETUDE', 'REPERTOIRE'].map(domain => {
-                const summary = programme[domain] ?? { total: 0, completed: 0, reviewed: 0 };
-                return `<span>${domain.replace('_', ' ')} ${summary.completed}/${summary.total} completed · ${summary.reviewed} reviewed</span>`;
+              const coreTotal = Object.values(current.programme).reduce((sum, entry) => sum + entry.total, 0);
+              const coreCompleted = Object.values(current.programme).reduce((sum, entry) => sum + entry.completed, 0);
+              const corePercent = coreTotal ? Math.round(coreCompleted / coreTotal * 100) : 0;
+              const domainRows = ['PURE_TECHNICAL', 'ETUDE', 'REPERTOIRE'].map(domain => {
+                const summary = current.programme[domain] ?? { total: 0, completed: 0, reviewed: 0, pending: 0 };
+                const percent = summary.total ? Math.round(summary.completed / summary.total * 100) : 0;
+                return `<div data-view="progress-domain-row">
+                  <div data-view="progress-domain-label"><strong>${domain.replace('_', ' ')}</strong><span>${summary.completed}/${summary.total}</span></div>
+                  <div data-view="progress-track"><span style="width:${percent}%"></span></div>
+                  <small>${summary.reviewed} reviewed · ${summary.pending} pending</small>
+                </div>`;
               }).join('');
-              return `<section id="student-intelligence" data-view="student-intelligence" aria-label="Student Intelligence">
-                <h2>Student Intelligence</h2>
-                <div data-view="intelligence-overview">
-                  <div data-view="intelligence-metric"><strong>${profile.terms.length}</strong><span>Terms</span></div>
-                  <div data-view="intelligence-metric"><strong>${current.lessons.count}</strong><span>Lessons</span></div>
-                  <div data-view="intelligence-metric"><strong>${current.scales.mastery.masteryPercent}%</strong><span>Scale mastery</span></div>
+              const deltaText = value => value === null || value === undefined ? '—' : value > 0 ? `+${value}` : String(value);
+              const termHistory = longitudinal.slice(-4).map(entry => {
+                const progressTotal = entry.metrics.pureTechnicalCompleted + entry.metrics.etudeCompleted + entry.metrics.repertoireCompleted;
+                const scale = entry.metrics.scaleMasteryPercent ?? 0;
+                return `<div data-view="progress-term-row">
+                  <strong>L${esc(entry.term.level)} · T${esc(entry.term.termNumber)}</strong>
+                  <span>${progressTotal} core completed</span>
+                  <span>${scale}% scale mastery</span>
+                  <span>${entry.metrics.lessons} lessons</span>
+                </div>`;
+              }).join('');
+              return `<section id="student-intelligence" data-view="student-intelligence" aria-label="Student Progress">
+                <div data-view="progress-header">
+                  <div><h2>Progress</h2><p>Evidence from lessons, programme work, homework and scale assessment.</p></div>
+                  <span data-view="progress-term-label">L${esc(current.term.level)} · Term ${esc(current.term.termNumber)}</span>
                 </div>
-                <div data-view="intelligence-programme">${domainSummary}</div>
-                <div data-view="intelligence-lessons">
-                  <div><strong>Attendance</strong><span>Present ${current.lessons.attendance.PRESENT} · Late ${current.lessons.attendance.LATE} · Absent ${current.lessons.attendance.ABSENT}</span></div>
-                  <div><strong>Marks</strong><span>${current.lessons.marks.latest ?? '—'} latest · ${current.lessons.marks.average ?? '—'} average</span></div>
-                  <div><strong>Homework</strong><span>${current.homework.itemCount} item(s) · ${current.homework.lessonCount} lesson(s)</span></div>
+                <div data-view="progress-metrics">
+                  <div data-view="progress-metric"><strong>${corePercent}%</strong><span>Core progress</span><small>${coreCompleted}/${coreTotal} completed</small></div>
+                  <div data-view="progress-metric"><strong>${current.scales.mastery.masteryPercent}%</strong><span>Scale mastery</span><small>${current.scales.completed}/${current.scales.total} completed</small></div>
+                  <div data-view="progress-metric"><strong>${current.lessons.count}</strong><span>Lessons</span><small>${current.lessons.attendance.PRESENT} present · ${current.lessons.attendance.LATE} late</small></div>
+                  <div data-view="progress-metric"><strong>${current.homework.itemCount}</strong><span>Homework items</span><small>${current.homework.lessonCount} lessons assigned</small></div>
                 </div>
-                <details data-view="intelligence-timeline">
-                  <summary>Student timeline · ${profile.timeline.length} event(s)</summary>
-                  ${profile.timeline.slice(0, 10).map(event => `
-                    <article data-view="intelligence-timeline-event">
-                      <strong>${esc(event.type.replaceAll('_', ' '))}</strong>
-                      <span> · ${esc(event.date ?? 'No date')}</span>
-                      ${event.type === 'LESSON' ? `
-                        <span> · ${esc(event.attendance ?? '')}${event.mark !== null && event.mark !== undefined ? ` · Mark ${esc(event.mark)}` : ''}</span>
-                        ${event.teacherNote ? `<p><strong>Teacher note:</strong> ${esc(event.teacherNote)}</p>` : ''}
-                      ` : ''}
-                    </article>
-                  `).join('')}
-                </details>
+                <div data-view="progress-grid">
+                  <article data-view="progress-card">
+                    <div data-view="progress-card-header"><strong>Programme progress</strong><span>${coreCompleted}/${coreTotal}</span></div>
+                    <div data-view="progress-domains">${domainRows}</div>
+                  </article>
+                  <article data-view="progress-card">
+                    <div data-view="progress-card-header"><strong>Lesson evidence</strong><span>${current.lessons.marks.count} marked</span></div>
+                    <div data-view="progress-evidence-list">
+                      <div><span>Attendance</span><strong>${current.lessons.attendance.PRESENT} present · ${current.lessons.attendance.ABSENT} absent</strong></div>
+                      <div><span>Latest mark</span><strong>${current.lessons.marks.latest ?? '—'}</strong></div>
+                      <div><span>Average mark</span><strong>${current.lessons.marks.average ?? '—'}</strong></div>
+                      <div><span>Homework coverage</span><strong>${current.homework.lessonCount} / ${current.lessons.count} lessons</strong></div>
+                    </div>
+                  </article>
+                </div>
+                ${currentLongitudinal ? `<div data-view="progress-current-change">
+                  <strong>Change vs previous term</strong>
+                  <span>Lessons ${deltaText(currentLongitudinal.delta.lessons)} · Average mark ${deltaText(currentLongitudinal.delta.averageMark)} · Scale mastery ${deltaText(currentLongitudinal.delta.scaleMasteryPercent)}%</span>
+                </div>` : ''}
+                ${termHistory ? `<details data-view="progress-term-history">
+                  <summary>Term development · ${longitudinal.length} term(s)</summary>
+                  <div data-view="progress-term-list">${termHistory}</div>
+                </details>` : ''}
                 ${current.tktl ? `<details data-view="intelligence-tktl"><summary>Current TKTL context · ${esc(current.tktl.cardId)}</summary><p>${esc(current.tktl.technicalIntent ?? 'No technical intent recorded.')}</p></details>` : ''}
               </section>`;
             })() : ''}
