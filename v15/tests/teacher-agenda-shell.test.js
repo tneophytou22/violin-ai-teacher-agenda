@@ -183,6 +183,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.doesNotMatch(root.innerHTML, /No lesson started/);
   assert.match(root.innerHTML, /SCALES/);
   assert.match(root.innerHTML, /Scale Progress \/ Mastery/);
+  assert.match(root.innerHTML, /Assess scales/);
   assert.match(root.innerHTML, /Scales · Mastery Assessment/);
   assert.match(root.innerHTML, /0\/15 assessed/);
   assert.match(root.innerHTML, /Mastery is teacher-assessed/);
