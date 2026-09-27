@@ -297,6 +297,14 @@
 
 [data-v15="teacher-agenda"] [data-view="domain-progress"] { display: flex; flex-wrap: wrap; gap: 6px; }
 
+[data-v15="teacher-agenda"] [data-view="programme-actions"] button[data-action="add-selected-to-homework"] {
+  border-color:#b8d9ca;
+  background:#f2fbf6;
+  color:#167449;
+}
+[data-v15="teacher-agenda"] [data-view="programme-actions"] button[data-action="add-selected-to-homework"]:not(:disabled):hover {
+  background:#e6f7ee;
+}
 [data-v15="teacher-agenda"] [data-view="programme-actions"] {
   display: flex;
   flex-wrap: wrap;
