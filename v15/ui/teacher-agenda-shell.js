@@ -147,7 +147,7 @@ export class TeacherAgendaShell {
           <p data-view="practice-plan-note">The planner organises how to practise teacher-selected material; it does not change curriculum or progression.</p>
         </div>
       ` : `<div data-view="practice-plan-empty"><strong>No practice plan yet.</strong><span>Create one after entering the tasks you want the student to practise.</span></div>`}
-      ${homeworkItems.length ? `<details data-view="homework-communication"><summary>Communication · Viber / Parent</summary><div data-view="message-preview"><strong>Viber</strong><pre>${esc(viberMessage)}</pre><button type="button" data-action="copy-viber">Copy Viber Message</button></div><div data-view="message-preview"><strong>Parent support</strong><pre>${esc(parentMessage)}</pre><button type="button" data-action="copy-parent">Copy Parent Message</button></div><p>Messages are generated from the saved Homework + Practice Plan. V15 does not send Viber automatically.</p></details>` : null}
+      ${homeworkItems.length ? `<details data-view="homework-communication"><summary>Communication · Viber / Parent</summary><div data-view="message-preview"><strong>Viber</strong><pre>${esc(viberMessage)}</pre><button type="button" data-action="copy-viber">Copy Viber Message</button></div><div data-view="message-preview"><strong>Parent support</strong><pre>${esc(parentMessage)}</pre><button type="button" data-action="copy-parent">Copy Parent Message</button></div><p>Messages are generated from the saved Homework + Practice Plan. V15 does not send Viber automatically.</p></details>` : ''}
     </div>
   ` : '<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>'}
 </section>
