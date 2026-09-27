@@ -294,6 +294,8 @@ export class TeacherAgendaController {
     this.state.activeLesson = null;
     this.state.lessonHistory = [];
     this.state.homework = null;
+    this.state.homeworkDraftItems = [];
+    this.state.practicePlanDraft = null;
     this.state.selectedItemIds = [];
     this.state.reviewedItemIds = [];
   }
