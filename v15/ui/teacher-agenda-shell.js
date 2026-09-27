@@ -149,7 +149,7 @@ export class TeacherAgendaShell {
       <div data-view="homework-actions">
         <button type="button" data-action="add-selected-to-homework" ${state.selectedItemIds.length ? '' : 'disabled'}>Add selected work</button>
         <button type="button" data-action="generate-practice-plan" ${homeworkText.trim() ? '' : 'disabled'}>Create Practice Plan</button>
-        <button type="button" data-action="save-homework">Save Homework</button>
+        <button type="button" data-action="save-homework" ${homeworkItems.length ? '' : 'disabled'}>Save Homework</button>
       </div>
       ${practicePlan ? `
         <div data-view="practice-plan" aria-label="Practice Plan">
