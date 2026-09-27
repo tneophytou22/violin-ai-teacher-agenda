@@ -29,6 +29,8 @@ export class TeacherAgendaController {
       teacherDecisionPrompts: null,
       teacherReadinessReview: null,
       homework: null,
+      homeworkDraftItems: [],
+      practicePlanDraft: null,
       selectedItemIds: [],
       reviewedItemIds: [],
       error: null,
@@ -207,10 +209,26 @@ export class TeacherAgendaController {
     });
   }
 
-  async saveHomework(items) {
+  async generatePracticePlan(items = this.state.homeworkDraftItems) {
     return this.#run(async () => {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
-      this.state.homework = await this.viewModel.saveHomework(this.state.activeLessonId, items);
+      const level = this.state.termContext?.term?.level;
+      if (!Number.isInteger(level)) throw new Error('Practice Planner requires the selected term to have a level');
+      const plan = this.viewModel.generatePracticePlan({ level, items });
+      this.state.homeworkDraftItems = items.map(item => ({ ...item }));
+      this.state.practicePlanDraft = structuredClone(plan);
+      return this.snapshot();
+    });
+  }
+
+  async saveHomework(items = this.state.homeworkDraftItems, practicePlan = this.state.practicePlanDraft) {
+    return this.#run(async () => {
+      if (!this.state.activeLessonId) throw new Error('No lesson selected');
+      this.state.homeworkDraftItems = items.map(item => ({ ...item }));
+      this.state.practicePlanDraft = practicePlan ? structuredClone(practicePlan) : null;
+      this.state.homework = await this.viewModel.saveHomework(this.state.activeLessonId, this.state.homeworkDraftItems, this.state.practicePlanDraft);
+      this.state.homeworkDraftItems = this.state.homework.items.map(item => ({ ...item }));
+      this.state.practicePlanDraft = this.state.homework.practicePlan ? structuredClone(this.state.homework.practicePlan) : null;
       this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
@@ -285,6 +303,8 @@ export class TeacherAgendaController {
     this.state.activeLesson = lesson;
     this.state.reviewedItemIds = [...new Set(lesson.reviewedProgrammeItemIds ?? [])];
     this.state.homework = await this.viewModel.loadHomework(lesson.id);
+    this.state.homeworkDraftItems = this.state.homework?.items?.map(item => ({ ...item })) ?? [];
+    this.state.practicePlanDraft = this.state.homework?.practicePlan ? structuredClone(this.state.homework.practicePlan) : null;
     this.state.lessonHistory = await this.viewModel.listLessons(this.state.selectedTermId);
   }
 
