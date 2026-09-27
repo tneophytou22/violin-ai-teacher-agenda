@@ -808,6 +808,13 @@
 [data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li:hover {
   background: #f8fbff;
 }
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li:has(input[data-item]:checked) {
+  background: #f3f7ff;
+  box-shadow: inset 3px 0 var(--ta-blue);
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li:has(input[data-item]:disabled) {
+  background: #fafbfc;
+}
 [data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li button {
   white-space: nowrap;
   padding: 5px 8px;
@@ -830,7 +837,7 @@
 }
 [data-v15="teacher-agenda"] [data-view="lesson-details"] {
   display: grid;
-  grid-template-columns: 88px 68px 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   align-items: start;
   margin: 12px 0;
@@ -845,6 +852,11 @@
   width: 100%;
   min-width: 0;
   min-height: 76px;
+  grid-column: 1 / -1;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-details"] > [data-action="save-details"] {
+  grid-column: 1 / -1;
+  justify-self: start;
 }
 [data-v15="teacher-agenda"] [data-view="homework"] {
   margin-top: 12px;
