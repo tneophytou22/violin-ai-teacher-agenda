@@ -34,7 +34,9 @@ export class TeacherAgendaShell {
       items: items.filter(i => i.curriculumDomain === domain),
     }));
     const lesson = state.activeLesson;
-    const homeworkText = state.homework?.items?.map(item => item.text ?? item.title ?? '').join('\n') ?? '';
+    const homeworkItems = state.homeworkDraftItems ?? state.homework?.items ?? [];
+    const homeworkText = homeworkItems.map(item => item.text ?? item.title ?? '').join('\n');
+    const practicePlan = state.practicePlanDraft;
     const scaleProgressMarkup = state.scaleProgress ? '<section id="scale-progress" data-view="scale-progress" aria-label="Scale Progress and Mastery"><div data-view="scale-progress-header"><div><h2>Scale Progress / Mastery</h2><p>' + state.scaleProgress.completed + '/' + state.scaleProgress.total + ' completed · ' + state.scaleProgress.masteryPercent + '% assessed mastery</p></div><strong data-view="scale-mastery">' + state.scaleProgress.masteryPercent + '%</strong></div><div data-view="scale-category-list">' + Object.entries(state.scaleProgress.byCategory).map(([category, summary]) => '<div data-scale-category><div data-view="scale-category-heading"><strong>' + esc(category) + '</strong><span>' + summary.completed + '/' + summary.total + '</span></div><div data-view="scale-category-track"><progress max="100" value="' + summary.masteryPercent + '"></progress><span>' + summary.masteryPercent + '%</span></div></div>').join('') + '</div><div data-view="scale-progress-footer"><span>Mastery: Developing 40 · Secure 75 · Performance Ready 100</span><span>Mastery is teacher-assessed; completion is tracked separately.</span></div></section>' : '';
 
     this.root.innerHTML = `
@@ -120,11 +122,28 @@ export class TeacherAgendaShell {
       </label>
       <button type="button" data-action="save-details">Save lesson details</button>
     </div>
-    <div data-view="homework">
-      <h3>Homework</h3>
-      <textarea data-action="homework" rows="5" placeholder="One homework task per line">${esc(homeworkText)}</textarea>
-      <button type="button" data-action="save-homework">Save homework</button>
-      <p>${state.homework ? `${state.homework.items.length} homework item(s)` : 'No homework assigned yet.'}</p>
+    <div data-view="homework" aria-label="Homework workspace">
+      <div data-view="homework-header">
+        <div><h3>Homework Workspace</h3><p>Teacher-selected work → focused home-practice plan.</p></div>
+        <span data-view="homework-count">${homeworkItems.length} task(s)</span>
+      </div>
+      <textarea data-action="homework" rows="4" placeholder="One homework task per line">${esc(homeworkText)}</textarea>
+      <div data-view="homework-actions">
+        <button type="button" data-action="generate-practice-plan" ${homeworkText.trim() ? '' : 'disabled'}>Create Practice Plan</button>
+        <button type="button" data-action="save-homework">Save Homework</button>
+      </div>
+      ${practicePlan ? `
+        <div data-view="practice-plan" aria-label="Practice Plan">
+          <div data-view="practice-plan-header"><div><strong>Practice Plan</strong><span>Planner V1 · teacher approval required</span></div><strong>${practicePlan.totalMinutes} min</strong></div>
+          <div data-view="practice-plan-tasks">
+            ${practicePlan.tasks.map((task, index) => {
+              const item = homeworkItems[task.homeworkItemIndex] ?? {};
+              return `<article data-view="practice-task"><div data-view="practice-task-title"><span>${index + 1}</span><strong>${esc(item.text ?? item.title ?? 'Homework task')}</strong></div><label>Min <input type="number" min="0" max="180" data-plan-minutes="${index}" value="${esc(task.minutes)}" aria-label="Minutes for task ${index + 1}"></label><label>Focus <input type="text" data-plan-focus="${index}" value="${esc(task.focus)}" aria-label="Practice focus for task ${index + 1}"></label></article>`;
+            }).join('')}
+          </div>
+          <p data-view="practice-plan-note">The planner organises how to practise teacher-selected material; it does not change curriculum or progression.</p>
+        </div>
+      ` : `<div data-view="practice-plan-empty"><strong>No practice plan yet.</strong><span>Create one after entering the tasks you want the student to practise.</span></div>`}
     </div>
   ` : '<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>'}
 </section>
@@ -301,10 +320,20 @@ export class TeacherAgendaShell {
           const mark = rawMark === '' ? null : Number(rawMark);
           const teacherNote = this.root.querySelector('[data-action="teacher-note"]')?.value ?? '';
           await this.controller.updateLessonDetails({ attendance, mark, teacherNote });
+        } else if (action === 'generate-practice-plan') {
+          const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
+          const items = text.split('\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
+          await this.controller.generatePracticePlan(items);
         } else if (action === 'save-homework') {
           const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
           const items = text.split('\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
-          await this.controller.saveHomework(items);
+          const snapshot = this.controller.snapshot();
+          let plan = snapshot.practicePlanDraft;
+          if (plan) {
+            const tasks = plan.tasks.map((task, index) => ({ ...task, minutes: Number(this.root.querySelector(`[data-plan-minutes="${index}"]`)?.value ?? task.minutes), focus: this.root.querySelector(`[data-plan-focus="${index}"]`)?.value ?? task.focus }));
+            plan = { ...plan, totalMinutes: tasks.reduce((sum, task) => sum + task.minutes, 0), tasks };
+          }
+          await this.controller.saveHomework(items, plan);
         } else if (action === 'save-teacher-readiness-decision') {
           const decision = this.root.querySelector('[data-action="teacher-readiness-decision"]')?.value ?? '';
           const note = this.root.querySelector('[data-action="teacher-readiness-note"]')?.value ?? '';
