@@ -45,14 +45,20 @@ test('teacher agenda application journey persists core, lesson, homework, scales
 
   const lesson = await app.controller.createLesson('2026-09-26', { mark: 18 });
   await app.controller.reviewItems([reviewed.id]);
-  await app.controller.saveHomework([
-    { title: 'Slow bow practice', minutes: 10 },
-  ]);
+  const homeworkItems = [
+    { title: 'Slow bow practice', minutes: 10, curriculumDomain: 'PURE_TECHNICAL' },
+  ];
+  await app.controller.generatePracticePlan(homeworkItems);
+  await app.controller.saveHomework(homeworkItems);
 
   state = app.controller.snapshot();
   assert.equal(state.activeLessonId, lesson.id);
   assert.deepEqual(state.reviewedItemIds, [reviewed.id]);
-  assert.deepEqual(state.homework.items, [{ title: 'Slow bow practice', minutes: 10 }]);
+  assert.deepEqual(state.homework.items, homeworkItems);
+  assert.equal(state.homework.practicePlan.totalMinutes, 55);
+  assert.equal(state.homework.practicePlan.tasks.length, 1);
+  assert.equal(state.homework.practicePlan.tasks[0].minutes, 55);
+  assert.equal(state.homework.practicePlan.tasks[0].homeworkItemIndex, 0);
   assert.equal(state.lessonHistory.length, 1);
 
   await app.controller.completeItems([completed.id]);
@@ -92,7 +98,9 @@ test('teacher agenda application journey persists core, lesson, homework, scales
   assert.equal(state.lessonHistory.length, 1);
   assert.equal(state.lessonHistory[0].id, lesson.id);
   assert.deepEqual(state.activeLesson.reviewedProgrammeItemIds, [reviewed.id]);
-  assert.deepEqual(state.homework.items, [{ title: 'Slow bow practice', minutes: 10 }]);
+  assert.deepEqual(state.homework.items, homeworkItems);
+  assert.equal(state.homework.practicePlan.totalMinutes, 55);
+  assert.equal(state.homework.practicePlan.tasks[0].minutes, 55);
 
   const persistedScale = state.scaleProgress.items.find(item => item.id === scale.id);
   assert.equal(persistedScale.details.mastery.status, 'DEVELOPING');
