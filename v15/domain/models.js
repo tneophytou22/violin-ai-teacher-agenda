@@ -20,6 +20,23 @@ export function createStudent({ name, phone = '', schoolType = 'PRIVATE', school
   };
 }
 
+export function updateStudent(student, changes = {}) {
+  if (!student?.id) throw new Error('Student.id is required');
+  const merged = {
+    name: changes.name ?? student.name,
+    phone: changes.phone ?? student.phone ?? '',
+    schoolType: changes.schoolType ?? student.schoolType ?? 'PRIVATE',
+    schoolName: changes.schoolName ?? student.schoolName ?? '',
+    instrument: changes.instrument ?? student.instrument ?? 'VIOLIN',
+  };
+  const validated = createStudent(merged);
+  return {
+    ...validated,
+    id: student.id,
+    createdAt: student.createdAt ?? validated.createdAt,
+  };
+}
+
 export function createTerm({ studentId, name, startDate, endDate, level = null, termNumber = 1, readinessDecision = null, readinessDecisionNote = '', readinessDecisionAt = null }) {
   if (!studentId) throw new Error('Term.studentId is required');
   if (!name?.trim()) throw new Error('Term name is required');
