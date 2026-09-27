@@ -12,10 +12,13 @@ const validatePracticePlan = (practicePlan, items) => {
   if (!Array.isArray(practicePlan.tasks)) throw new Error('Homework.practicePlan.tasks must be an array');
 
   const tasks = practicePlan.tasks.map(task => ({ ...task }));
+  if (tasks.length !== items.length) throw new Error('Homework.practicePlan must cover every homework item');
+  const indexes = new Set();
   for (const task of tasks) {
-    if (!Number.isInteger(task.homeworkItemIndex) || task.homeworkItemIndex < 0 || task.homeworkItemIndex >= items.length) {
+    if (!Number.isInteger(task.homeworkItemIndex) || task.homeworkItemIndex < 0 || task.homeworkItemIndex >= items.length || indexes.has(task.homeworkItemIndex)) {
       throw new Error('Homework.practicePlan task references an invalid homework item');
     }
+    indexes.add(task.homeworkItemIndex);
     if (!Number.isInteger(task.minutes) || task.minutes < 0) {
       throw new Error('Homework.practicePlan task minutes must be a non-negative integer');
     }
