@@ -578,6 +578,17 @@
 }
 
 /* Lesson history */
+[data-v15="teacher-agenda"] [data-view="lesson-history"] > summary {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-history"] > summary small {
+  color:#7a8793;
+  font-size:.61rem;
+  font-weight:600;
+}
 [data-v15="teacher-agenda"] [data-view="history-insight"] {
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
