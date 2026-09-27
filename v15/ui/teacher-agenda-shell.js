@@ -1,4 +1,5 @@
 import { TeacherAgendaController, localDateString } from './teacher-agenda-controller.js';
+import { generateViberHomeworkMessage, generateParentHomeworkMessage } from '../services/homework-messages.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -37,6 +38,8 @@ export class TeacherAgendaShell {
     const homeworkItems = state.homeworkDraftItems ?? state.homework?.items ?? [];
     const homeworkText = homeworkItems.map(item => item.text ?? item.title ?? '').join('\n');
     const practicePlan = state.practicePlanDraft;
+    const viberMessage = student ? generateViberHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, termNumber: state.termContext?.term?.termNumber, items: homeworkItems, practicePlan }) : '';
+    const parentMessage = student ? generateParentHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, items: homeworkItems, practicePlan }) : '';
     const scaleProgressMarkup = state.scaleProgress ? '<section id="scale-progress" data-view="scale-progress" aria-label="Scale Progress and Mastery"><div data-view="scale-progress-header"><div><h2>Scale Progress / Mastery</h2><p>' + state.scaleProgress.completed + '/' + state.scaleProgress.total + ' completed · ' + state.scaleProgress.masteryPercent + '% assessed mastery</p></div><strong data-view="scale-mastery">' + state.scaleProgress.masteryPercent + '%</strong></div><div data-view="scale-category-list">' + Object.entries(state.scaleProgress.byCategory).map(([category, summary]) => '<div data-scale-category><div data-view="scale-category-heading"><strong>' + esc(category) + '</strong><span>' + summary.completed + '/' + summary.total + '</span></div><div data-view="scale-category-track"><progress max="100" value="' + summary.masteryPercent + '"></progress><span>' + summary.masteryPercent + '%</span></div></div>').join('') + '</div><div data-view="scale-progress-footer"><span>Mastery: Developing 40 · Secure 75 · Performance Ready 100</span><span>Mastery is teacher-assessed; completion is tracked separately.</span></div></section>' : '';
 
     this.root.innerHTML = `
@@ -144,6 +147,7 @@ export class TeacherAgendaShell {
           <p data-view="practice-plan-note">The planner organises how to practise teacher-selected material; it does not change curriculum or progression.</p>
         </div>
       ` : `<div data-view="practice-plan-empty"><strong>No practice plan yet.</strong><span>Create one after entering the tasks you want the student to practise.</span></div>`}
+      ${homeworkItems.length ? `<details data-view="homework-communication"><summary>Communication · Viber / Parent</summary><div data-view="message-preview"><strong>Viber</strong><pre>${esc(viberMessage)}</pre><button type="button" data-action="copy-viber">Copy Viber Message</button></div><div data-view="message-preview"><strong>Parent support</strong><pre>${esc(parentMessage)}</pre><button type="button" data-action="copy-parent">Copy Parent Message</button></div><p>Messages are generated from the saved Homework + Practice Plan. V15 does not send Viber automatically.</p></details>` : null}
     </div>
   ` : '<p>Start a lesson to record attendance, mark, reviewed work and homework.</p>'}
 </section>
@@ -320,6 +324,29 @@ export class TeacherAgendaShell {
           const mark = rawMark === '' ? null : Number(rawMark);
           const teacherNote = this.root.querySelector('[data-action="teacher-note"]')?.value ?? '';
           await this.controller.updateLessonDetails({ attendance, mark, teacherNote });
+        } else if (action === 'copy-viber') {
+          const snapshot = this.controller.snapshot();
+          const student = snapshot.students.find(item => item.id === snapshot.selectedStudentId);
+          const message = generateViberHomeworkMessage({
+            studentName: student?.name,
+            level: snapshot.termContext?.term?.level,
+            termNumber: snapshot.termContext?.term?.termNumber,
+            items: snapshot.homework?.items ?? snapshot.homeworkDraftItems ?? [],
+            practicePlan: snapshot.homework?.practicePlan ?? snapshot.practicePlanDraft,
+          });
+          if (!navigator.clipboard?.writeText) throw new Error('Clipboard is unavailable in this browser');
+          await navigator.clipboard.writeText(message);
+        } else if (action === 'copy-parent') {
+          const snapshot = this.controller.snapshot();
+          const student = snapshot.students.find(item => item.id === snapshot.selectedStudentId);
+          const message = generateParentHomeworkMessage({
+            studentName: student?.name,
+            level: snapshot.termContext?.term?.level,
+            items: snapshot.homework?.items ?? snapshot.homeworkDraftItems ?? [],
+            practicePlan: snapshot.homework?.practicePlan ?? snapshot.practicePlanDraft,
+          });
+          if (!navigator.clipboard?.writeText) throw new Error('Clipboard is unavailable in this browser');
+          await navigator.clipboard.writeText(message);
         } else if (action === 'generate-practice-plan') {
           const text = this.root.querySelector('[data-action="homework"]')?.value ?? '';
           const items = text.split('\n').map(value => value.trim()).filter(Boolean).map(value => ({ text: value, completed: false }));
