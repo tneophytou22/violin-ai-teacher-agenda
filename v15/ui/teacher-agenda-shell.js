@@ -228,6 +228,11 @@ export class TeacherAgendaShell {
   </div>
   ${lesson ? `
     <p data-view="lesson-status"><strong>${esc(lesson.date)}</strong> · ${esc(lesson.attendance)} · ${lesson.mark ?? 'No mark'} · ${state.reviewedItemIds.length} item(s) reviewed.</p>
+    <div data-view="lesson-session-flow" aria-label="Lesson workflow">
+      <div data-session-step="record" data-complete="true"><span>1</span><strong>Record</strong><small>Attendance · mark · note</small></div>
+      <div data-session-step="review" data-complete="${state.reviewedItemIds.length > 0}"><span>2</span><strong>Review</strong><small>${state.reviewedItemIds.length ? `${state.reviewedItemIds.length} recorded` : 'Select work in Week View'}</small></div>
+      <div data-session-step="homework" data-complete="${homeworkItems.length > 0}"><span>3</span><strong>Homework</strong><small>${homeworkItems.length ? `${homeworkItems.length} assigned` : 'Assign selected work'}</small></div>
+    </div>
     <div data-view="lesson-session-summary" aria-label="Lesson session summary">
       <div><span>Reviewed</span><strong>${state.reviewedItemIds.length}</strong></div>
       <div><span>Homework</span><strong>${homeworkItems.length}</strong></div>
