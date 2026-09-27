@@ -1289,3 +1289,82 @@
   color: var(--ta-muted);
   font-size: .76rem;
 }
+
+/* Scale Progress — fast mastery snapshot */
+[data-v15="teacher-agenda"] [data-view="scale-progress"] {
+  border-top: 3px solid var(--ta-purple);
+  box-shadow: 0 6px 18px rgba(72, 49, 110, .06);
+}
+[data-v15="teacher-agenda"] [data-view="scale-progress-header"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+[data-v15="teacher-agenda"] [data-view="scale-progress-header"] p {
+  margin: 3px 0 0;
+  color: #6a617b;
+  font-size: .7rem;
+}
+[data-v15="teacher-agenda"] [data-view="scale-mastery"] {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border: 4px solid #d8c7ff;
+  border-radius: 50%;
+  background: white;
+  color: #7650cf;
+  font-size: .78rem;
+  font-weight: 850;
+}
+[data-v15="teacher-agenda"] [data-view="scale-category-list"] {
+  display: grid;
+  gap: 10px;
+  margin-top: 13px;
+}
+[data-v15="teacher-agenda"] [data-scale-category] {
+  padding: 8px 9px;
+  border: 1px solid #e4daf8;
+  border-radius: 8px;
+  background: rgba(255,255,255,.58);
+}
+[data-v15="teacher-agenda"] [data-view="scale-category-heading"] {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: .72rem;
+}
+[data-v15="teacher-agenda"] [data-view="scale-category-heading"] span {
+  color: #6b617a;
+  font-weight: 750;
+}
+[data-v15="teacher-agenda"] [data-view="scale-category-track"] {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 7px;
+  align-items: center;
+}
+[data-v15="teacher-agenda"] [data-view="scale-category-track"] progress {
+  width: 100%;
+  height: 7px;
+  margin: 0;
+  accent-color: var(--ta-purple);
+}
+[data-v15="teacher-agenda"] [data-view="scale-category-track"] span {
+  min-width: 29px;
+  text-align: right;
+  color: #7250bd;
+  font-size: .67rem;
+  font-weight: 800;
+}
+[data-v15="teacher-agenda"] [data-view="scale-progress-footer"] {
+  display: grid;
+  gap: 3px;
+  margin-top: 11px;
+  color: #756c82;
+  font-size: .66rem;
+  line-height: 1.35;
+}
