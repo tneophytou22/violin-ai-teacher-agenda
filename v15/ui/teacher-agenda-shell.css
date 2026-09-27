@@ -816,6 +816,13 @@
 [data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li:hover {
   background: #f8fbff;
 }
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li[data-reviewed="true"]:not(:has(input[data-item]:checked)):not([data-status="completed"]) {
+  background:#f8fbff;
+  box-shadow:inset 2px 0 #8bb5f3;
+}
+[data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li[data-reviewed="true"] [data-view="programme-item-title"] {
+  font-weight:650;
+}
 [data-v15="teacher-agenda"] [data-view="weekly-agenda"] [data-domain]:not([data-domain="SCALES"]) li:has(input[data-item]:checked) {
   background: #f3f7ff;
   box-shadow: inset 3px 0 var(--ta-blue);
