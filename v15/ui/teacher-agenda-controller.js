@@ -44,7 +44,15 @@ export class TeacherAgendaController {
 
   async createStudent(input) {
     return this.#run(async () => {
-      const student = await this.viewModel.students.create(input);
+      const { initialTerm = null, ...studentInput } = input ?? {};
+      const student = await this.viewModel.students.create(studentInput);
+      if (initialTerm?.level !== null && initialTerm?.level !== undefined) {
+        await this.viewModel.terms.create({
+          ...initialTerm,
+          studentId: student.id,
+          name: initialTerm.name || 'Term 1',
+        });
+      }
       this.state.students = await this.viewModel.students.list();
       await this.#selectStudent(student.id);
       return student;
