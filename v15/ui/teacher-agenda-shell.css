@@ -365,6 +365,38 @@
   background: #fbfdfb;
 }
 
+[data-v15="teacher-agenda"] [data-domain="SCALES"] > summary {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+[data-v15="teacher-agenda"] [data-domain="SCALES"] > summary strong {
+  padding:3px 7px;
+  border-radius:999px;
+  background:#eef8f3;
+  color:#247652;
+  font-size:.61rem;
+  font-weight:750;
+}
+[data-v15="teacher-agenda"] [data-scale-item][data-mastery-status="DEVELOPING"] {
+  border-left:3px solid #e7c56b;
+  padding-left:8px;
+}
+[data-v15="teacher-agenda"] [data-scale-item][data-mastery-status="SECURE"] {
+  border-left:3px solid #75b98f;
+  padding-left:8px;
+}
+[data-v15="teacher-agenda"] [data-scale-item][data-mastery-status="PERFORMANCE_READY"] {
+  border-left:3px solid #6c9fe8;
+  padding-left:8px;
+}
+[data-v15="teacher-agenda"] [data-view="scale-assessment-row"] button[data-action="assess-scale"] {
+  border-color:#b9d9c9;
+  background:#f1faf5;
+  color:#17734a;
+  font-weight:700;
+}
 [data-v15="teacher-agenda"] [data-domain="SCALES"] ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
 
 [data-v15="teacher-agenda"] [data-scale-item] {
