@@ -4,7 +4,7 @@ import { generateViberHomeworkMessage, generateParentHomeworkMessage } from '../
 const esc = value => String(value ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const homeworkItemsFromText = (text, existingItems = []) => {
-  const lines = String(text ?? '').split('\\n').map(value => value.trim()).filter(Boolean);
+  const lines = String(text ?? '').split('\n').map(value => value.trim()).filter(Boolean);
   const unused = new Set(existingItems.map((_, index) => index));
   return lines.map((line, lineIndex) => {
     const exactIndex = existingItems.findIndex((item, index) => unused.has(index) && String(item?.title ?? item?.text ?? '').trim() === line);
