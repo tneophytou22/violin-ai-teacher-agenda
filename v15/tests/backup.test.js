@@ -430,3 +430,19 @@ test('delete student keeps the safety backup before cascade deletion', async () 
   assert.equal(await repository.get('students', student.id), null);
   assert.deepEqual(root.innerHTML.includes('Delete Safety Student'), false);
 });
+
+test('BackupService restores through the atomic repository replacement contract', async () => {
+  const data = sampleData();
+  let replaced = null;
+  const repository = {
+    async list(name) { return structuredClone(data[name]); },
+    async clear() { throw new Error('restore must not clear stores separately'); },
+    async replaceAll(stores) { replaced = structuredClone(stores); },
+  };
+  const service = new BackupService(repository);
+  const backup = await service.createBackup();
+
+  await service.restoreBackup(backup);
+
+  assert.deepEqual(replaced, backup.stores);
+});
