@@ -178,7 +178,15 @@ export class TeacherAgendaController {
         await this.#loadSelectedTerm();
       }
       if (entry.lessonId) {
-        await this.#activateLesson(await this.viewModel.getLesson(entry.lessonId));
+        const lesson = await this.viewModel.getLesson(entry.lessonId);
+        if (!lesson) throw new Error('Agenda lesson not found');
+        if (entry.termId && lesson.termId !== entry.termId) {
+          throw new Error('Agenda lesson does not belong to the scheduled term');
+        }
+        if (lesson.date !== entry.date) {
+          throw new Error('Agenda lesson date does not match the scheduled date');
+        }
+        await this.#activateLesson(lesson);
       } else if (entry.termId && this.state.selectedTermId === entry.termId) {
         const lesson = await this.viewModel.createLesson(this.state.selectedTermId, entry.date);
         await this.#activateLesson(lesson);
