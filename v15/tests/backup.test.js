@@ -232,6 +232,7 @@ test('BackupService rejects invalid records', async () => {
       format: 'violin-ai-teacher-agenda-v15-backup',
       formatVersion: BACKUP_FORMAT_VERSION,
       stores,
+      counts: Object.fromEntries(STORE_NAMES.map(name => [name, stores[name].length])),
     }),
     /Invalid record in V15 backup store: students/
   );
