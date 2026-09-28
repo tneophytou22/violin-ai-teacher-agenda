@@ -150,3 +150,19 @@ Locked rules:
 - Legacy students with lessonDay/lessonTime but no lessonSchedule remain readable through a compatibility fallback.
 - Opening a scheduled Agenda entry may create the dated Lesson only when an active Term covers that date.
 - Agenda UI is progressive-disclosure: schedule first, then the existing lesson workflow, homework, programme and intelligence.
+
+
+### Phase 45 — Teacher Agenda Daily Cockpit Integration
+
+The weekly Teacher Agenda is now the teacher's scheduling entry point into the existing Lesson Session workflow.
+
+Locked rules:
+- Selecting a scheduled Agenda entry selects the corresponding Student and active Term.
+- If a dated Lesson already exists for the entry, that existing Lesson is opened; a duplicate Lesson is not created.
+- If no Lesson exists, the dated Lesson may be created only when the selected Term covers the scheduled date.
+- Opening an Agenda entry refreshes the Agenda state so the entry can reflect its current lesson state.
+- While the selected Lesson is active, the Agenda may display `In progress`.
+- Ending a Lesson clears the active lesson state, persists the lesson details, refreshes lesson history/intelligence, and refreshes the Agenda.
+- A recorded occurrence is represented by the existing Lesson record and its attendance/status; the recurring Student.lessonSchedule remains unchanged.
+- The Student roster displays all configured weekly lesson slots, while preserving the legacy single-slot fallback.
+- These states are UI projections over existing persisted Student/Term/Lesson data; no duplicate schedule state is introduced into Lesson.
