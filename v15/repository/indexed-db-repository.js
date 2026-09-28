@@ -91,6 +91,33 @@ export class IndexedDBRepository {
       tx.onerror = () => reject(tx.error ?? new Error(`Failed to clear ${name}`));
     })));
   }
+
+  async replaceAll(stores) {
+    const db = await this.#db();
+    const recordsByStore = STORE_NAMES.map(name => {
+      const records = stores[name];
+      if (!Array.isArray(records)) throw new Error(`Missing records for store: ${name}`);
+      return [name, records.map(clone)];
+    });
+
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction([...STORE_NAMES], 'readwrite');
+      try {
+        for (const [name, records] of recordsByStore) {
+          const store = tx.objectStore(name);
+          store.clear();
+          for (const record of records) store.put(record);
+        }
+      } catch (error) {
+        tx.abort();
+        reject(error);
+        return;
+      }
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error ?? new Error('V15 restore transaction failed'));
+      tx.onabort = () => reject(tx.error ?? new Error('V15 restore transaction aborted'));
+    });
+  }
 }
 
 export { DB_VERSION, STORE_NAMES };
