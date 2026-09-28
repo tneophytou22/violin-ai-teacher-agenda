@@ -179,7 +179,7 @@ export class TeacherAgendaController {
       }
       if (entry.lessonId) {
         await this.#activateLesson(await this.viewModel.getLesson(entry.lessonId));
-      } else if (this.state.selectedTermId) {
+      } else if (entry.termId && this.state.selectedTermId === entry.termId) {
         const lesson = await this.viewModel.createLesson(this.state.selectedTermId, entry.date);
         await this.#activateLesson(lesson);
       }
