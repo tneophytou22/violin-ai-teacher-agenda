@@ -1,7 +1,7 @@
 import { ScaleMasteryService } from '../services/scale-mastery-service.js';
 
 export class TeacherAgendaViewModel {
-  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, practicePlannerService = null, scaleMasteryService = null, studentIntelligenceService = null, backupService = null }) {
+  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, practicePlannerService = null, scaleMasteryService = null, studentIntelligenceService = null, backupService = null, teacherAgendaService = null }) {
     this.students = studentService;
     this.terms = termService;
     this.teacherTerms = teacherTermService;
@@ -13,6 +13,12 @@ export class TeacherAgendaViewModel {
     this.scaleMastery = scaleMasteryService;
     this.studentIntelligence = studentIntelligenceService;
     this.backup = backupService;
+    this.agenda = teacherAgendaService;
+  }
+
+  async loadAgenda(date) {
+    if (!this.agenda) throw new Error('Teacher Agenda service is not configured');
+    return this.agenda.loadWeek(date);
   }
 
   async loadStudent(studentId) {
