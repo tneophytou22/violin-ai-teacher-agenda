@@ -442,3 +442,116 @@ test('opening a recorded agenda entry reuses the existing lesson without creatin
   assert.equal(createLessonCalls, 0);
   assert.equal(controller.snapshot().activeLessonId, lesson.id);
 });
+
+
+test('opening a scheduled agenda entry creates exactly one lesson for the active term', async () => {
+  let createLessonCalls = 0;
+  const createdLesson = {
+    id: 'lesson-created',
+    termId: 'term-1',
+    date: '2026-09-28',
+    attendance: 'PRESENT',
+    reviewedProgrammeItemIds: [],
+  };
+  const viewModel = {
+    students: { list: async () => [{ id: 'student-1', name: 'Scheduled Student' }] },
+    loadStudent: async () => ({
+      terms: [{
+        id: 'term-1',
+        studentId: 'student-1',
+        startDate: '2026-09-01',
+        endDate: '2026-12-31',
+        level: 3,
+        termNumber: 1,
+      }],
+    }),
+    loadStudentIntelligence: async () => null,
+    loadLongitudinalDevelopment: async () => null,
+    loadEvidenceSignals: async () => [],
+    loadTeacherDecisionPrompts: async () => [],
+    loadTeacherReadinessReview: async () => null,
+    loadTerm: async () => ({ id: 'term-1' }),
+    teacherTerms: { activateCard: async () => null },
+    loadTermProgress: async () => ({}),
+    loadScaleProgress: async () => ({}),
+    loadWeek: async () => ({ items: [], summary: {} }),
+    listLessons: async () => [],
+    loadHomework: async () => null,
+    getLesson: async () => null,
+    createLesson: async (termId, date) => {
+      createLessonCalls += 1;
+      return { ...createdLesson, termId, date };
+    },
+    loadAgenda: async () => ({
+      weekStart: '2026-09-28',
+      weekEnd: '2026-10-04',
+      today: '2026-09-28',
+      days: [],
+      entries: [],
+    }),
+  };
+
+  const controller = new TeacherAgendaController(viewModel, { today: () => '2026-09-28' });
+  await controller.loadStudents();
+  await controller.openAgendaEntry({
+    id: 'student-1-2026-09-28-17:00',
+    studentId: 'student-1',
+    termId: 'term-1',
+    date: '2026-09-28',
+  });
+
+  assert.equal(createLessonCalls, 1);
+  assert.equal(controller.snapshot().activeLessonId, createdLesson.id);
+});
+
+test('opening a scheduled agenda entry without an active term does not create a lesson', async () => {
+  let createLessonCalls = 0;
+  const viewModel = {
+    students: { list: async () => [{ id: 'student-1', name: 'Out Of Term Student' }] },
+    loadStudent: async () => ({
+      terms: [{
+        id: 'term-old',
+        studentId: 'student-1',
+        startDate: '2026-09-01',
+        endDate: '2026-09-20',
+        level: 3,
+        termNumber: 1,
+      }],
+    }),
+    loadStudentIntelligence: async () => null,
+    loadLongitudinalDevelopment: async () => null,
+    loadEvidenceSignals: async () => [],
+    loadTeacherDecisionPrompts: async () => [],
+    loadTeacherReadinessReview: async () => null,
+    loadTerm: async () => ({ id: 'term-old' }),
+    teacherTerms: { activateCard: async () => null },
+    loadTermProgress: async () => ({}),
+    loadScaleProgress: async () => ({}),
+    loadWeek: async () => ({ items: [], summary: {} }),
+    listLessons: async () => [],
+    loadHomework: async () => null,
+    getLesson: async () => null,
+    createLesson: async () => {
+      createLessonCalls += 1;
+      return { id: 'unexpected-lesson' };
+    },
+    loadAgenda: async () => ({
+      weekStart: '2026-09-28',
+      weekEnd: '2026-10-04',
+      today: '2026-09-28',
+      days: [],
+      entries: [],
+    }),
+  };
+
+  const controller = new TeacherAgendaController(viewModel, { today: () => '2026-09-28' });
+  await controller.loadStudents();
+  await controller.openAgendaEntry({
+    id: 'student-1-2026-09-28-17:00',
+    studentId: 'student-1',
+    date: '2026-09-28',
+  });
+
+  assert.equal(createLessonCalls, 0);
+  assert.equal(controller.snapshot().activeLessonId, null);
+});
