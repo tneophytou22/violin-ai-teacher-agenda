@@ -226,15 +226,24 @@ export class TeacherAgendaShell {
                       <option value="OTHER" ${student.instrument === 'OTHER' ? 'selected' : ''}>Other</option>
                     </select>
                   </label>
-                  <label>Lesson day
-                    <select data-action="student-profile-lesson-day">
-                      <option value="">Not set</option>
-                      <option value="MONDAY" ${student.lessonDay === 'MONDAY' ? 'selected' : ''}>Monday</option><option value="TUESDAY" ${student.lessonDay === 'TUESDAY' ? 'selected' : ''}>Tuesday</option><option value="WEDNESDAY" ${student.lessonDay === 'WEDNESDAY' ? 'selected' : ''}>Wednesday</option><option value="THURSDAY" ${student.lessonDay === 'THURSDAY' ? 'selected' : ''}>Thursday</option><option value="FRIDAY" ${student.lessonDay === 'FRIDAY' ? 'selected' : ''}>Friday</option><option value="SATURDAY" ${student.lessonDay === 'SATURDAY' ? 'selected' : ''}>Saturday</option><option value="SUNDAY" ${student.lessonDay === 'SUNDAY' ? 'selected' : ''}>Sunday</option>
-                    </select>
-                  </label>
-                  <label>Lesson time
-                    <input data-action="student-profile-lesson-time" type="time" value="${esc(student.lessonTime || '')}">
-                </label>
+                  <div data-view="student-profile-schedule">
+                    <strong>Weekly lessons</strong>
+                    <small>Add one or two weekly lesson slots.</small>
+                    <div data-view="student-profile-schedule-grid">
+                      <label>Lesson 1 · Day
+                        <select data-action="student-profile-lesson-day-1">${this.#lessonDayOptions(student.lessonSchedule?.[0]?.day ?? student.lessonDay ?? '')}</select>
+                      </label>
+                      <label>Time
+                        <input data-action="student-profile-lesson-time-1" type="time" value="${esc(student.lessonSchedule?.[0]?.time ?? student.lessonTime ?? '')}">
+                      </label>
+                      <label>Lesson 2 · Day
+                        <select data-action="student-profile-lesson-day-2">${this.#lessonDayOptions(student.lessonSchedule?.[1]?.day ?? '')}</select>
+                      </label>
+                      <label>Time
+                        <input data-action="student-profile-lesson-time-2" type="time" value="${esc(student.lessonSchedule?.[1]?.time ?? '')}">
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 <p data-view="student-profile-term-note">Current level: ${state.termContext?.term?.level ? 'Level ' + esc(state.termContext.term.level) + ' · Term ' + esc(state.termContext.term.termNumber) : 'No level set'} · change level from Term Details.</p>
                 <div data-view="student-profile-actions">
@@ -554,6 +563,13 @@ export class TeacherAgendaShell {
     this.#bindDialogActions();
   }
 
+  #lessonDayOptions(selectedDay = '') {
+    const days = [
+      ['MONDAY', 'Monday'], ['TUESDAY', 'Tuesday'], ['WEDNESDAY', 'Wednesday'],
+      ['THURSDAY', 'Thursday'], ['FRIDAY', 'Friday'], ['SATURDAY', 'Saturday'], ['SUNDAY', 'Sunday'],
+    ];
+    return ['<option value="">Not set</option>', ...days.map(([value, label]) => `<option value="${value}" ${selectedDay === value ? 'selected' : ''}>${label}</option>`)].join('');
+  }
   #openDialog(selector) {
     const dialog = this.root.querySelector(selector);
     if (!dialog) throw new Error('Dialog not found');
@@ -658,9 +674,14 @@ export class TeacherAgendaShell {
           const schoolType = this.root.querySelector('[data-action="student-profile-school-type"]')?.value ?? 'PRIVATE';
           const schoolName = this.root.querySelector('[data-action="student-profile-school-name"]')?.value?.trim() ?? '';
           const instrument = this.root.querySelector('[data-action="student-profile-instrument"]')?.value ?? 'VIOLIN';
-          const lessonDay = this.root.querySelector('[data-action="student-profile-lesson-day"]')?.value ?? '';
-          const lessonTime = this.root.querySelector('[data-action="student-profile-lesson-time"]')?.value ?? '';
-          await this.controller.updateStudent({ name, phone, schoolType, schoolName, instrument, lessonDay, lessonTime });
+          const lessonDay1 = this.root.querySelector('[data-action="student-profile-lesson-day-1"]')?.value ?? '';
+          const lessonTime1 = this.root.querySelector('[data-action="student-profile-lesson-time-1"]')?.value ?? '';
+          const lessonDay2 = this.root.querySelector('[data-action="student-profile-lesson-day-2"]')?.value ?? '';
+          const lessonTime2 = this.root.querySelector('[data-action="student-profile-lesson-time-2"]')?.value ?? '';
+          const lessonSchedule = [];
+          if (lessonDay1 || lessonTime1) lessonSchedule.push({ day: lessonDay1, time: lessonTime1 });
+          if (lessonDay2 || lessonTime2) lessonSchedule.push({ day: lessonDay2, time: lessonTime2 });
+          await this.controller.updateStudent({ name, phone, schoolType, schoolName, instrument, lessonSchedule });
           this.#closeDialog('[data-view="student-profile-dialog"]');
           this.render();
         } else if (action === 'create-student') {
