@@ -226,7 +226,9 @@ export class TeacherAgendaShell {
 <section data-view="lesson">
   <div data-view="lesson-header">
     <div><h2>Lesson Session</h2><p>Record the lesson, review work and assign focused practice.</p></div>
-    <button type="button" data-action="lesson" ${state.activeLessonId || !state.selectedTermId ? 'disabled' : ''}>${state.activeLessonId ? 'Lesson active ✓' : `Start lesson · ${this.now()}`}</button>
+    ${state.activeLessonId
+      ? '<button type="button" data-action="end-lesson" ' + (homeworkNeedsSave ? 'disabled' : '') + ' title="' + (homeworkNeedsSave ? 'Save Homework before ending the lesson' : 'End the current lesson') + '">End lesson</button>'
+      : '<button type="button" data-action="lesson" ' + (!state.selectedTermId ? 'disabled' : '') + '>Start lesson · ' + this.now() + '</button>'}
   </div>
   ${lesson ? `
     <p data-view="lesson-status"><strong>${esc(lesson.date)}</strong> · ${esc(lesson.attendance)} · ${lesson.mark ?? 'No mark'} · ${state.reviewedItemIds.length} item(s) reviewed.</p>
@@ -588,6 +590,8 @@ export class TeacherAgendaShell {
           this.controller.clearItemSelection();
         } else if (action === 'lesson') {
           await this.controller.createLesson(this.now());
+        } else if (action === 'end-lesson') {
+          await this.controller.endLesson();
         } else if (action === 'review') {
           await this.controller.reviewItems(this.controller.snapshot().selectedItemIds);
         } else if (action === 'complete-selected') {
