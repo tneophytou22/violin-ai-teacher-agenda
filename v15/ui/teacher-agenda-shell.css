@@ -2710,3 +2710,19 @@
   color: #7c8791;
   border-color: var(--ta-border);
 }
+
+
+/* Lesson Session — explicit close action */
+[data-v15="teacher-agenda"] [data-view="lesson-header"] [data-action="end-lesson"] {
+  border-color: #e1b7b7;
+  background: #fff8f8;
+  color: #8a3d3d;
+  font-weight: 750;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-header"] [data-action="end-lesson"]:hover:not(:disabled) {
+  background: #fff0f0;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-header"] [data-action="end-lesson"]:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
