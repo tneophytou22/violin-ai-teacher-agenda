@@ -12,6 +12,8 @@ export class TeacherAgendaController {
     this.operationTail = Promise.resolve();
     this.state = {
       students: [],
+      agenda: null,
+      agendaDate: this.today(),
       selectedStudentId: null,
       terms: [],
       selectedTermId: null,
@@ -52,6 +54,7 @@ export class TeacherAgendaController {
         student = await this.viewModel.students.create(studentInput);
       }
       this.state.students = await this.viewModel.students.list();
+      this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
       await this.#selectStudent(student.id);
       return student;
     });
@@ -62,6 +65,7 @@ export class TeacherAgendaController {
       if (!this.state.selectedStudentId) throw new Error('No student selected');
       const student = await this.viewModel.updateStudent(this.state.selectedStudentId, changes);
       this.state.students = await this.viewModel.students.list();
+      this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
       return student;
     });
   }
@@ -72,6 +76,7 @@ export class TeacherAgendaController {
       const studentId = this.state.selectedStudentId;
       await this.viewModel.deleteStudent(studentId);
       this.state.students = await this.viewModel.students.list();
+      this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
       this.state.selectedStudentId = null;
       this.state.selectedTermId = null;
       this.state.terms = [];
@@ -99,6 +104,7 @@ export class TeacherAgendaController {
     return this.#run(async () => {
       const restored = await this.viewModel.restoreBackup(backup);
       this.state.students = await this.viewModel.students.list();
+      this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
       this.state.selectedStudentId = null;
       this.state.selectedTermId = null;
       this.state.terms = [];
@@ -140,12 +146,35 @@ export class TeacherAgendaController {
   async loadStudents() {
     return this.#run(async () => {
       this.state.students = await this.viewModel.students.list();
+      this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
       return this.snapshot();
     });
   }
 
   async selectStudent(studentId) {
     return this.#run(() => this.#selectStudent(studentId));
+  }
+
+  async loadAgenda(date = this.today()) {
+    return this.#run(async () => {
+      this.state.agendaDate = date;
+      this.state.agenda = await this.viewModel.loadAgenda(date);
+      return this.snapshot();
+    });
+  }
+
+  async shiftAgendaWeek(direction) {
+    return this.#run(async () => {
+      if (!Number.isInteger(direction) || ![-1, 1].includes(direction)) {
+        throw new Error('Agenda week direction must be -1 or 1');
+      }
+      const current = String(this.state.agendaDate).split('-').map(Number);
+      const date = new Date(current[0], current[1] - 1, current[2]);
+      date.setDate(date.getDate() + direction * 7);
+      this.state.agendaDate = localDateString(date);
+      this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
+      return this.snapshot();
+    });
   }
 
   async #selectStudent(studentId) {
