@@ -81,9 +81,7 @@ export function buildTeacherAgenda({ students = [], termsByStudent = {}, lessons
       const lesson = activeTerm
         ? lessons.find(candidate => candidate.termId === activeTerm.id && candidate.date === dateString) ?? null
         : null;
-      const term = lesson
-        ? activeTerm
-        : null;
+      const term = activeTerm;
 
       entries.push({
         id: `${student.id}:${dateString}:${slot.time}`,
