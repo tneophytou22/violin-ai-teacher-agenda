@@ -63,6 +63,36 @@ test('repository ownership boundaries reject orphan child creation', async () =>
   assert.deepEqual(await repo.list('homework'), []);
 });
 
+test('student with initial term is created atomically', async () => {
+  const repo = new InMemoryRepository();
+  const studentService = new StudentService(repo);
+
+  await assert.rejects(
+    () => studentService.createWithInitialTerm(
+      { name: 'Atomic Initial Term Failure' },
+      { name: 'Invalid Term', level: 11, termNumber: 1 },
+    ),
+    /Term.level must be an integer from 1–10 or null/
+  );
+
+  assert.deepEqual(await repo.list('students'), []);
+  assert.deepEqual(await repo.list('terms'), []);
+
+  const created = await studentService.createWithInitialTerm(
+    { name: 'Atomic Initial Term Success' },
+    {
+      name: 'L4T1',
+      level: 4,
+      termNumber: 1,
+      startDate: '2026-09-01',
+      endDate: '2027-01-31',
+    },
+  );
+
+  assert.equal((await repo.get('students', created.student.id)).name, 'Atomic Initial Term Success');
+  assert.equal((await repo.get('terms', created.term.id)).studentId, created.student.id);
+});
+
 test('child creation remains attached to the correct parent chain', async () => {
   const repo = new InMemoryRepository();
   const studentService = new StudentService(repo);
