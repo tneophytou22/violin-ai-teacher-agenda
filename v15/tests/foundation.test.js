@@ -555,3 +555,81 @@ test('opening a scheduled agenda entry without an active term does not create a 
   assert.equal(createLessonCalls, 0);
   assert.equal(controller.snapshot().activeLessonId, null);
 });
+
+
+test('opening a recorded agenda entry rejects a missing lesson instead of activating invalid state', async () => {
+  const viewModel = {
+    students: { list: async () => [{ id: 'student-1', name: 'Missing Lesson Student' }] },
+    loadStudent: async () => ({ terms: [{ id: 'term-1', studentId: 'student-1', startDate: '2026-09-01', endDate: '2026-12-31' }] }),
+    loadStudentIntelligence: async () => null,
+    loadLongitudinalDevelopment: async () => null,
+    loadEvidenceSignals: async () => [],
+    loadTeacherDecisionPrompts: async () => [],
+    loadTeacherReadinessReview: async () => null,
+    loadTerm: async () => ({ id: 'term-1' }),
+    teacherTerms: { activateCard: async () => null },
+    loadTermProgress: async () => ({}),
+    loadScaleProgress: async () => ({}),
+    loadWeek: async () => ({ items: [], summary: {} }),
+    listLessons: async () => [],
+    loadHomework: async () => null,
+    getLesson: async () => null,
+    loadAgenda: async () => ({ weekStart: '2026-09-28', weekEnd: '2026-10-04', today: '2026-09-28', days: [], entries: [] }),
+  };
+
+  const controller = new TeacherAgendaController(viewModel, { today: () => '2026-09-28' });
+  await controller.loadStudents();
+  await assert.rejects(
+    () => controller.openAgendaEntry({
+      id: 'student-1-2026-09-28-17:00',
+      studentId: 'student-1',
+      termId: 'term-1',
+      lessonId: 'missing-lesson',
+      date: '2026-09-28',
+    }),
+    /Agenda lesson not found/
+  );
+  assert.equal(controller.snapshot().activeLessonId, null);
+});
+
+test('opening a recorded agenda entry rejects a lesson from a different term or date', async () => {
+  const lesson = {
+    id: 'lesson-wrong',
+    termId: 'term-other',
+    date: '2026-09-29',
+    attendance: 'PRESENT',
+    reviewedProgrammeItemIds: [],
+  };
+  const viewModel = {
+    students: { list: async () => [{ id: 'student-1', name: 'Boundary Student' }] },
+    loadStudent: async () => ({ terms: [{ id: 'term-1', studentId: 'student-1', startDate: '2026-09-01', endDate: '2026-12-31' }] }),
+    loadStudentIntelligence: async () => null,
+    loadLongitudinalDevelopment: async () => null,
+    loadEvidenceSignals: async () => [],
+    loadTeacherDecisionPrompts: async () => [],
+    loadTeacherReadinessReview: async () => null,
+    loadTerm: async () => ({ id: 'term-1' }),
+    teacherTerms: { activateCard: async () => null },
+    loadTermProgress: async () => ({}),
+    loadScaleProgress: async () => ({}),
+    loadWeek: async () => ({ items: [], summary: {} }),
+    listLessons: async () => [lesson],
+    loadHomework: async () => null,
+    getLesson: async id => id === lesson.id ? lesson : null,
+    loadAgenda: async () => ({ weekStart: '2026-09-28', weekEnd: '2026-10-04', today: '2026-09-28', days: [], entries: [] }),
+  };
+
+  const controller = new TeacherAgendaController(viewModel, { today: () => '2026-09-28' });
+  await controller.loadStudents();
+  await assert.rejects(
+    () => controller.openAgendaEntry({
+      id: 'student-1-2026-09-28-17:00',
+      studentId: 'student-1',
+      termId: 'term-1',
+      lessonId: lesson.id,
+      date: '2026-09-28',
+    }),
+    /Agenda lesson does not belong to the scheduled term/
+  );
+  assert.equal(controller.snapshot().activeLessonId, null);
+});
