@@ -177,6 +177,7 @@ export class TeacherAgendaController {
         const lesson = await this.viewModel.createLesson(this.state.selectedTermId, entry.date);
         await this.#activateLesson(lesson);
       }
+      this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
       return this.snapshot();
     });
   }
