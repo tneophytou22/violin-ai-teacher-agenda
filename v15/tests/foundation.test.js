@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { InMemoryRepository, StudentService, TermService, LessonService, ProgrammeService, HomeworkService, createProgrammeItem, createLesson } from '../index.js';
+import { InMemoryRepository, StudentService, TermService, LessonService, ProgrammeService, HomeworkService, TeacherAgendaService, buildTeacherAgenda, createProgrammeItem, createLesson } from '../index.js';
 
 test('student → term → lesson → homework flow', async () => {
   const repo = new InMemoryRepository();
@@ -335,3 +335,56 @@ test('student weekly lesson schedule rejects duplicate days and more than two le
   );
 });
 
+
+
+test('teacher agenda expands two weekly lesson slots into dated entries and matches recorded lessons', async () => {
+  const repo = new InMemoryRepository();
+  const students = new StudentService(repo);
+  const terms = new TermService(repo);
+  const lessons = new LessonService(repo);
+  const agenda = new TeacherAgendaService({ studentService: students, termService: terms, lessonService: lessons });
+
+  const student = await students.create({
+    name: 'Agenda Student',
+    lessonSchedule: [
+      { day: 'MONDAY', time: '17:00' },
+      { day: 'THURSDAY', time: '18:30' },
+    ],
+  });
+  const term = await terms.create({
+    studentId: student.id,
+    name: 'L3T1',
+    level: 3,
+    termNumber: 1,
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+  });
+  const recorded = await lessons.create({ termId: term.id, date: '2026-10-01', attendance: 'PRESENT' });
+
+  const week = await agenda.loadWeek(new Date(2026, 8, 28));
+  assert.deepEqual(week.entries.map(entry => [entry.date, entry.time, entry.studentName]), [
+    ['2026-09-28', '17:00', 'Agenda Student'],
+    ['2026-10-01', '18:30', 'Agenda Student'],
+  ]);
+  const thursday = week.entries.find(entry => entry.date === '2026-10-01');
+  assert.equal(thursday.lessonId, recorded.id);
+  assert.equal(thursday.status, 'RECORDED');
+  assert.equal(thursday.termId, term.id);
+  assert.equal(thursday.level, 3);
+});
+
+test('teacher agenda preserves legacy single lesson day/time records', () => {
+  const week = buildTeacherAgenda({
+    students: [{
+      id: 'stu-legacy',
+      name: 'Legacy Student',
+      lessonDay: 'WEDNESDAY',
+      lessonTime: '16:00',
+    }],
+    date: new Date(2026, 8, 28),
+  });
+
+  assert.equal(week.entries.length, 1);
+  assert.equal(week.entries[0].date, '2026-09-30');
+  assert.equal(week.entries[0].time, '16:00');
+});
