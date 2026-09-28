@@ -102,3 +102,24 @@ test('child creation remains attached to the correct parent chain', async () => 
   assert.equal((await repo.get('programmeItems', item.id)).termId, term.id);
   assert.equal((await repo.get('homework', homework.id)).lessonId, lesson.id);
 });
+test('bulk programme completion uses one repository write boundary', async () => {
+  const repository = new InMemoryRepository();
+  await repository.put('programmeItems', { id: 'pi-1', termId: 'term-1', curriculumDomain: 'REPERTOIRE', status: 'PLANNED' });
+  await repository.put('programmeItems', { id: 'pi-2', termId: 'term-1', curriculumDomain: 'ETUDE', status: 'PLANNED' });
+
+  const { LessonProgrammeService } = await import('../services/lesson-programme-service.js');
+  const originalPutRecords = repository.putRecords.bind(repository);
+  let calls = 0;
+  repository.putRecords = async records => {
+    calls += 1;
+    return originalPutRecords(records);
+  };
+
+  const service = new LessonProgrammeService(repository);
+  const result = await service.completeItems(['pi-1', 'pi-2']);
+
+  assert.equal(calls, 1);
+  assert.equal(result.length, 2);
+  assert.equal((await repository.get('programmeItems', 'pi-1')).status, 'COMPLETED');
+  assert.equal((await repository.get('programmeItems', 'pi-2')).status, 'COMPLETED');
+});
