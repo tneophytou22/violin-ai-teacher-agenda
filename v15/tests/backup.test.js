@@ -6,8 +6,10 @@ import {
   InMemoryRepository,
   createTeacherAgendaApp,
   registerV1Curricula,
+  getCurriculum,
 } from '../index.js';
 import { TeacherAgendaShell } from '../ui/teacher-agenda-shell.js';
+import { StudentService } from '../services/student-service.js';
 
 const STORE_NAMES = ['students', 'terms', 'lessons', 'programmeItems', 'homework'];
 
@@ -311,6 +313,37 @@ test('restored schedule, homework practice plan and scale mastery survive app re
   const restoredScale = state.scaleProgress.items.find(item => item.id === scale.id);
   assert.equal(restoredScale.details.mastery.status, 'DEVELOPING');
   assert.equal(restoredScale.details.mastery.currentTempo, 52);
+});
+
+test('delete student cascade preserves unrelated student data and curriculum registry', async () => {
+  registerV1Curricula();
+  const repository = new InMemoryRepository();
+  const studentService = new StudentService(repository);
+
+  const first = await studentService.create({ name: 'Delete Me' });
+  const second = await studentService.create({ name: 'Keep Me' });
+  await repository.put('terms', { id: 'term-delete', studentId: first.id });
+  await repository.put('terms', { id: 'term-keep', studentId: second.id });
+  await repository.put('lessons', { id: 'lesson-delete', termId: 'term-delete' });
+  await repository.put('lessons', { id: 'lesson-keep', termId: 'term-keep' });
+  await repository.put('programmeItems', { id: 'pi-delete', termId: 'term-delete', curriculumDomain: 'REPERTOIRE' });
+  await repository.put('programmeItems', { id: 'pi-keep', termId: 'term-keep', curriculumDomain: 'REPERTOIRE' });
+  await repository.put('homework', { id: 'hw-delete', lessonId: 'lesson-delete', items: [] });
+  await repository.put('homework', { id: 'hw-keep', lessonId: 'lesson-keep', items: [] });
+
+  await studentService.delete(first.id);
+
+  assert.equal(await repository.get('students', first.id), null);
+  assert.deepEqual(await repository.get('students', second.id), { id: second.id, name: 'Keep Me' });
+  assert.equal(await repository.get('terms', 'term-delete'), null);
+  assert.ok(await repository.get('terms', 'term-keep'));
+  assert.equal(await repository.get('lessons', 'lesson-delete'), null);
+  assert.ok(await repository.get('lessons', 'lesson-keep'));
+  assert.equal(await repository.get('programmeItems', 'pi-delete'), null);
+  assert.ok(await repository.get('programmeItems', 'pi-keep'));
+  assert.equal(await repository.get('homework', 'hw-delete'), null);
+  assert.ok(await repository.get('homework', 'hw-keep'));
+  assert.ok(getCurriculum('scales.v1'));
 });
 
 test('delete student keeps the safety backup before cascade deletion', async () => {
