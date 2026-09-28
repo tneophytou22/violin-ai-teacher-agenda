@@ -1,7 +1,7 @@
 import { ScaleMasteryService } from '../services/scale-mastery-service.js';
 
 export class TeacherAgendaViewModel {
-  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, practicePlannerService = null, scaleMasteryService = null, studentIntelligenceService = null }) {
+  constructor({ studentService, termService, teacherTermService, weeklyProgrammeService, lessonService, lessonProgrammeService, homeworkService, practicePlannerService = null, scaleMasteryService = null, studentIntelligenceService = null, backupService = null }) {
     this.students = studentService;
     this.terms = termService;
     this.teacherTerms = teacherTermService;
@@ -12,6 +12,7 @@ export class TeacherAgendaViewModel {
     this.practicePlanner = practicePlannerService;
     this.scaleMastery = scaleMasteryService;
     this.studentIntelligence = studentIntelligenceService;
+    this.backup = backupService;
   }
 
   async loadStudent(studentId) {
@@ -27,6 +28,16 @@ export class TeacherAgendaViewModel {
 
   async deleteStudent(studentId) {
     return this.students.delete(studentId);
+  }
+
+  async createBackup() {
+    if (!this.backup) throw new Error('Backup service is not configured');
+    return this.backup.createBackup();
+  }
+
+  async restoreBackup(backup) {
+    if (!this.backup) throw new Error('Backup service is not configured');
+    return this.backup.restoreBackup(backup);
   }
 
   async loadStudentIntelligence(studentId) {
