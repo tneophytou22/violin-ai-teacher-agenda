@@ -10,12 +10,15 @@ export const TEACHER_READINESS_DECISIONS = Object.freeze([
 
 const id = (prefix) => `${prefix}_${crypto.randomUUID()}`;
 
-export function createStudent({ name, phone = '', schoolType = 'PRIVATE', schoolName = '', instrument = 'VIOLIN' }) {
+export function createStudent({ name, phone = '', schoolType = 'PRIVATE', schoolName = '', instrument = 'VIOLIN', lessonDay = '', lessonTime = '' }) {
   if (!name?.trim()) throw new Error('Student name is required');
   if (typeof phone !== 'string') throw new Error('Student.phone must be a string');
   if (typeof schoolName !== 'string') throw new Error('Student.schoolName must be a string');
+  if (typeof lessonDay !== 'string') throw new Error('Student.lessonDay must be a string');
+  if (typeof lessonTime !== 'string') throw new Error('Student.lessonTime must be a string');
   return {
     id: id('stu'), name: name.trim(), phone: phone.trim(), schoolType, schoolName: schoolName.trim(), instrument,
+    lessonDay: lessonDay.trim(), lessonTime: lessonTime.trim(),
     createdAt: new Date().toISOString(),
   };
 }
@@ -28,6 +31,8 @@ export function updateStudent(student, changes = {}) {
     schoolType: changes.schoolType ?? student.schoolType ?? 'PRIVATE',
     schoolName: changes.schoolName ?? student.schoolName ?? '',
     instrument: changes.instrument ?? student.instrument ?? 'VIOLIN',
+    lessonDay: changes.lessonDay ?? student.lessonDay ?? '',
+    lessonTime: changes.lessonTime ?? student.lessonTime ?? '',
   };
   const validated = createStudent(merged);
   return {
