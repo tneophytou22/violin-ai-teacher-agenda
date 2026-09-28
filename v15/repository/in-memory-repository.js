@@ -15,4 +15,17 @@ export class InMemoryRepository {
   }
   async delete(name, id) { return this.#store(name).delete(id); }
   async clear() { this.#stores.clear(); }
+
+  async replaceAll(stores) {
+    const next = new Map();
+    for (const [name, records] of Object.entries(stores)) {
+      const store = new Map();
+      for (const record of records) {
+        if (!record?.id) throw new Error(`${name} requires id`);
+        store.set(record.id, structuredClone(record));
+      }
+      next.set(name, store);
+    }
+    this.#stores = next;
+  }
 }
