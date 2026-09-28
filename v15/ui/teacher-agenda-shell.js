@@ -227,7 +227,9 @@ export class TeacherAgendaShell {
   <div data-view="lesson-header">
     <div><h2>Lesson Session</h2><p>Record the lesson, review work and assign focused practice.</p></div>
     ${state.activeLessonId
-      ? '<button type="button" data-action="end-lesson" ' + (homeworkNeedsSave ? 'disabled' : '') + ' title="' + (homeworkNeedsSave ? 'Save Homework before ending the lesson' : 'End the current lesson') + '">End lesson</button>'
+      ? (lesson?.date === this.now()
+        ? '<button type="button" data-action="end-lesson" ' + (homeworkNeedsSave ? 'disabled' : '') + ' title="' + (homeworkNeedsSave ? 'Save Homework before ending the lesson' : 'End the current lesson') + '">End lesson</button>'
+        : '<button type="button" data-action="close-lesson-view" title="Close historical lesson view">Close view</button>')
       : '<button type="button" data-action="lesson" ' + (!state.selectedTermId ? 'disabled' : '') + '>Start lesson · ' + this.now() + '</button>'}
   </div>
   ${lesson ? `
@@ -590,6 +592,8 @@ export class TeacherAgendaShell {
           this.controller.clearItemSelection();
         } else if (action === 'lesson') {
           await this.controller.createLesson(this.now());
+        } else if (action === 'close-lesson-view') {
+          await this.controller.closeLessonView();
         } else if (action === 'end-lesson') {
           const attendance = this.root.querySelector('[data-action="attendance"]')?.value ?? 'PRESENT';
           const rawMark = this.root.querySelector('[data-action="mark"]')?.value ?? '';
