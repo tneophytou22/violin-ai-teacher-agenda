@@ -2,6 +2,8 @@ export const LEVELS = Object.freeze(Array.from({ length: 10 }, (_, i) => `L${i +
 
 export const PROGRAMME_ITEM_STATUSES = Object.freeze(['PLANNED', 'COMPLETED']);
 export const ATTENDANCE_STATUSES = Object.freeze(['PRESENT', 'ABSENT', 'LATE']);
+export const LESSON_DAYS = Object.freeze(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']);
+
 export const TEACHER_READINESS_DECISIONS = Object.freeze([
   'ADVANCE_TO_NEXT_TERM',
   'CONTINUE_CURRENT_TERM',
@@ -10,15 +12,29 @@ export const TEACHER_READINESS_DECISIONS = Object.freeze([
 
 const id = (prefix) => `${prefix}_${crypto.randomUUID()}`;
 
-export function createStudent({ name, phone = '', schoolType = 'PRIVATE', schoolName = '', instrument = 'VIOLIN', lessonDay = '', lessonTime = '' }) {
+export function createStudent({ name, phone = '', schoolType = 'PRIVATE', schoolName = '', instrument = 'VIOLIN', lessonDay = '', lessonTime = '', lessonSchedule = [] }) {
   if (!name?.trim()) throw new Error('Student name is required');
   if (typeof phone !== 'string') throw new Error('Student.phone must be a string');
   if (typeof schoolName !== 'string') throw new Error('Student.schoolName must be a string');
   if (typeof lessonDay !== 'string') throw new Error('Student.lessonDay must be a string');
   if (typeof lessonTime !== 'string') throw new Error('Student.lessonTime must be a string');
+  if (!Array.isArray(lessonSchedule)) throw new Error('Student.lessonSchedule must be an array');
+  if (lessonSchedule.length > 2) throw new Error('Student.lessonSchedule supports a maximum of 2 weekly lessons');
+  const normalizedSchedule = lessonSchedule.map(slot => {
+    if (!slot || typeof slot !== 'object') throw new Error('Student.lessonSchedule entries must be objects');
+    if (!LESSON_DAYS.includes(slot.day)) throw new Error('Student.lessonSchedule day is invalid');
+    if (typeof slot.time !== 'string' || !slot.time) throw new Error('Student.lessonSchedule time is required');
+    return { day: slot.day, time: slot.time };
+  });
+  if (new Set(normalizedSchedule.map(slot => slot.day)).size !== normalizedSchedule.length) {
+    throw new Error('Student.lessonSchedule cannot contain the same day twice');
+  }
+  const legacyDay = normalizedSchedule[0]?.day ?? lessonDay;
+  const legacyTime = normalizedSchedule[0]?.time ?? lessonTime;
   return {
     id: id('stu'), name: name.trim(), phone: phone.trim(), schoolType, schoolName: schoolName.trim(), instrument,
-    lessonDay: lessonDay.trim(), lessonTime: lessonTime.trim(),
+    lessonDay: legacyDay.trim(), lessonTime: legacyTime.trim(),
+    lessonSchedule: normalizedSchedule,
     createdAt: new Date().toISOString(),
   };
 }
@@ -33,6 +49,7 @@ export function updateStudent(student, changes = {}) {
     instrument: changes.instrument ?? student.instrument ?? 'VIOLIN',
     lessonDay: changes.lessonDay ?? student.lessonDay ?? '',
     lessonTime: changes.lessonTime ?? student.lessonTime ?? '',
+    lessonSchedule: changes.lessonSchedule ?? student.lessonSchedule ?? [],
   };
   const validated = createStudent(merged);
   return {
