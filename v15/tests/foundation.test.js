@@ -704,6 +704,34 @@ test('teacher agenda does not attach a recorded lesson from an expired term to a
   assert.equal(week.entries[0].level, 3);
 });
 
+test('teacher agenda keeps active term identity on scheduled occurrences', () => {
+  const week = buildTeacherAgenda({
+    students: [{
+      id: 'stu-scheduled-term',
+      name: 'Scheduled Term Student',
+      lessonSchedule: [{ day: 'MONDAY', time: '17:00' }],
+    }],
+    termsByStudent: {
+      'stu-scheduled-term': [{
+        id: 'term-active',
+        studentId: 'stu-scheduled-term',
+        startDate: '2026-09-21',
+        endDate: '2026-12-31',
+        level: 4,
+        termNumber: 2,
+      }],
+    },
+    lessonsByTerm: { 'term-active': [] },
+    date: '2026-09-28',
+  });
+
+  assert.equal(week.entries.length, 1);
+  assert.equal(week.entries[0].status, 'SCHEDULED');
+  assert.equal(week.entries[0].termId, 'term-active');
+  assert.equal(week.entries[0].level, 4);
+  assert.equal(week.entries[0].termNumber, 2);
+});
+
 test('teacher agenda selects the latest-starting active term when active terms overlap', () => {
   const week = buildTeacherAgenda({
     students: [{
