@@ -71,10 +71,19 @@ export function buildTeacherAgenda({ students = [], termsByStudent = {}, lessons
       const dateString = weekDates[dayIndex];
       if (!weekSet.has(dateString)) continue;
 
-      const lesson = lessons.find(candidate => candidate.date === dateString) ?? null;
+      const activeTerms = terms
+        .filter(candidate =>
+          dateString >= String(candidate.startDate ?? '')
+          && dateString <= String(candidate.endDate ?? '')
+        )
+        .sort((a, b) => String(b.startDate ?? '').localeCompare(String(a.startDate ?? '')));
+      const activeTerm = activeTerms[0] ?? null;
+      const lesson = activeTerm
+        ? lessons.find(candidate => candidate.termId === activeTerm.id && candidate.date === dateString) ?? null
+        : null;
       const term = lesson
-        ? terms.find(candidate => candidate.id === lesson.termId) ?? null
-        : terms.find(candidate => dateString >= String(candidate.startDate ?? '') && dateString <= String(candidate.endDate ?? '')) ?? null;
+        ? activeTerm
+        : null;
 
       entries.push({
         id: `${student.id}:${dateString}:${slot.time}`,
