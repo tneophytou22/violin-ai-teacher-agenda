@@ -633,3 +633,45 @@ test('opening a recorded agenda entry rejects a lesson from a different term or 
   );
   assert.equal(controller.snapshot().activeLessonId, null);
 });
+
+
+test('opening a recorded Agenda entry requires a term identity', async () => {
+  const lesson = {
+    id: 'lesson-existing',
+    termId: 'term-1',
+    date: '2026-09-28',
+    attendance: 'PRESENT',
+    reviewedProgrammeItemIds: [],
+  };
+  const viewModel = {
+    students: { list: async () => [{ id: 'student-1', name: 'Term Identity Student' }] },
+    loadStudent: async () => ({ terms: [{ id: 'term-1', studentId: 'student-1', startDate: '2026-09-01', endDate: '2026-12-31' }] }),
+    loadStudentIntelligence: async () => null,
+    loadLongitudinalDevelopment: async () => null,
+    loadEvidenceSignals: async () => [],
+    loadTeacherDecisionPrompts: async () => [],
+    loadTeacherReadinessReview: async () => null,
+    loadTerm: async () => ({ id: 'term-1' }),
+    teacherTerms: { activateCard: async () => null },
+    loadTermProgress: async () => ({}),
+    loadScaleProgress: async () => ({}),
+    loadWeek: async () => ({ items: [], summary: {} }),
+    listLessons: async () => [lesson],
+    getLesson: async () => lesson,
+    loadHomework: async () => null,
+    loadAgenda: async () => ({ weekStart: '2026-09-28', weekEnd: '2026-10-04', today: '2026-09-28', days: [], entries: [] }),
+  };
+
+  const controller = new TeacherAgendaController(viewModel, { today: () => '2026-09-28' });
+  await controller.loadStudents();
+  await assert.rejects(
+    () => controller.openAgendaEntry({
+      id: 'student-1-2026-09-28-17:00',
+      studentId: 'student-1',
+      lessonId: lesson.id,
+      date: lesson.date,
+    }),
+    /Recorded Agenda entry has no term/
+  );
+  assert.equal(controller.snapshot().activeLessonId, null);
+});
