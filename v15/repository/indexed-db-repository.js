@@ -92,6 +92,31 @@ export class IndexedDBRepository {
     })));
   }
 
+  async putRecords(recordsByStore) {
+    const db = await this.#db();
+    const entries = Object.entries(recordsByStore);
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction([...new Set(entries.map(([name]) => name))], 'readwrite');
+      try {
+        for (const [name, records] of entries) {
+          if (!Array.isArray(records)) throw new Error(`${name} records must be an array`);
+          const store = tx.objectStore(name);
+          for (const record of records) {
+            if (!record?.id) throw new Error(`${name} requires id`);
+            store.put(clone(record));
+          }
+        }
+      } catch (error) {
+        tx.abort();
+        reject(error);
+        return;
+      }
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error ?? new Error('V15 multi-store write transaction failed'));
+      tx.onabort = () => reject(tx.error ?? new Error('V15 multi-store write transaction aborted'));
+    });
+  }
+
   async deleteRecords(recordsByStore) {
     const db = await this.#db();
     const entries = Object.entries(recordsByStore);
