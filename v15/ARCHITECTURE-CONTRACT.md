@@ -101,7 +101,7 @@ Do not add, solely in response to the current audit:
 - curriculum versioning;
 - delete cascades.
 
-Such changes require a phase with an explicit contract and tests for the chosen behavior.
+Such changes require a phase with an explicit contract and tests for the chosen behavior. The existing Student cascade and targeted batch primitives are already part of the Phase 43 contract above.
 
 ## 6. Current Audit Position
 
@@ -112,7 +112,8 @@ The V15 MVP currently has:
 - validated UI escaping for persisted mastery status;
 - validated Student → Term → ProgrammeItem ownership;
 - validated Lesson → Term and Homework → Lesson ownership;
-- acknowledged multi-writer and multi-record atomicity limits under this contract.
+- validated atomic backup restore, Student cascade deletion, bulk ProgrammeItem completion, and Student + initial Term creation;
+- acknowledged multi-writer limits and the remaining non-transactional multi-step workflows under this contract.
 
 The distinction is intentional:
 
