@@ -145,8 +145,14 @@ export class TeacherAgendaController {
 
   async loadStudents() {
     return this.#run(async () => {
-      this.state.students = await this.viewModel.students.list();
-      this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
+      const students = await this.viewModel.students.list();
+      this.state.students = students;
+      try {
+        this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
+      } catch (error) {
+        this.state.agenda = null;
+        this.state.error = error instanceof Error ? error.message : String(error);
+      }
       return this.snapshot();
     });
   }
