@@ -694,6 +694,17 @@ export class TeacherAgendaShell {
           const startDate = this.root.querySelector('[data-action="new-term-start"]')?.value ?? '';
           const endDate = this.root.querySelector('[data-action="new-term-end"]')?.value ?? '';
           await this.controller.createTerm({ name, level, termNumber, startDate, endDate });
+        } else if (action === 'agenda-week-prev') {
+          await this.controller.shiftAgendaWeek(-1);
+        } else if (action === 'agenda-week-next') {
+          await this.controller.shiftAgendaWeek(1);
+        } else if (action === 'agenda-week-today') {
+          await this.controller.loadAgenda(this.now());
+        } else if (action === 'agenda-entry') {
+          const entryId = target.dataset.agendaEntry;
+          const entry = this.controller.snapshot().agenda?.entries?.find(item => item.id === entryId);
+          if (!entry) throw new Error('Agenda entry not found');
+          await this.controller.openAgendaEntry(entry);
         } else if (action === 'student-card') {
           await this.controller.selectStudent(target.dataset.studentId);
         } else if (action === 'select-lesson') {
