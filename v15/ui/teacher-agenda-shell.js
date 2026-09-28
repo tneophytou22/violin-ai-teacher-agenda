@@ -184,7 +184,7 @@ export class TeacherAgendaShell {
                 <div data-view="teacher-agenda-day-header"><strong>${esc(day.date)}</strong><span>${entries.length} lesson${entries.length === 1 ? '' : 's'}</span></div>
                 ${entries.length ? `<div data-view="teacher-agenda-day-entries">${entries.map(entry => `<button type="button" data-action="agenda-entry" data-agenda-entry="${esc(entry.id)}" class="${entry.date === state.agenda?.today ? 'is-today' : ''}">
                   <span data-view="agenda-entry-time">${esc(entry.time)}</span>
-                  <span data-view="agenda-entry-student"><strong>${esc(entry.studentName)}</strong><small>${entry.level ? `Level ${esc(entry.level)}${entry.termNumber ? ` · Term ${esc(entry.termNumber)}` : ''}` : 'No level set'} · ${entry.status === 'RECORDED' ? esc(entry.attendance ?? 'Recorded') : 'Scheduled'}</small></span>
+                  <span data-view="agenda-entry-student"><strong>${esc(entry.studentName)}</strong><small>${entry.level ? `Level ${esc(entry.level)}${entry.termNumber ? ` · Term ${esc(entry.termNumber)}` : ''}` : 'No level set'} · ${state.activeLessonId === entry.lessonId && entry.lessonId ? 'In progress' : entry.status === 'RECORDED' ? esc(entry.attendance ?? 'Recorded') : 'Scheduled'}</small></span>
                 </button>`).join('')}</div>` : '<small>No lessons scheduled.</small>'}
               </section>`;
             }).join('')}
