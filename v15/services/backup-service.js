@@ -22,13 +22,7 @@ export class BackupService {
 
   async restoreBackup(backup) {
     this.validateBackup(backup);
-    const names = this.#storeNames();
-    await this.repo.clear();
-    for (const name of names) {
-      for (const record of backup.stores[name]) {
-        await this.repo.put(name, record);
-      }
-    }
+    await this.repo.replaceAll(backup.stores);
     return this.createBackup();
   }
 
