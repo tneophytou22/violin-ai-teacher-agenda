@@ -104,7 +104,14 @@ export class TeacherAgendaController {
     return this.#run(async () => {
       const restored = await this.viewModel.restoreBackup(backup);
       this.state.students = await this.viewModel.students.list();
-      this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
+      try {
+        this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
+      } catch (error) {
+        // Restored student data is authoritative; a derived Agenda failure must
+        // not roll the visible student roster back to the pre-restore state.
+        this.state.agenda = null;
+        this.state.error = error instanceof Error ? error.message : String(error);
+      }
       this.state.selectedStudentId = null;
       this.state.selectedTermId = null;
       this.state.terms = [];
