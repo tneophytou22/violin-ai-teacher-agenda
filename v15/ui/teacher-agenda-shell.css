@@ -2743,3 +2743,58 @@
   font-size:.62rem;
   font-weight:750;
 }
+
+
+/* Student roster — school type at a glance */
+[data-v15="teacher-agenda"] [data-view="student-roster"] {
+  display:grid;
+  gap:4px;
+  margin-top:9px;
+  max-height:310px;
+  overflow:auto;
+}
+[data-v15="teacher-agenda"] [data-view="student-roster"] > button {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  padding:7px 8px;
+  border:1px solid transparent;
+  border-radius:8px;
+  text-align:left;
+  background:transparent;
+}
+[data-v15="teacher-agenda"] [data-view="student-roster"] > button:hover {
+  background:var(--ta-surface-soft);
+}
+[data-v15="teacher-agenda"] [data-view="student-roster"] > button.is-selected {
+  border-color:var(--ta-border-strong);
+  background:var(--ta-surface-soft);
+}
+[data-v15="teacher-agenda"] [data-view="student-roster"] [data-student-dot] {
+  flex:0 0 auto;
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#9aa4ad;
+}
+[data-v15="teacher-agenda"] [data-view="student-roster"] > button.private [data-student-dot] {
+  background:#4b82e8;
+}
+[data-v15="teacher-agenda"] [data-view="student-roster"] > button.music-school [data-student-dot] {
+  background:#9b6be3;
+}
+[data-v15="teacher-agenda"] [data-view="student-roster"] > button.other [data-student-dot] {
+  background:#c48b3c;
+}
+[data-v15="teacher-agenda"] [data-view="student-roster"] strong {
+  display:block;
+  font-size:.7rem;
+  line-height:1.2;
+}
+[data-v15="teacher-agenda"] [data-view="student-roster"] small {
+  display:block;
+  margin-top:1px;
+  color:var(--ta-muted);
+  font-size:.57rem;
+}
