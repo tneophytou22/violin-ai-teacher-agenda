@@ -291,3 +291,47 @@ test('lesson update validates attendance and teacher note without mutating the s
   assert.equal(stored.teacherNote, 'Original note.');
   assert.equal(stored.version, lesson.version);
 });
+test('student weekly lesson schedule supports two distinct lesson slots', async () => {
+  const student = await new StudentService(new InMemoryRepository()).create({
+    name: 'Two Lessons Student',
+    lessonSchedule: [
+      { day: 'MONDAY', time: '17:00' },
+      { day: 'THURSDAY', time: '18:30' },
+    ],
+  });
+
+  assert.deepEqual(student.lessonSchedule, [
+    { day: 'MONDAY', time: '17:00' },
+    { day: 'THURSDAY', time: '18:30' },
+  ]);
+  assert.equal(student.lessonDay, 'MONDAY');
+  assert.equal(student.lessonTime, '17:00');
+});
+
+test('student weekly lesson schedule rejects duplicate days and more than two lessons', async () => {
+  const service = new StudentService(new InMemoryRepository());
+
+  await assert.rejects(
+    () => service.create({
+      name: 'Duplicate Day',
+      lessonSchedule: [
+        { day: 'MONDAY', time: '17:00' },
+        { day: 'MONDAY', time: '18:00' },
+      ],
+    }),
+    /same day twice/
+  );
+
+  await assert.rejects(
+    () => service.create({
+      name: 'Too Many Lessons',
+      lessonSchedule: [
+        { day: 'MONDAY', time: '17:00' },
+        { day: 'WEDNESDAY', time: '18:00' },
+        { day: 'FRIDAY', time: '17:00' },
+      ],
+    }),
+    /maximum of 2/
+  );
+});
+
