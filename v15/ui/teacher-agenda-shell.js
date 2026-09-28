@@ -69,6 +69,18 @@ export class TeacherAgendaShell {
               </button>`;
             }).join('')}
           </div>
+          <section data-view="backup-panel" aria-label="Backup and restore">
+            <div data-view="backup-panel-header">
+              <div><strong>Data backup</strong><small>Protect your students, lessons, homework and mastery data.</small></div>
+              <span data-view="backup-status">Local IndexedDB</span>
+            </div>
+            <div data-view="backup-actions">
+              <button type="button" data-action="backup-now">Backup now</button>
+              <button type="button" data-action="restore-backup">Restore backup</button>
+              <input data-action="restore-backup-file" type="file" accept="application/json,.json" hidden>
+            </div>
+            <small data-view="backup-note">Backup creates a complete portable V15 data file. Restore replaces the current data.</small>
+          </section>
           <dialog data-view="new-student-dialog" aria-labelledby="new-student-title">
             <form method="dialog" data-view="new-student-form">
               <div data-view="new-student-header">
@@ -554,6 +566,15 @@ export class TeacherAgendaShell {
         } else if (target.matches('[data-action="term"]')) {
           await this.controller.selectTerm(target.value);
           this.render();
+        } else if (target.matches('[data-action="restore-backup-file"]')) {
+          const file = target.files?.[0];
+          if (!file) return;
+          const safety = await this.controller.createBackup();
+          this.#downloadBackup(safety);
+          const backup = JSON.parse(await file.text());
+          await this.controller.restoreBackup(backup);
+          target.value = '';
+          this.render();
         } else if (target.matches('[data-item]')) {
           this.controller.toggleItemSelection(target.dataset.item);
           this.#refreshActionButtons();
@@ -576,10 +597,17 @@ export class TeacherAgendaShell {
           this.#openDialog('[data-view="student-profile-dialog"]');
         } else if (action === 'close-student-profile') {
           this.#closeDialog('[data-view="student-profile-dialog"]');
+        } else if (action === 'backup-now') {
+          const backup = await this.controller.createBackup();
+          this.#downloadBackup(backup);
+        } else if (action === 'restore-backup') {
+          this.root.querySelector('[data-action="restore-backup-file"]')?.click();
         } else if (action === 'delete-student') {
           const studentName = this.root.querySelector('[data-action="student-profile-name"]')?.value?.trim() || 'this student';
           const confirmed = window.confirm(`Delete ${studentName}? This permanently removes the student and all associated terms, lessons, programme work and homework. This cannot be undone.`);
           if (confirmed) {
+            const safety = await this.controller.createBackup();
+            this.#downloadBackup(safety);
             await this.controller.deleteStudent();
             this.#closeDialog('[data-view="student-profile-dialog"]');
             this.render();
@@ -788,6 +816,19 @@ export class TeacherAgendaShell {
       addHomeworkButton.disabled = !state.activeLessonId || state.selectedItemIds.length === 0;
       addHomeworkButton.textContent = `Add selected work${state.selectedItemIds.length ? ` (${state.selectedItemIds.length})` : ''}`;
     }
+  }
+
+  #downloadBackup(backup) {
+    const stamp = (backup.createdAt ?? new Date().toISOString()).replace(/[:.]/g, '-');
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ViolinAI_V15_Backup_${stamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
 
   #showError() {
