@@ -47,16 +47,15 @@ export class LessonProgrammeService {
       throw new Error('Scale ProgrammeItem cannot be completed through core completion workflow');
     }
 
-    const completed = [];
-    for (const item of matches) {
-      if (item.status !== 'COMPLETED') {
-        item.status = 'COMPLETED';
-        item.completedAt = item.completedAt ?? new Date().toISOString();
-        completed.push(await this.repo.put('programmeItems', item));
-      } else {
-        completed.push(item);
-      }
-    }
+    const completed = matches.map(item => {
+      if (item.status === 'COMPLETED') return item;
+      return {
+        ...item,
+        status: 'COMPLETED',
+        completedAt: item.completedAt ?? new Date().toISOString(),
+      };
+    });
+    await this.repo.putRecords({ programmeItems: completed });
     return completed;
   }
 
