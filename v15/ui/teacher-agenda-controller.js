@@ -211,6 +211,35 @@ export class TeacherAgendaController {
     });
   }
 
+  async endLesson() {
+    return this.#run(async () => {
+      if (!this.state.activeLessonId) throw new Error('No lesson selected');
+      const savedItems = this.state.homework?.items ?? [];
+      const draftItems = this.state.homeworkDraftItems ?? [];
+      const savedPlan = this.state.homework?.practicePlan ?? null;
+      const draftPlan = this.state.practicePlanDraft ?? null;
+      if (JSON.stringify(savedItems) !== JSON.stringify(draftItems) || JSON.stringify(savedPlan) !== JSON.stringify(draftPlan)) {
+        throw new Error('Save Homework before ending the lesson');
+      }
+      const lesson = this.state.activeLesson;
+      await this.viewModel.updateLessonDetails(this.state.activeLessonId, {
+        mark: lesson?.mark ?? null,
+        attendance: lesson?.attendance ?? 'PRESENT',
+        teacherNote: lesson?.teacherNote ?? '',
+      });
+      this.state.activeLessonId = null;
+      this.state.activeLesson = null;
+      this.state.homework = null;
+      this.state.homeworkDraftItems = [];
+      this.state.practicePlanDraft = null;
+      this.state.selectedItemIds = [];
+      this.state.reviewedItemIds = [];
+      this.state.lessonHistory = await this.viewModel.listLessonHistory(this.state.selectedTermId);
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
+      return this.snapshot();
+    });
+  }
+
   async updateLessonDetails({ mark = null, attendance = 'PRESENT', teacherNote = '' }) {
     return this.#run(async () => {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
