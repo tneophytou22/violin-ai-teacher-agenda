@@ -92,6 +92,28 @@ export class IndexedDBRepository {
     })));
   }
 
+  async deleteRecords(recordsByStore) {
+    const db = await this.#db();
+    const entries = Object.entries(recordsByStore);
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction([...new Set(entries.map(([name]) => name))], 'readwrite');
+      try {
+        for (const [name, ids] of entries) {
+          if (!Array.isArray(ids)) throw new Error(`${name} delete ids must be an array`);
+          const store = tx.objectStore(name);
+          for (const id of ids) store.delete(id);
+        }
+      } catch (error) {
+        tx.abort();
+        reject(error);
+        return;
+      }
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error ?? new Error('V15 cascade delete transaction failed'));
+      tx.onabort = () => reject(tx.error ?? new Error('V15 cascade delete transaction aborted'));
+    });
+  }
+
   async replaceAll(stores) {
     const db = await this.#db();
     const recordsByStore = STORE_NAMES.map(name => {
