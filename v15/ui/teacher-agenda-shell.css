@@ -709,6 +709,7 @@
   grid-template-areas:
     "header header"
     "alert alert"
+    "agenda agenda"
     "students dashboard";
   gap: 0 16px;
   min-height: 100vh;
@@ -717,6 +718,11 @@
 [data-v15="teacher-agenda"] > header { grid-area: header; }
 [data-v15="teacher-agenda"] > [role="alert"] { grid-area: alert; }
 [data-v15="teacher-agenda"] > [data-view="students"] { grid-area: students; align-self: start; }
+[data-v15="teacher-agenda"] > [data-view="teacher-agenda-week"] {
+  grid-area: agenda;
+  min-width: 0;
+  width: 100%;
+}
 [data-v15="teacher-agenda"] > [data-view="student-dashboard"] { grid-area: dashboard; min-width: 0; }
 
 [data-v15="teacher-agenda"] > header {
