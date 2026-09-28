@@ -154,9 +154,10 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Start lesson/);
   await controller.createLesson('2026-09-18');
   shell.render();
-  assert.match(root.innerHTML, /data-action="lesson" disabled/);
-  assert.match(root.innerHTML, /Lesson active ✓/);
+  assert.match(root.innerHTML, /data-action="lesson"/);
+  assert.match(root.innerHTML, /End lesson/);
   assert.match(root.innerHTML, /data-view="lesson-session-flow"/);
+  assert.match(root.innerHTML, /data-action="end-lesson"/);
   assert.match(root.innerHTML, /data-session-step="record"/);
   assert.match(root.innerHTML, /data-session-step="review"/);
   assert.match(root.innerHTML, /data-session-step="homework"/);
