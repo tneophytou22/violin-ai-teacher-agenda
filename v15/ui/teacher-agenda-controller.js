@@ -163,6 +163,24 @@ export class TeacherAgendaController {
     });
   }
 
+  async openAgendaEntry(entry) {
+    return this.#run(async () => {
+      if (!entry?.studentId) throw new Error('Agenda entry has no student');
+      await this.#selectStudent(entry.studentId);
+      if (entry.termId && this.state.terms.some(term => term.id === entry.termId)) {
+        this.state.selectedTermId = entry.termId;
+        await this.#loadSelectedTerm();
+      }
+      if (entry.lessonId) {
+        await this.#activateLesson(await this.viewModel.getLesson(entry.lessonId));
+      } else if (this.state.selectedTermId) {
+        const lesson = await this.viewModel.createLesson(this.state.selectedTermId, entry.date);
+        await this.#activateLesson(lesson);
+      }
+      return this.snapshot();
+    });
+  }
+
   async shiftAgendaWeek(direction) {
     return this.#run(async () => {
       if (!Number.isInteger(direction) || ![-1, 1].includes(direction)) {
