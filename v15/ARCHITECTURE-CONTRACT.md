@@ -166,3 +166,8 @@ Locked rules:
 - A recorded occurrence is represented by the existing Lesson record and its attendance/status; the recurring Student.lessonSchedule remains unchanged.
 - The Student roster displays all configured weekly lesson slots, while preserving the legacy single-slot fallback.
 - These states are UI projections over existing persisted Student/Term/Lesson data; no duplicate schedule state is introduced into Lesson.
+
+
+Additional Phase 45 resilience rule:
+- Initial student loading is not rolled back merely because the derived Agenda read fails. Student persistence remains visible while the Agenda error is surfaced separately.
+- This prevents a derived scheduling/view failure from appearing as student data loss.
