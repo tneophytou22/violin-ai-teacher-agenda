@@ -343,7 +343,7 @@ test('delete student cascade preserves unrelated student data and curriculum reg
   assert.ok(await repository.get('programmeItems', 'pi-keep'));
   assert.equal(await repository.get('homework', 'hw-delete'), null);
   assert.ok(await repository.get('homework', 'hw-keep'));
-  assert.ok(getCurriculum('scales.v1'));
+  assert.ok(getCurriculum('scales-v1'));
 });
 
 test('delete student keeps the safety backup before cascade deletion', async () => {
