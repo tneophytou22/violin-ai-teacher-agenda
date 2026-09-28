@@ -103,7 +103,10 @@ export class TeacherAgendaController {
   async restoreBackup(backup) {
     return this.#run(async () => {
       const restored = await this.viewModel.restoreBackup(backup);
-      this.state.students = await this.viewModel.students.list();
+      // The restored backup is authoritative. Use the freshly restored payload
+      // directly for the visible roster instead of depending on a second
+      // IndexedDB read during the same restore flow.
+      this.state.students = [...(restored?.stores?.students ?? [])];
       try {
         this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
       } catch (error) {
