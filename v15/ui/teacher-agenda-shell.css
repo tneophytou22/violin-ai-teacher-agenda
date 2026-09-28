@@ -2888,3 +2888,87 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+[data-view="teacher-agenda-week"] {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #d9dde3;
+  border-radius: 12px;
+  background: #fff;
+}
+[data-view="teacher-agenda-week-header"],
+[data-view="teacher-agenda-day-header"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+[data-view="teacher-agenda-week-header"] {
+  margin-bottom: 1rem;
+}
+[data-view="teacher-agenda-week-header"] h2 {
+  margin: 0;
+}
+[data-view="teacher-agenda-week-header"] p {
+  margin: .25rem 0 0;
+  color: #69717d;
+}
+[data-view="teacher-agenda-week-actions"] {
+  display: flex;
+  gap: .35rem;
+}
+[data-view="teacher-agenda-days"] {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
+  gap: .5rem;
+  overflow-x: auto;
+}
+[data-view="teacher-agenda-day"] {
+  min-width: 120px;
+  padding: .65rem;
+  border: 1px solid #e3e6ea;
+  border-radius: 10px;
+  background: #f8f9fb;
+}
+[data-view="teacher-agenda-day-header"] {
+  margin-bottom: .55rem;
+  font-size: .82rem;
+}
+[data-view="teacher-agenda-day-header"] span {
+  color: #69717d;
+}
+[data-view="teacher-agenda-day-entries"] {
+  display: grid;
+  gap: .45rem;
+}
+[data-action="agenda-entry"] {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .55rem;
+  width: 100%;
+  padding: .6rem;
+  text-align: left;
+  border: 1px solid #d9dde3;
+  border-radius: 8px;
+  background: #fff;
+}
+[data-action="agenda-entry"].is-today {
+  border-width: 2px;
+}
+[data-view="agenda-entry-time"] {
+  font-weight: 700;
+}
+[data-view="agenda-entry-student"] {
+  min-width: 0;
+}
+[data-view="agenda-entry-student"] small {
+  display: block;
+  margin-top: .15rem;
+  color: #69717d;
+}
+@media (max-width: 900px) {
+  [data-view="teacher-agenda-days"] {
+    grid-template-columns: repeat(7, 150px);
+  }
+}
