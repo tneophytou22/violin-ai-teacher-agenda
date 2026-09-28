@@ -2,7 +2,7 @@
 
 Status: LOCKED FOR V15 MVP  
 Baseline: `96cedaf90844963f8380aad9e1489f4334f2ae51`  
-Phase: 42 — Architecture Decision Gate
+Phase: 43 — Persistence Atomicity Hardening
 
 This document records the explicit architecture boundaries for the current V15 MVP. It does not introduce a new persistence model or concurrency mechanism.
 
@@ -32,18 +32,19 @@ The known `TeacherTermService.activateCard()` read → decide → write race is 
 
 ## 2. Transaction Contract
 
-V15 persistence guarantees atomicity at the level of an individual repository write/delete transaction.
+V15 persistence guarantees atomicity at the level of individual repository writes/deletes and for explicitly supported repository batch operations.
 
-A business operation composed of multiple repository writes is **not** currently atomic.
+Supported atomic repository batches:
+- backup restore: replace all five V15 stores in one repository transaction;
+- student deletion: remove the student and all owned descendants in one repository transaction;
+- bulk ProgrammeItem completion: write the selected ProgrammeItems through one repository batch boundary;
+- student + initial Term creation: write both records through one repository batch boundary.
 
-Examples:
-- activating a TKTL card may perform multiple ProgrammeItem writes;
-- completing multiple ProgrammeItems may perform multiple writes;
-- homework assignment performs a read → decide → write sequence.
+The repository exposes targeted batch primitives (`replaceAll`, `deleteRecords`, `putRecords`) rather than a general transaction abstraction. These primitives are part of the V15 persistence contract and are implemented atomically by both the InMemory and IndexedDB adapters.
 
-Therefore V15 does not promise all-or-nothing semantics for multi-record business operations.
+Other business operations that currently perform a single repository write remain atomic at that write boundary. V15 does not claim that every arbitrary multi-step business operation is transactional.
 
-A future requirement for business-operation atomicity must introduce an explicit repository transaction/batch contract rather than relying on controller serialization.
+Future business operations that require all-or-nothing semantics must use an explicit repository batch primitive or introduce a separately approved transaction contract; controller serialization alone is not a database transaction boundary.
 
 ## 3. Curriculum Snapshot Contract
 
@@ -67,20 +68,26 @@ If curriculum editing/versioning is introduced later, that phase must define imm
 
 ## 4. Delete / Orphan Contract
 
-V15 currently has **no domain-level delete workflow** for Student, Term, Lesson, ProgrammeItem, or Homework.
+V15 now has an explicit Student domain delete workflow.
 
-The repository adapter exposes raw delete capability, but application workflows do not use it as a domain deletion operation.
+Student deletion is an atomic cascade over the owned dependency chain:
+- Homework owned by the student's Lessons;
+- Lessons owned by the student's Terms;
+- ProgrammeItems owned by the student's Terms;
+- Terms owned by the Student;
+- the Student record itself.
 
-Therefore V15 currently makes no product-level promise for:
-- cascade delete;
-- restrict delete;
-- archive;
-- soft delete;
-- orphan repair.
+The cascade is performed through one repository `deleteRecords` batch boundary. Unrelated students and curriculum registry data are preserved.
 
-No delete policy should be implemented speculatively.
+V15 does not claim product-level delete semantics for Term, Lesson, ProgrammeItem, or Homework individually. Those policies remain out of scope until explicitly specified.
 
-When deletion becomes a product requirement, the policy must be selected explicitly and then enforced through domain/application services rather than exposing raw repository deletion to normal teacher workflows.
+Ownership creation boundaries are enforced:
+- Term requires an existing Student;
+- Lesson requires an existing Term;
+- ProgrammeItem requires an existing Term;
+- Homework requires an existing Lesson.
+
+This prevents new orphan records through the supported domain creation services.
 
 ## 5. Consequence for Future Phases
 
