@@ -234,7 +234,7 @@ export class TeacherAgendaController {
       this.state.practicePlanDraft = null;
       this.state.selectedItemIds = [];
       this.state.reviewedItemIds = [];
-      this.state.lessonHistory = await this.viewModel.listLessonHistory(this.state.selectedTermId);
+      this.state.lessonHistory = await this.viewModel.listLessons(this.state.selectedTermId);
       this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
       return this.snapshot();
     });
