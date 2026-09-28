@@ -165,6 +165,31 @@ export class TeacherAgendaShell {
             </form>
           </dialog>
         </section>
+        <section data-view="teacher-agenda-week" aria-label="This week's lessons">
+          <div data-view="teacher-agenda-week-header">
+            <div>
+              <h2>Teaching Agenda</h2>
+              <p>${esc(state.agenda?.weekStart ?? '')} → ${esc(state.agenda?.weekEnd ?? '')}${state.agenda?.today ? ` · Today ${esc(state.agenda.today)}` : ''}</p>
+            </div>
+            <div data-view="teacher-agenda-week-actions">
+              <button type="button" data-action="agenda-week-prev" aria-label="Previous week">←</button>
+              <button type="button" data-action="agenda-week-today">Today</button>
+              <button type="button" data-action="agenda-week-next" aria-label="Next week">→</button>
+            </div>
+          </div>
+          <div data-view="teacher-agenda-days">
+            ${(state.agenda?.days ?? []).map(day => {
+              const entries = day.entries ?? [];
+              return `<section data-view="teacher-agenda-day" data-date="${esc(day.date)}">
+                <div data-view="teacher-agenda-day-header"><strong>${esc(day.date)}</strong><span>${entries.length} lesson${entries.length === 1 ? '' : 's'}</span></div>
+                ${entries.length ? `<div data-view="teacher-agenda-day-entries">${entries.map(entry => `<button type="button" data-action="agenda-entry" data-agenda-entry="${esc(entry.id)}" class="${entry.date === state.agenda?.today ? 'is-today' : ''}">
+                  <span data-view="agenda-entry-time">${esc(entry.time)}</span>
+                  <span data-view="agenda-entry-student"><strong>${esc(entry.studentName)}</strong><small>${entry.level ? `Level ${esc(entry.level)}${entry.termNumber ? ` · Term ${esc(entry.termNumber)}` : ''}` : 'No level set'} · ${entry.status === 'RECORDED' ? esc(entry.attendance ?? 'Recorded') : 'Scheduled'}</small></span>
+                </button>`).join('')}</div>` : '<small>No lessons scheduled.</small>'}
+              </section>`;
+            }).join('')}
+          </div>
+        </section>
         ${student ? `
           <section data-view="student-dashboard">
             <div data-view="student-identity"><div data-view="student-avatar" aria-hidden="true">${esc(student.name.slice(0, 2).toUpperCase())}</div><div><h2>${esc(student.name)}</h2><p>${state.termContext ? `Level ${esc(state.termContext.term.level)} · Term ${esc(state.termContext.term.termNumber)}` : 'Select a term'}${student.schoolType ? ` · ${esc(student.schoolType.replaceAll('_', ' '))}` : ''}</p><small>${esc(student.schoolName || '')}${student.phone ? ` · ${esc(student.phone)}` : ''}${student.lessonDay ? ` · ${esc(student.lessonDay)}${student.lessonTime ? ` ${esc(student.lessonTime)}` : ''}` : student.lessonTime ? ` · ${esc(student.lessonTime)}` : ''}</small></div></div>
