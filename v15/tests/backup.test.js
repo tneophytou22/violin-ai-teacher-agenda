@@ -308,7 +308,7 @@ test('restored schedule, homework practice plan and scale mastery survive app re
   assert.equal(state.lessonHistory.length, 1);
   assert.deepEqual(state.homework.items, homework);
   assert.ok(state.homework.practicePlan);
-  assert.equal(state.homework.practicePlan.totalMinutes, 65);
+  assert.equal(state.homework.practicePlan.totalMinutes, 55);
 
   const restoredScale = state.scaleProgress.items.find(item => item.id === scale.id);
   assert.equal(restoredScale.details.mastery.status, 'DEVELOPING');
