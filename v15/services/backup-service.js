@@ -39,7 +39,16 @@ export class BackupService {
     if (!backup.counts || typeof backup.counts !== 'object') {
       throw new Error('V15 backup is missing store counts');
     }
-    for (const name of this.#storeNames()) {
+    const expectedStores = this.#storeNames();
+    const actualStores = Object.keys(backup.stores);
+    if (actualStores.length !== expectedStores.length || actualStores.some(name => !expectedStores.includes(name))) {
+      throw new Error('V15 backup contains unexpected data stores');
+    }
+    const actualCounts = Object.keys(backup.counts);
+    if (actualCounts.length !== expectedStores.length || actualCounts.some(name => !expectedStores.includes(name))) {
+      throw new Error('V15 backup contains unexpected store counts');
+    }
+    for (const name of expectedStores) {
       if (!Array.isArray(backup.stores[name])) {
         throw new Error(`V15 backup is missing store: ${name}`);
       }
