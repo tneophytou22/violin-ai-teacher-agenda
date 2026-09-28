@@ -91,6 +91,15 @@ export class TeacherAgendaShell {
                     <option value="OTHER">Other</option>
                   </select>
                 </label>
+                <label>Lesson day
+                  <select data-action="new-student-lesson-day">
+                    <option value="">Not set</option>
+                    <option value="MONDAY">Monday</option><option value="TUESDAY">Tuesday</option><option value="WEDNESDAY">Wednesday</option><option value="THURSDAY">Thursday</option><option value="FRIDAY">Friday</option><option value="SATURDAY">Saturday</option><option value="SUNDAY">Sunday</option>
+                  </select>
+                </label>
+                <label>Lesson time
+                  <input data-action="new-student-lesson-time" type="time">
+                </label>
                 <label>Level
                   <select data-action="new-student-level">
                     <option value="">Not set yet</option>
@@ -122,7 +131,7 @@ export class TeacherAgendaShell {
         </section>
         ${student ? `
           <section data-view="student-dashboard">
-            <div data-view="student-identity"><div data-view="student-avatar" aria-hidden="true">${esc(student.name.slice(0, 2).toUpperCase())}</div><div><h2>${esc(student.name)}</h2><p>${state.termContext ? `Level ${esc(state.termContext.term.level)} · Term ${esc(state.termContext.term.termNumber)}` : 'Select a term'}${student.schoolType ? ` · ${esc(student.schoolType.replaceAll('_', ' '))}` : ''}</p><small>${esc(student.schoolName || '')}${student.phone ? ` · ${esc(student.phone)}` : ''}</small></div></div>
+            <div data-view="student-identity"><div data-view="student-avatar" aria-hidden="true">${esc(student.name.slice(0, 2).toUpperCase())}</div><div><h2>${esc(student.name)}</h2><p>${state.termContext ? `Level ${esc(state.termContext.term.level)} · Term ${esc(state.termContext.term.termNumber)}` : 'Select a term'}${student.schoolType ? ` · ${esc(student.schoolType.replaceAll('_', ' '))}` : ''}</p><small>${esc(student.schoolName || '')}${student.phone ? ` · ${esc(student.phone)}` : ''}${student.lessonDay ? ` · ${esc(student.lessonDay)}${student.lessonTime ? ` ${esc(student.lessonTime)}` : ''}` : student.lessonTime ? ` · ${esc(student.lessonTime)}` : ''}</small></div></div>
 
             <button type="button" data-action="open-student-profile">Edit profile</button>
             <dialog data-view="student-profile-dialog" aria-labelledby="student-profile-title">
@@ -156,6 +165,15 @@ export class TeacherAgendaShell {
                       <option value="OTHER" ${student.instrument === 'OTHER' ? 'selected' : ''}>Other</option>
                     </select>
                   </label>
+                  <label>Lesson day
+                    <select data-action="student-profile-lesson-day">
+                      <option value="">Not set</option>
+                      <option value="MONDAY" ${student.lessonDay === 'MONDAY' ? 'selected' : ''}>Monday</option><option value="TUESDAY" ${student.lessonDay === 'TUESDAY' ? 'selected' : ''}>Tuesday</option><option value="WEDNESDAY" ${student.lessonDay === 'WEDNESDAY' ? 'selected' : ''}>Wednesday</option><option value="THURSDAY" ${student.lessonDay === 'THURSDAY' ? 'selected' : ''}>Thursday</option><option value="FRIDAY" ${student.lessonDay === 'FRIDAY' ? 'selected' : ''}>Friday</option><option value="SATURDAY" ${student.lessonDay === 'SATURDAY' ? 'selected' : ''}>Saturday</option><option value="SUNDAY" ${student.lessonDay === 'SUNDAY' ? 'selected' : ''}>Sunday</option>
+                    </select>
+                  </label>
+                  <label>Lesson time
+                    <input data-action="student-profile-lesson-time" type="time" value="${esc(student.lessonTime || '')}">
+                </label>
                 </div>
                 <p data-view="student-profile-term-note">Current level: ${state.termContext?.term?.level ? 'Level ' + esc(state.termContext.term.level) + ' · Term ' + esc(state.termContext.term.termNumber) : 'No level set'} · change level from Term Details.</p>
                 <div data-view="student-profile-actions">
@@ -553,7 +571,9 @@ export class TeacherAgendaShell {
           const schoolType = this.root.querySelector('[data-action="student-profile-school-type"]')?.value ?? 'PRIVATE';
           const schoolName = this.root.querySelector('[data-action="student-profile-school-name"]')?.value?.trim() ?? '';
           const instrument = this.root.querySelector('[data-action="student-profile-instrument"]')?.value ?? 'VIOLIN';
-          await this.controller.updateStudent({ name, phone, schoolType, schoolName, instrument });
+          const lessonDay = this.root.querySelector('[data-action="student-profile-lesson-day"]')?.value ?? '';
+          const lessonTime = this.root.querySelector('[data-action="student-profile-lesson-time"]')?.value ?? '';
+          await this.controller.updateStudent({ name, phone, schoolType, schoolName, instrument, lessonDay, lessonTime });
           this.#closeDialog('[data-view="student-profile-dialog"]');
           this.render();
         } else if (action === 'create-student') {
@@ -562,13 +582,15 @@ export class TeacherAgendaShell {
           const schoolType = this.root.querySelector('[data-action="new-student-school-type"]')?.value ?? 'PRIVATE';
           const schoolName = this.root.querySelector('[data-action="new-student-school-name"]')?.value?.trim() ?? '';
           const instrument = this.root.querySelector('[data-action="new-student-instrument"]')?.value ?? 'VIOLIN';
+          const lessonDay = this.root.querySelector('[data-action="new-student-lesson-day"]')?.value ?? '';
+          const lessonTime = this.root.querySelector('[data-action="new-student-lesson-time"]')?.value ?? '';
           const levelRaw = this.root.querySelector('[data-action="new-student-level"]')?.value ?? '';
           const termNumber = Number(this.root.querySelector('[data-action="new-student-term-number"]')?.value ?? 1);
           const termName = this.root.querySelector('[data-action="new-student-term-name"]')?.value?.trim() ?? '';
           const startDate = this.root.querySelector('[data-action="new-student-term-start"]')?.value ?? '';
           const endDate = this.root.querySelector('[data-action="new-student-term-end"]')?.value ?? '';
           await this.controller.createStudent({
-            name, phone, schoolType, schoolName, instrument,
+            name, phone, schoolType, schoolName, instrument, lessonDay, lessonTime,
             initialTerm: levelRaw === '' ? null : { name: termName || `Term ${termNumber}`, level: Number(levelRaw), termNumber, startDate, endDate },
           });
           this.#closeDialog('[data-view="new-student-dialog"]');
