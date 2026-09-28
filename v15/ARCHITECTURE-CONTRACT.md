@@ -134,3 +134,19 @@ The V1 Practice Planner is deterministic and domain-aware. It organises **how to
 The practice plan is a derived/teacher-approved layer attached to Homework. It is not a second curriculum source of truth.
 
 V15 does not persist Viber or parent communication text. Those are derived outputs from the saved Homework + Practice Plan and remain outside the persistence contract.
+
+
+## Phase 44 — Teacher Agenda Weekly Schedule Integration
+
+The Teacher Agenda now treats Student.lessonSchedule as the recurring weekly schedule source for teacher planning.
+
+Locked rules:
+- A Student may have one or two weekly lesson slots.
+- Each slot contains a weekday and time.
+- Duplicate weekdays are rejected.
+- The recurring schedule remains student-owned; it is not duplicated into Term or Lesson records.
+- Lesson records remain dated occurrences and are matched to a scheduled slot when they exist.
+- The Agenda derives a Monday–Sunday week from the selected agenda date.
+- Legacy students with lessonDay/lessonTime but no lessonSchedule remain readable through a compatibility fallback.
+- Opening a scheduled Agenda entry may create the dated Lesson only when an active Term covers that date.
+- Agenda UI is progressive-disclosure: schedule first, then the existing lesson workflow, homework, programme and intelligence.
