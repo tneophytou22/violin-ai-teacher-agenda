@@ -28,4 +28,16 @@ export class InMemoryRepository {
     }
     this.#stores = next;
   }
+
+  async deleteRecords(recordsByStore) {
+    const next = new Map();
+    for (const [name, store] of this.#stores) next.set(name, new Map(store));
+    for (const [name, ids] of Object.entries(recordsByStore)) {
+      if (!Array.isArray(ids)) throw new Error(${name} delete ids must be an array`);
+      const store = next.get(name) ?? new Map();
+      for (const id of ids) store.delete(id);
+      next.set(name, store);
+    }
+    this.#stores = next;
+  }
 }
