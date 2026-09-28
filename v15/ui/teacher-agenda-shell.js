@@ -234,10 +234,11 @@ export class TeacherAgendaShell {
       <div data-session-step="record" data-complete="true"><span>1</span><strong>Record</strong><small>Attendance · mark · note</small></div>
       <div data-session-step="review" data-complete="${state.reviewedItemIds.length > 0}"><span>2</span><strong>Review</strong><small>${state.reviewedItemIds.length ? `${state.reviewedItemIds.length} recorded` : 'Select work in Week View'}</small></div>
       <div data-session-step="homework" data-complete="${homeworkItems.length > 0}"><span>3</span><strong>Homework</strong><small>${homeworkItems.length ? `${homeworkItems.length} assigned` : 'Assign selected work'}</small></div>
+      <div data-session-step="save" data-complete="${!homeworkItems.length || !homeworkNeedsSave}"><span>4</span><strong>Save</strong><small>${homeworkItems.length ? (homeworkNeedsSave ? 'Save homework' : 'Saved') : 'No homework'}</small></div>
     </div>
     <div data-view="lesson-next-action" aria-live="polite">
-      <span>Next action</span>
-      <strong>${!state.reviewedItemIds.length ? 'Select and review today’s work in Week View' : !homeworkItems.length ? 'Add reviewed work to Homework' : !practicePlan ? 'Create a Practice Plan for the assigned work' : homeworkNeedsSave ? 'Review the plan, then Save Homework' : 'Homework saved · lesson workflow ready'}</strong>
+      <span>${!state.reviewedItemIds.length ? 'Next action' : !homeworkItems.length ? 'Next action' : !practicePlan ? 'Next action' : homeworkNeedsSave ? 'Next action' : 'Session ready'}</span>
+      <strong>${!state.reviewedItemIds.length ? 'Select and review today’s work in Week View' : !homeworkItems.length ? 'Add reviewed work to Homework' : !practicePlan ? 'Create a Practice Plan for the assigned work' : homeworkNeedsSave ? 'Review the plan, then Save Homework' : 'Lesson record is complete · ready for the next student'}</strong>
     </div>
     <div data-view="lesson-session-summary" aria-label="Lesson session summary">
       <div><span>Reviewed</span><strong>${state.reviewedItemIds.length}</strong></div>
