@@ -178,9 +178,10 @@ export class TeacherAgendaController {
         await this.#loadSelectedTerm();
       }
       if (entry.lessonId) {
+        if (!entry.termId) throw new Error('Recorded Agenda entry has no term');
         const lesson = await this.viewModel.getLesson(entry.lessonId);
         if (!lesson) throw new Error('Agenda lesson not found');
-        if (entry.termId && lesson.termId !== entry.termId) {
+        if (lesson.termId !== entry.termId) {
           throw new Error('Agenda lesson does not belong to the scheduled term');
         }
         if (lesson.date !== entry.date) {
