@@ -197,6 +197,32 @@ test('BackupService rejects store count mismatch', async () => {
   );
 });
 
+test('BackupService rejects unexpected data stores and count keys', async () => {
+  const service = new BackupService(new InMemoryRepository());
+  const stores = Object.fromEntries(STORE_NAMES.map(name => [name, []]));
+  const counts = Object.fromEntries(STORE_NAMES.map(name => [name, 0]));
+
+  assert.throws(
+    () => service.validateBackup({
+      format: 'violin-ai-teacher-agenda-v15-backup',
+      formatVersion: BACKUP_FORMAT_VERSION,
+      stores: { ...stores, controllerState: [] },
+      counts,
+    }),
+    /unexpected data stores/
+  );
+
+  assert.throws(
+    () => service.validateBackup({
+      format: 'violin-ai-teacher-agenda-v15-backup',
+      formatVersion: BACKUP_FORMAT_VERSION,
+      stores,
+      counts: { ...counts, controllerState: 0 },
+    }),
+    /unexpected store counts/
+  );
+});
+
 test('BackupService rejects invalid records', async () => {
   const service = new BackupService(new InMemoryRepository());
   const stores = Object.fromEntries(STORE_NAMES.map(name => [name, []]));
