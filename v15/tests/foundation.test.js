@@ -675,3 +675,57 @@ test('opening a recorded Agenda entry requires a term identity', async () => {
   );
   assert.equal(controller.snapshot().activeLessonId, null);
 });
+
+
+test('teacher agenda does not attach a recorded lesson from an expired term to a current scheduled occurrence', () => {
+  const week = buildTeacherAgenda({
+    students: [{
+      id: 'stu-term-boundary',
+      name: 'Term Boundary Student',
+      lessonSchedule: [{ day: 'MONDAY', time: '17:00' }],
+    }],
+    termsByStudent: {
+      'stu-term-boundary': [
+        { id: 'term-old', studentId: 'stu-term-boundary', startDate: '2026-01-01', endDate: '2026-09-20', level: 2, termNumber: 1 },
+        { id: 'term-current', studentId: 'stu-term-boundary', startDate: '2026-09-21', endDate: '2026-12-31', level: 3, termNumber: 2 },
+      ],
+    },
+    lessonsByTerm: {
+      'term-old': [{ id: 'old-lesson', termId: 'term-old', date: '2026-09-28', attendance: 'PRESENT' }],
+      'term-current': [],
+    },
+    date: '2026-09-28',
+  });
+
+  assert.equal(week.entries.length, 1);
+  assert.equal(week.entries[0].termId, 'term-current');
+  assert.equal(week.entries[0].lessonId, null);
+  assert.equal(week.entries[0].status, 'SCHEDULED');
+  assert.equal(week.entries[0].level, 3);
+});
+
+test('teacher agenda selects the latest-starting active term when active terms overlap', () => {
+  const week = buildTeacherAgenda({
+    students: [{
+      id: 'stu-overlap',
+      name: 'Overlap Student',
+      lessonSchedule: [{ day: 'MONDAY', time: '17:00' }],
+    }],
+    termsByStudent: {
+      'stu-overlap': [
+        { id: 'term-1', studentId: 'stu-overlap', startDate: '2026-09-01', endDate: '2026-12-31', level: 2, termNumber: 1 },
+        { id: 'term-2', studentId: 'stu-overlap', startDate: '2026-09-15', endDate: '2026-10-31', level: 3, termNumber: 2 },
+      ],
+    },
+    lessonsByTerm: {
+      'term-1': [{ id: 'lesson-1', termId: 'term-1', date: '2026-09-28', attendance: 'PRESENT' }],
+      'term-2': [{ id: 'lesson-2', termId: 'term-2', date: '2026-09-28', attendance: 'LATE' }],
+    },
+    date: '2026-09-28',
+  });
+
+  assert.equal(week.entries[0].termId, 'term-2');
+  assert.equal(week.entries[0].lessonId, 'lesson-2');
+  assert.equal(week.entries[0].attendance, 'LATE');
+  assert.equal(week.entries[0].level, 3);
+});
