@@ -25,6 +25,10 @@ export class TeacherAgendaViewModel {
     return this.students.update(studentId, changes);
   }
 
+  async deleteStudent(studentId) {
+    return this.students.delete(studentId);
+  }
+
   async loadStudentIntelligence(studentId) {
     if (!this.studentIntelligence) return null;
     return this.studentIntelligence.getStudentProfile(studentId);
