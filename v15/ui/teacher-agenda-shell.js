@@ -186,6 +186,8 @@ export class TeacherAgendaShell {
                 </div>
                 <p data-view="student-profile-term-note">Current level: ${state.termContext?.term?.level ? 'Level ' + esc(state.termContext.term.level) + ' · Term ' + esc(state.termContext.term.termNumber) : 'No level set'} · change level from Term Details.</p>
                 <div data-view="student-profile-actions">
+                  <button type="button" data-action="delete-student" class="danger">Delete student</button>
+                  <span data-view="student-profile-delete-note">Deletes this student and all associated terms, lessons, programme work and homework.</span>
                   <button type="button" data-action="close-student-profile">Cancel</button>
                   <button type="button" data-action="save-student-profile" class="primary">Save profile</button>
                 </div>
@@ -574,6 +576,14 @@ export class TeacherAgendaShell {
           this.#openDialog('[data-view="student-profile-dialog"]');
         } else if (action === 'close-student-profile') {
           this.#closeDialog('[data-view="student-profile-dialog"]');
+        } else if (action === 'delete-student') {
+          const studentName = this.root.querySelector('[data-action="student-profile-name"]')?.value?.trim() || 'this student';
+          const confirmed = window.confirm(`Delete ${studentName}? This permanently removes the student and all associated terms, lessons, programme work and homework. This cannot be undone.`);
+          if (confirmed) {
+            await this.controller.deleteStudent();
+            this.#closeDialog('[data-view="student-profile-dialog"]');
+            this.render();
+          }
         } else if (action === 'save-student-profile') {
           const name = this.root.querySelector('[data-action="student-profile-name"]')?.value?.trim() ?? '';
           const phone = this.root.querySelector('[data-action="student-profile-phone"]')?.value?.trim() ?? '';
