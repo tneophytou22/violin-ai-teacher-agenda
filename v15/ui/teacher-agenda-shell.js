@@ -644,15 +644,20 @@ export class TeacherAgendaShell {
           const schoolType = this.root.querySelector('[data-action="new-student-school-type"]')?.value ?? 'PRIVATE';
           const schoolName = this.root.querySelector('[data-action="new-student-school-name"]')?.value?.trim() ?? '';
           const instrument = this.root.querySelector('[data-action="new-student-instrument"]')?.value ?? 'VIOLIN';
-          const lessonDay = this.root.querySelector('[data-action="new-student-lesson-day"]')?.value ?? '';
-          const lessonTime = this.root.querySelector('[data-action="new-student-lesson-time"]')?.value ?? '';
+          const lessonDay1 = this.root.querySelector('[data-action="new-student-lesson-day-1"]')?.value ?? '';
+          const lessonTime1 = this.root.querySelector('[data-action="new-student-lesson-time-1"]')?.value ?? '';
+          const lessonDay2 = this.root.querySelector('[data-action="new-student-lesson-day-2"]')?.value ?? '';
+          const lessonTime2 = this.root.querySelector('[data-action="new-student-lesson-time-2"]')?.value ?? '';
+          const lessonSchedule = [];
+          if (lessonDay1 || lessonTime1) lessonSchedule.push({ day: lessonDay1, time: lessonTime1 });
+          if (lessonDay2 || lessonTime2) lessonSchedule.push({ day: lessonDay2, time: lessonTime2 });
           const levelRaw = this.root.querySelector('[data-action="new-student-level"]')?.value ?? '';
           const termNumber = Number(this.root.querySelector('[data-action="new-student-term-number"]')?.value ?? 1);
           const termName = this.root.querySelector('[data-action="new-student-term-name"]')?.value?.trim() ?? '';
           const startDate = this.root.querySelector('[data-action="new-student-term-start"]')?.value ?? '';
           const endDate = this.root.querySelector('[data-action="new-student-term-end"]')?.value ?? '';
           await this.controller.createStudent({
-            name, phone, schoolType, schoolName, instrument, lessonDay, lessonTime,
+            name, phone, schoolType, schoolName, instrument, lessonSchedule,
             initialTerm: levelRaw === '' ? null : { name: termName || `Term ${termNumber}`, level: Number(levelRaw), termNumber, startDate, endDate },
           });
           this.#closeDialog('[data-view="new-student-dialog"]');
