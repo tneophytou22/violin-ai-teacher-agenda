@@ -60,6 +60,15 @@ export class TeacherAgendaShell {
           <div data-view="student-create">
             <button type="button" data-action="open-new-student">+ New student</button>
           </div>
+          <div data-view="student-roster" aria-label="Student list">
+            ${state.students.map(s => {
+              const type = s.schoolType === 'MUSIC_SCHOOL' ? 'music-school' : s.schoolType === 'PRIVATE' ? 'private' : 'other';
+              const label = s.schoolType === 'MUSIC_SCHOOL' ? 'Music School' : s.schoolType === 'PRIVATE' ? 'Private' : 'Other';
+              return `<button type="button" data-action="student-card" data-student-id="${esc(s.id)}" class="${s.id === state.selectedStudentId ? 'is-selected' : ''} ${type}">
+                <span data-student-dot aria-hidden="true"></span><span><strong>${esc(s.name)}</strong><small>${label}${s.lessonDay ? ` · ${esc(s.lessonDay)}` : ''}${s.lessonTime ? ` ${esc(s.lessonTime)}` : ''}</small></span>
+              </button>`;
+            }).join('')}
+          </div>
           <dialog data-view="new-student-dialog" aria-labelledby="new-student-title">
             <form method="dialog" data-view="new-student-form">
               <div data-view="new-student-header">
@@ -602,6 +611,8 @@ export class TeacherAgendaShell {
           const startDate = this.root.querySelector('[data-action="new-term-start"]')?.value ?? '';
           const endDate = this.root.querySelector('[data-action="new-term-end"]')?.value ?? '';
           await this.controller.createTerm({ name, level, termNumber, startDate, endDate });
+        } else if (action === 'student-card') {
+          await this.controller.selectStudent(target.dataset.studentId);
         } else if (action === 'select-lesson') {
           await this.controller.selectLesson(target.dataset.lessonId);
         } else if (action === 'week-prev') {
