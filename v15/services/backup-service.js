@@ -42,9 +42,15 @@ export class BackupService {
     if (!backup.stores || typeof backup.stores !== 'object') {
       throw new Error('V15 backup is missing its data stores');
     }
+    if (!backup.counts || typeof backup.counts !== 'object') {
+      throw new Error('V15 backup is missing store counts');
+    }
     for (const name of this.#storeNames()) {
       if (!Array.isArray(backup.stores[name])) {
         throw new Error(`V15 backup is missing store: ${name}`);
+      }
+      if (backup.counts[name] !== backup.stores[name].length) {
+        throw new Error(`V15 backup count mismatch for store: ${name}`);
       }
       for (const record of backup.stores[name]) {
         if (!record || typeof record !== 'object' || !record.id) {
