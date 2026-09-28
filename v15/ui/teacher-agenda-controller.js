@@ -211,6 +211,14 @@ export class TeacherAgendaController {
     });
   }
 
+  closeLessonView() {
+    return this.#run(async () => {
+      if (!this.state.activeLessonId) return this.snapshot();
+      this.#resetLessonState();
+      return this.snapshot();
+    });
+  }
+
   async endLesson() {
     return this.#run(async () => {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
