@@ -1,8 +1,19 @@
-import { createStudent, updateStudent } from '../domain/models.js';
+import { createStudent, createTerm, updateStudent } from '../domain/models.js';
 
 export class StudentService {
   constructor(repo) { this.repo = repo; }
   create(input) { return this.repo.put('students', createStudent(input)); }
+
+  async createWithInitialTerm(studentInput, termInput) {
+    const student = createStudent(studentInput);
+    const term = createTerm({
+      ...termInput,
+      studentId: student.id,
+      name: termInput?.name || 'Term 1',
+    });
+    await this.repo.putRecords({ students: [student], terms: [term] });
+    return { student, term };
+  }
   get(studentId) { return this.repo.get('students', studentId); }
   async update(studentId, changes = {}) {
     const current = await this.get(studentId);
