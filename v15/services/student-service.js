@@ -24,10 +24,13 @@ export class StudentService {
     const programmeItems = (await this.repo.list('programmeItems')).filter(item => termIds.has(item.termId));
     const homework = (await this.repo.list('homework')).filter(record => lessonIds.has(record.lessonId));
 
-    for (const record of homework) await this.repo.delete('homework', record.id);
-    for (const record of lessons) await this.repo.delete('lessons', record.id);
-    for (const record of programmeItems) await this.repo.delete('programmeItems', record.id);
-    for (const record of terms) await this.repo.delete('terms', record.id);
-    return this.repo.delete('students', studentId);
+    await this.repo.deleteRecords({
+      homework: homework.map(record => record.id),
+      lessons: lessons.map(record => record.id),
+      programmeItems: programmeItems.map(record => record.id),
+      terms: terms.map(record => record.id),
+      students: [studentId],
+    });
+    return true;
   }
 }
