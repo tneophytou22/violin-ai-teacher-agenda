@@ -2798,3 +2798,20 @@
   color:var(--ta-muted);
   font-size:.57rem;
 }
+
+
+[data-v15="teacher-agenda"] [data-action="delete-student"].danger {
+  border-color:#e2bcbc;
+  background:#fff7f7;
+  color:#8b3535;
+  font-weight:750;
+}
+[data-v15="teacher-agenda"] [data-action="delete-student"].danger:hover:not(:disabled) {
+  background:#ffefef;
+  border-color:#d99f9f;
+}
+[data-v15="teacher-agenda"] [data-view="student-profile-delete-note"] {
+  flex:1 1 100%;
+  color:#8b6b6b;
+  font-size:.58rem;
+}
