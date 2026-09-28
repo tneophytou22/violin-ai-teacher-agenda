@@ -93,6 +93,33 @@ export class TeacherAgendaController {
     });
   }
 
+  async createBackup() {
+    return this.#run(async () => this.viewModel.createBackup());
+  }
+
+  async restoreBackup(backup) {
+    return this.#run(async () => {
+      const restored = await this.viewModel.restoreBackup(backup);
+      this.state.students = await this.viewModel.students.list();
+      this.state.selectedStudentId = null;
+      this.state.selectedTermId = null;
+      this.state.terms = [];
+      this.state.termContext = null;
+      this.state.week = 1;
+      this.#resetLessonState();
+      this.state.weekly = null;
+      this.state.scaleProgress = null;
+      this.state.termProgress = null;
+      this.state.lessonHistory = [];
+      this.state.studentIntelligence = null;
+      this.state.longitudinalDevelopment = null;
+      this.state.evidenceSignals = [];
+      this.state.teacherDecisionPrompts = [];
+      this.state.teacherReadinessReview = null;
+      return { backup: restored, state: this.snapshot() };
+    });
+  }
+
   async createTerm(input) {
     return this.#run(async () => {
       if (!this.state.selectedStudentId) throw new Error('No student selected');
