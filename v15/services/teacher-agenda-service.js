@@ -70,7 +70,7 @@ export function buildTeacherAgenda({ students = [], termsByStudent = {}, lessons
       const lesson = lessons.find(candidate => candidate.date === dateString) ?? null;
       const term = lesson
         ? terms.find(candidate => candidate.id === lesson.termId) ?? null
-        : terms.find(candidate => dateString >= String(candidate.startDate ?? '') && dateString <= String(candidate.endDate ?? '')) ?? terms[0] ?? null;
+        : terms.find(candidate => dateString >= String(candidate.startDate ?? '') && dateString <= String(candidate.endDate ?? '')) ?? null;
 
       entries.push({
         id: `${student.id}:${dateString}:${slot.time}`,
