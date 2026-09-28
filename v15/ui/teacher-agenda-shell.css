@@ -2726,3 +2726,20 @@
   opacity: .5;
   cursor: not-allowed;
 }
+
+
+/* Scale mastery summary action */
+[data-v15="teacher-agenda"] [data-view="scale-progress-actions"] {
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+[data-v15="teacher-agenda"] [data-view="scale-progress-actions"] button {
+  padding:6px 9px;
+  border:1px solid #d8cdf8;
+  border-radius:7px;
+  background:#faf8ff;
+  color:#6346a3;
+  font-size:.62rem;
+  font-weight:750;
+}
