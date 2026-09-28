@@ -86,6 +86,24 @@ const seedRepository = async repo => {
   return data;
 };
 
+
+test('repository multi-store delete validates before mutating InMemoryRepository', async () => {
+  const repository = new InMemoryRepository();
+  await repository.put('students', { id: 'student-1', name: 'Atomic Delete Test' });
+  await repository.put('terms', { id: 'term-1', studentId: 'student-1' });
+
+  await assert.rejects(
+    repository.deleteRecords({
+      students: ['student-1'],
+      terms: 'term-1',
+    }),
+    /delete ids must be an array/
+  );
+
+  assert.ok(await repository.get('students', 'student-1'));
+  assert.ok(await repository.get('terms', 'term-1'));
+});
+
 test('BackupService creates a portable backup containing exactly the five V15 stores', async () => {
   const repo = new InMemoryRepository();
   await seedRepository(repo);
