@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { InMemoryRepository, StudentService, TermService, LessonService, ProgrammeService, HomeworkService, TeacherAgendaService, buildTeacherAgenda, createProgrammeItem, createLesson } from '../index.js';
+import { TeacherAgendaController } from '../ui/teacher-agenda-controller.js';
 
 test('student → term → lesson → homework flow', async () => {
   const repo = new InMemoryRepository();
@@ -402,4 +403,42 @@ test('teacher agenda accepts the existing V15 YYYY-MM-DD date contract', () => {
 
   assert.equal(week.weekStart, '2026-09-28');
   assert.equal(week.entries[0].date, '2026-09-28');
+});
+
+
+test('opening a recorded agenda entry reuses the existing lesson without creating a duplicate', async () => {
+  const lesson = { id: 'lesson-existing', termId: 'term-1', date: '2026-09-28', attendance: 'PRESENT', reviewedProgrammeItemIds: [] };
+  let createLessonCalls = 0;
+  const viewModel = {
+    students: { list: async () => [{ id: 'student-1', name: 'Agenda Student' }] },
+    loadStudent: async () => ({ terms: [{ id: 'term-1', studentId: 'student-1', startDate: '2026-09-01', endDate: '2026-12-31', level: 3, termNumber: 1 }] }),
+    loadStudentIntelligence: async () => null,
+    loadLongitudinalDevelopment: async () => null,
+    loadEvidenceSignals: async () => [],
+    loadTeacherDecisionPrompts: async () => [],
+    loadTeacherReadinessReview: async () => null,
+    loadTerm: async () => ({ id: 'term-1' }),
+    teacherTerms: { activateCard: async () => null },
+    loadTermProgress: async () => ({}),
+    loadScaleProgress: async () => ({}),
+    loadWeek: async () => ({ items: [], summary: {} }),
+    listLessons: async () => [lesson],
+    loadHomework: async () => null,
+    getLesson: async id => id === lesson.id ? lesson : null,
+    createLesson: async () => { createLessonCalls += 1; return { ...lesson, id: 'unexpected-new' }; },
+    loadAgenda: async () => ({ weekStart: '2026-09-28', weekEnd: '2026-10-04', today: '2026-09-28', days: [], entries: [{ lessonId: lesson.id, studentId: 'student-1', termId: 'term-1', date: lesson.date }] }),
+  };
+
+  const controller = new TeacherAgendaController(viewModel, { today: () => '2026-10-05' });
+  await controller.loadStudents();
+  await controller.openAgendaEntry({
+    id: 'student-1-2026-09-28-17:00',
+    studentId: 'student-1',
+    termId: 'term-1',
+    lessonId: lesson.id,
+    date: lesson.date,
+  });
+
+  assert.equal(createLessonCalls, 0);
+  assert.equal(controller.snapshot().activeLessonId, lesson.id);
 });
