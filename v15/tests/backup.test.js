@@ -159,8 +159,39 @@ test('BackupService rejects missing store', async () => {
       format: 'violin-ai-teacher-agenda-v15-backup',
       formatVersion: BACKUP_FORMAT_VERSION,
       stores,
+      counts: Object.fromEntries(STORE_NAMES.map(name => [name, stores[name]?.length ?? 0])),
     }),
     /missing store: homework/
+  );
+});
+
+test('BackupService rejects missing store counts', async () => {
+  const service = new BackupService(new InMemoryRepository());
+  const stores = Object.fromEntries(STORE_NAMES.map(name => [name, []]));
+  assert.throws(
+    () => service.validateBackup({
+      format: 'violin-ai-teacher-agenda-v15-backup',
+      formatVersion: BACKUP_FORMAT_VERSION,
+      stores,
+    }),
+    /missing store counts/
+  );
+});
+
+test('BackupService rejects store count mismatch', async () => {
+  const service = new BackupService(new InMemoryRepository());
+  const stores = Object.fromEntries(STORE_NAMES.map(name => [name, []]));
+  stores.students = [{ id: 'student-1', name: 'Count mismatch' }];
+  const counts = Object.fromEntries(STORE_NAMES.map(name => [name, stores[name].length]));
+  counts.students = 0;
+  assert.throws(
+    () => service.validateBackup({
+      format: 'violin-ai-teacher-agenda-v15-backup',
+      formatVersion: BACKUP_FORMAT_VERSION,
+      stores,
+      counts,
+    }),
+    /count mismatch for store: students/
   );
 });
 
