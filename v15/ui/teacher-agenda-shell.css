@@ -2860,3 +2860,31 @@
   border-color:#c9c0e3;
   background:#faf8ff;
 }
+
+
+/* Weekly lesson schedule */
+[data-v15="teacher-agenda"] [data-view="new-student-schedule"] {
+  grid-column: 1 / -1;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(100, 116, 139, 0.22);
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.72);
+}
+[data-v15="teacher-agenda"] [data-view="new-student-schedule"] > strong {
+  display: block;
+  margin-bottom: 0.2rem;
+}
+[data-v15="teacher-agenda"] [data-view="new-student-schedule"] > small {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+[data-v15="teacher-agenda"] [data-view="new-student-schedule-grid"] {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+@media (max-width: 720px) {
+  [data-v15="teacher-agenda"] [data-view="new-student-schedule-grid"] {
+    grid-template-columns: 1fr 1fr;
+  }
+}
