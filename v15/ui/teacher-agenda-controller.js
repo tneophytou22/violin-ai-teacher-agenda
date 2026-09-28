@@ -106,7 +106,7 @@ export class TeacherAgendaController {
       // The restored backup is authoritative. Use the freshly restored payload
       // directly for the visible roster instead of depending on a second
       // IndexedDB read during the same restore flow.
-      this.state.students = [...(restored?.stores?.students ?? [])];
+      this.state.students = [...(backup?.stores?.students ?? [])];
       try {
         this.state.agenda = await this.viewModel.loadAgenda(this.state.agendaDate);
       } catch (error) {
