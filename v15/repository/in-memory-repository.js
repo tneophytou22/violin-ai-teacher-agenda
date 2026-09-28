@@ -29,6 +29,21 @@ export class InMemoryRepository {
     this.#stores = next;
   }
 
+  async putRecords(recordsByStore) {
+    const next = new Map();
+    for (const [name, store] of this.#stores) next.set(name, new Map(store));
+    for (const [name, records] of Object.entries(recordsByStore)) {
+      if (!Array.isArray(records)) throw new Error(`${name} records must be an array`);
+      const store = next.get(name) ?? new Map();
+      for (const record of records) {
+        if (!record?.id) throw new Error(`${name} requires id`);
+        store.set(record.id, structuredClone(record));
+      }
+      next.set(name, store);
+    }
+    this.#stores = next;
+  }
+
   async deleteRecords(recordsByStore) {
     const next = new Map();
     for (const [name, store] of this.#stores) next.set(name, new Map(store));
