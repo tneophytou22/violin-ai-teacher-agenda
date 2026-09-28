@@ -112,15 +112,30 @@ export class TeacherAgendaShell {
                     <option value="OTHER">Other</option>
                   </select>
                 </label>
-                <label>Lesson day
-                  <select data-action="new-student-lesson-day">
-                    <option value="">Not set</option>
-                    <option value="MONDAY">Monday</option><option value="TUESDAY">Tuesday</option><option value="WEDNESDAY">Wednesday</option><option value="THURSDAY">Thursday</option><option value="FRIDAY">Friday</option><option value="SATURDAY">Saturday</option><option value="SUNDAY">Sunday</option>
-                  </select>
-                </label>
-                <label>Lesson time
-                  <input data-action="new-student-lesson-time" type="time">
-                </label>
+                <div data-view="new-student-schedule" style="grid-column: 1 / -1">
+                  <strong>Weekly lessons</strong>
+                  <small>Most students have two lessons per week. Add one or two weekly lesson slots.</small>
+                  <div data-view="new-student-schedule-grid">
+                    <label>Lesson 1 · Day
+                      <select data-action="new-student-lesson-day-1">
+                        <option value="">Not set</option>
+                        <option value="MONDAY">Monday</option><option value="TUESDAY">Tuesday</option><option value="WEDNESDAY">Wednesday</option><option value="THURSDAY">Thursday</option><option value="FRIDAY">Friday</option><option value="SATURDAY">Saturday</option><option value="SUNDAY">Sunday</option>
+                      </select>
+                    </label>
+                    <label>Time
+                      <input data-action="new-student-lesson-time-1" type="time">
+                    </label>
+                    <label>Lesson 2 · Day
+                      <select data-action="new-student-lesson-day-2">
+                        <option value="">Optional</option>
+                        <option value="MONDAY">Monday</option><option value="TUESDAY">Tuesday</option><option value="WEDNESDAY">Wednesday</option><option value="THURSDAY">Thursday</option><option value="FRIDAY">Friday</option><option value="SATURDAY">Saturday</option><option value="SUNDAY">Sunday</option>
+                      </select>
+                    </label>
+                    <label>Time
+                      <input data-action="new-student-lesson-time-2" type="time">
+                    </label>
+                  </div>
+                </div>
                 <label>Level
                   <select data-action="new-student-level">
                     <option value="">Not set yet</option>
