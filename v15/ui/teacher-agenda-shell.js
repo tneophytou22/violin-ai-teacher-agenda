@@ -112,7 +112,7 @@ export class TeacherAgendaShell {
                     <option value="OTHER">Other</option>
                   </select>
                 </label>
-                <div data-view="new-student-schedule" style="grid-column: 1 / -1">
+                <div data-view="new-student-schedule">
                   <strong>Weekly lessons</strong>
                   <small>Most students have two lessons per week. Add one or two weekly lesson slots.</small>
                   <div data-view="new-student-schedule-grid">
