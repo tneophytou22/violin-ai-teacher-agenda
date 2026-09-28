@@ -2815,3 +2815,48 @@
   color:#8b6b6b;
   font-size:.58rem;
 }
+
+[data-v15="teacher-agenda"] [data-view="backup-panel"] {
+  margin-top:10px;
+  padding:9px;
+  border:1px solid var(--ta-border);
+  border-radius:10px;
+  background:var(--ta-surface-soft);
+}
+[data-v15="teacher-agenda"] [data-view="backup-panel-header"] {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:8px;
+}
+[data-v15="teacher-agenda"] [data-view="backup-panel-header"] strong {
+  display:block;
+  font-size:.68rem;
+}
+[data-v15="teacher-agenda"] [data-view="backup-panel-header"] small,
+[data-v15="teacher-agenda"] [data-view="backup-note"] {
+  display:block;
+  margin-top:2px;
+  color:var(--ta-muted);
+  font-size:.56rem;
+  line-height:1.35;
+}
+[data-v15="teacher-agenda"] [data-view="backup-status"] {
+  font-size:.53rem;
+  color:var(--ta-muted);
+  white-space:nowrap;
+}
+[data-v15="teacher-agenda"] [data-view="backup-actions"] {
+  display:flex;
+  gap:5px;
+  margin-top:7px;
+}
+[data-v15="teacher-agenda"] [data-view="backup-actions"] button {
+  flex:1 1 0;
+  min-height:30px;
+  font-size:.58rem;
+}
+[data-v15="teacher-agenda"] [data-view="backup-actions"] [data-action="restore-backup"] {
+  border-color:#c9c0e3;
+  background:#faf8ff;
+}
