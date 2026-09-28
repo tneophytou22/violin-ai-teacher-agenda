@@ -388,3 +388,18 @@ test('teacher agenda preserves legacy single lesson day/time records', () => {
   assert.equal(week.entries[0].date, '2026-09-30');
   assert.equal(week.entries[0].time, '16:00');
 });
+
+
+test('teacher agenda accepts the existing V15 YYYY-MM-DD date contract', () => {
+  const week = buildTeacherAgenda({
+    students: [{
+      id: 'stu-date-contract',
+      name: 'Date Contract Student',
+      lessonSchedule: [{ day: 'MONDAY', time: '17:00' }],
+    }],
+    date: '2026-09-28',
+  });
+
+  assert.equal(week.weekStart, '2026-09-28');
+  assert.equal(week.entries[0].date, '2026-09-28');
+});
