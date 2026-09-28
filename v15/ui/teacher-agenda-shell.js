@@ -591,6 +591,11 @@ export class TeacherAgendaShell {
         } else if (action === 'lesson') {
           await this.controller.createLesson(this.now());
         } else if (action === 'end-lesson') {
+          const attendance = this.root.querySelector('[data-action="attendance"]')?.value ?? 'PRESENT';
+          const rawMark = this.root.querySelector('[data-action="mark"]')?.value ?? '';
+          const mark = rawMark === '' ? null : Number(rawMark);
+          const teacherNote = this.root.querySelector('[data-action="teacher-note"]')?.value ?? '';
+          await this.controller.updateLessonDetails({ attendance, mark, teacherNote });
           await this.controller.endLesson();
         } else if (action === 'review') {
           await this.controller.reviewItems(this.controller.snapshot().selectedItemIds);
