@@ -45,7 +45,7 @@ export class TeacherAgendaShell {
     const hasSavedHomework = Boolean(state.homework);
     const viberMessage = student ? generateViberHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, termNumber: state.termContext?.term?.termNumber, items: savedHomeworkItems, practicePlan: savedPracticePlan }) : '';
     const parentMessage = student ? generateParentHomeworkMessage({ studentName: student.name, level: state.termContext?.term?.level, items: savedHomeworkItems, practicePlan: savedPracticePlan }) : '';
-    const scaleProgressMarkup = state.scaleProgress ? '<section id="scale-progress" data-view="scale-progress" aria-label="Scale Progress and Mastery"><div data-view="scale-progress-header"><div><h2>Scale Progress / Mastery</h2><p>' + state.scaleProgress.completed + '/' + state.scaleProgress.total + ' completed · ' + state.scaleProgress.masteryPercent + '% assessed mastery</p></div><strong data-view="scale-mastery">' + state.scaleProgress.masteryPercent + '%</strong></div><div data-view="scale-category-list">' + Object.entries(state.scaleProgress.byCategory).map(([category, summary]) => '<div data-scale-category><div data-view="scale-category-heading"><strong>' + esc(category) + '</strong><span>' + summary.completed + '/' + summary.total + '</span></div><div data-view="scale-category-track"><progress max="100" value="' + summary.masteryPercent + '"></progress><span>' + summary.masteryPercent + '%</span></div></div>').join('') + '</div><div data-view="scale-progress-footer"><span>Mastery: Developing 40 · Secure 75 · Performance Ready 100</span><span>Mastery is teacher-assessed; completion is tracked separately.</span></div></section>' : '';
+    const scaleProgressMarkup = state.scaleProgress ? '<section id="scale-progress" data-view="scale-progress" aria-label="Scale Progress and Mastery"><div data-view="scale-progress-header"><div><h2>Scale Progress / Mastery</h2><p>' + state.scaleProgress.completed + '/' + state.scaleProgress.total + ' completed · ' + state.scaleProgress.masteryPercent + '% assessed mastery</p></div><div data-view="scale-progress-actions"><strong data-view="scale-mastery">' + state.scaleProgress.masteryPercent + '%</strong> + Object.entries(state.scaleProgress.byCategory).map(([category, summary]) => '<div data-scale-category><div data-view="scale-category-heading"><strong>' + esc(category) + '</strong><span>' + summary.completed + '/' + summary.total + '</span></div><div data-view="scale-category-track"><progress max="100" value="' + summary.masteryPercent + '"></progress><span>' + summary.masteryPercent + '%</span></div></div>').join('') + '</div><div data-view="scale-progress-footer"><span>Mastery: Developing 40 · Secure 75 · Performance Ready 100</span><span>Mastery is teacher-assessed; completion is tracked separately.</span></div></section>' : '';
 
     this.root.innerHTML = `
       <section data-v15="teacher-agenda" aria-busy="${state.loading}">
@@ -675,6 +675,12 @@ export class TeacherAgendaShell {
           const decision = this.root.querySelector('[data-action="teacher-readiness-decision"]')?.value ?? '';
           const note = this.root.querySelector('[data-action="teacher-readiness-note"]')?.value ?? '';
           await this.controller.saveTeacherReadinessDecision({ decision, note });
+        } else if (action === 'focus-scale-assessment') {
+          const assessment = this.root.querySelector('details[data-domain="SCALES"]');
+          if (assessment) {
+            assessment.open = true;
+            assessment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
         } else if (action === 'assess-scale') {
           const id = target.dataset.scaleId;
           const status = this.root.querySelector(`[data-scale-status="${id}"]`)?.value ?? 'NOT_STARTED';
