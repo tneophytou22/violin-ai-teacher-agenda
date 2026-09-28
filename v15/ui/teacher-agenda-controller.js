@@ -68,6 +68,31 @@ export class TeacherAgendaController {
     });
   }
 
+  async deleteStudent() {
+    return this.#run(async () => {
+      if (!this.state.selectedStudentId) throw new Error('No student selected');
+      const studentId = this.state.selectedStudentId;
+      await this.viewModel.deleteStudent(studentId);
+      this.state.students = await this.viewModel.students.list();
+      this.state.selectedStudentId = null;
+      this.state.selectedTermId = null;
+      this.state.terms = [];
+      this.state.termContext = null;
+      this.state.week = 1;
+      this.#resetLessonState();
+      this.state.weekly = null;
+      this.state.scaleProgress = null;
+      this.state.termProgress = null;
+      this.state.lessonHistory = [];
+      this.state.studentIntelligence = null;
+      this.state.longitudinalDevelopment = null;
+      this.state.evidenceSignals = [];
+      this.state.teacherDecisionPrompts = [];
+      this.state.teacherReadinessReview = null;
+      return this.snapshot();
+    });
+  }
+
   async createTerm(input) {
     return this.#run(async () => {
       if (!this.state.selectedStudentId) throw new Error('No student selected');
