@@ -2696,3 +2696,17 @@
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
+
+
+[data-v15="teacher-agenda"] [data-view="lesson-header"] > button[data-action="end-lesson"] {
+  background: var(--ta-success-soft);
+  color: #246243;
+  border-color: #b9dcc7;
+  padding: 7px 10px;
+  font-weight: 750;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-header"] > button[data-action="end-lesson"]:disabled {
+  background: #f4f5f6;
+  color: #7c8791;
+  border-color: var(--ta-border);
+}
