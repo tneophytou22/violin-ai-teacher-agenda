@@ -2000,3 +2000,41 @@ test('controller rejects term-dependent actions without a selected term', async 
   assert.equal(after.error, 'No term selected');
   assert.equal(after.loading, false);
 });
+
+
+test('ending a lesson preserves a factual completion summary for the next teacher action', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const controller = new TeacherAgendaController(new TeacherAgendaViewModel({
+    studentService,
+    termService,
+    teacherTermService: new TeacherTermService(repo),
+    weeklyProgrammeService: new WeeklyProgrammeService(repo),
+    lessonService: new LessonService(repo),
+    lessonProgrammeService: new LessonProgrammeService(repo),
+    homeworkService: new HomeworkService(repo),
+  }));
+
+  const student = await studentService.create({ name: 'Completion Summary Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L7T1', startDate: '2026-09-01',
+    endDate: '2026-12-31', level: 7, termNumber: 1,
+  });
+  await controller.loadStudents();
+  await controller.selectStudent(student.id);
+  const lesson = await controller.createLesson('2026-09-29');
+  const item = controller.snapshot().weekly.items.find(candidate => candidate.curriculumDomain === 'ETUDE');
+  await controller.reviewItems([item.id]);
+  await controller.completeReviewedItems();
+  await controller.endLesson();
+
+  const state = controller.snapshot();
+  assert.equal(state.activeLessonId, null);
+  assert.equal(state.lastLessonSummary.lessonId, lesson.id);
+  assert.equal(state.lastLessonSummary.reviewed.length, 1);
+  assert.equal(state.lastLessonSummary.completed.length, 1);
+  assert.ok(state.lastLessonSummary.remaining.length >= 0);
+  assert.deepEqual(state.lastLessonSummary.homework, []);
+});
