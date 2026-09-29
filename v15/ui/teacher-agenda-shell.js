@@ -474,7 +474,7 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
 
       ${practicePlan
         ? '<div data-view="practice-plan" aria-label="Practice Plan">' +
-          '<div data-view="practice-plan-header"><div><strong>Practice Plan</strong><span>Suggested structure · teacher approval required</span></div><strong>' + practicePlan.totalMinutes + ' min</strong></div>' +
+          '<div data-view="practice-plan-header"><div><strong>Practice Plan</strong><span>Targeted · teacher approval required</span></div><strong>' + practicePlan.totalMinutes + ' min</strong></div><div data-view="practice-plan-language"><label>Language <select data-action="practice-language"><option value="EN" ' + (state.practicePlanLanguage === 'EN' ? 'selected' : '') + '>English</option><option value="EL" ' + (state.practicePlanLanguage === 'EL' ? 'selected' : '') + '>Ελληνικά</option></select></label><button type="button" data-action="copy-practice-plan">Copy Practice Plan</button></div>' +
           '<div data-view="practice-plan-tasks">' +
           practicePlan.tasks.map((task, index) => {
             const item = homeworkItems[task.homeworkItemIndex] ?? {};
@@ -482,7 +482,9 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
             return '<article data-view="practice-task">' +
               '<div data-view="practice-task-title"><span>' + (index + 1) + '</span><strong>' + esc(title) + '</strong></div>' +
               '<label>Min <input type="number" min="0" max="180" data-plan-minutes="' + index + '" value="' + esc(task.minutes) + '" aria-label="Minutes for ' + esc(title) + '"></label>' +
-              '<label>Focus <input type="text" data-plan-focus="' + index + '" value="' + esc(task.focus) + '" aria-label="Practice focus for ' + esc(title) + '"></label>' +
+              '<label>Focus <input type="text" data-plan-focus="' + index + '" value="' + esc(task.focus) + '" aria-label="Practice focus for ' + esc(title) + '"></label>' + 
+              '<div data-view="practice-task-detail"><span>Tempo ' + esc(task.tempo ?? '—') + ' BPM</span><span>Rhythm: ' + esc(task.rhythmPattern ?? '—') + '</span></div>' +
+              '<ol data-view="practice-task-steps">' + (task.steps ?? []).map(step => '<li>' + esc(step) + '</li>').join('') + '</ol>' +
             '</article>';
           }).join('') +
           '</div><p data-view="practice-plan-note">The planner organises how to practise the teacher-selected work. It does not change curriculum or progression.</p>' +
@@ -892,6 +894,22 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
           const items = snapshot.homeworkDraftItems ?? [];
           if (!Number.isInteger(index) || index < 0 || index >= items.length) throw new Error('Invalid homework item');
           this.controller.setHomeworkDraftItems(items.filter((_, itemIndex) => itemIndex !== index));
+        } else if (action === 'practice-language') {
+          const snapshot = this.controller.snapshot();
+          await this.controller.generatePracticePlan(snapshot.homeworkDraftItems ?? [], event.target.value);
+        } else if (action === 'copy-practice-plan') {
+          const snapshot = this.controller.snapshot();
+          const plan = snapshot.practicePlanDraft;
+          if (!navigator.clipboard?.writeText) throw new Error('Clipboard is unavailable in this browser');
+          const lines = ['Practice Plan · ' + (snapshot.practicePlanLanguage === 'EL' ? 'Ελληνικά' : 'English'), ''];
+          (plan?.tasks ?? []).forEach((task, index) => {
+            const item = snapshot.homeworkDraftItems[task.homeworkItemIndex] ?? {};
+            lines.push((index + 1) + '. ' + (item.text ?? item.title ?? 'Practice task'));
+            lines.push('   ' + task.minutes + ' min · Tempo ' + (task.tempo ?? '—') + ' BPM · Rhythm: ' + (task.rhythmPattern ?? '—'));
+            (task.steps ?? []).forEach(step => lines.push('   • ' + step));
+            lines.push('');
+          });
+          await navigator.clipboard.writeText(lines.join('\n'));
         } else if (action === 'generate-practice-plan') {
           const snapshot = this.controller.snapshot();
           await this.controller.generatePracticePlan(snapshot.homeworkDraftItems ?? []);
