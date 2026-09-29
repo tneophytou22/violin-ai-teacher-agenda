@@ -378,6 +378,14 @@ export class TeacherAgendaShell {
         ${state.todayLessonFocus.next.length > 5 ? `<small data-view="today-lesson-focus-more">+${state.todayLessonFocus.next.length - 5} more in Week View</small>` : ''}
       ` : '<p data-view="today-lesson-focus-note">No pending core item remains for this lesson week.</p>'}
     </div>
+    ${state.teacherDecisionPrompts?.prompts?.length ? `
+      <div data-view="today-decision-signal" aria-label="Teacher decision signal">
+        <strong>Teacher decision signal</strong>
+        <span>${esc(state.teacherDecisionPrompts.prompts[0].signalType.replaceAll('_', ' '))}</span>
+        <p>${esc(state.teacherDecisionPrompts.prompts[0].evidence)}</p>
+        <details><summary>TKTL guidance</summary><ul>${state.teacherDecisionPrompts.prompts[0].teacherDecisionLogic.map(item => `<li>${esc(item)}</li>`).join('')}</ul></details>
+      </div>
+    ` : ''}
     <div data-view="lesson-next-action" aria-live="polite">
       <span>${!state.reviewedItemIds.length ? 'Next action' : !homeworkItems.length ? 'Next action' : !practicePlan ? 'Next action' : homeworkNeedsSave ? 'Next action' : 'Session ready'}</span>
       <strong>${!state.reviewedItemIds.length ? 'Select and review today’s work in Week View' : !homeworkItems.length ? 'Add reviewed work to Homework' : !practicePlan ? 'Create a Practice Plan for the assigned work' : homeworkNeedsSave ? 'Review the plan, then Save Homework' : 'Lesson record is complete · ready for the next student'}</strong>
