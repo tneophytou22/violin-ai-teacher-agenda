@@ -358,6 +358,15 @@ export class TeacherAgendaShell {
       <div data-session-step="homework" data-complete="${homeworkItems.length > 0}"><span>3</span><strong>Homework</strong><small>${homeworkItems.length ? `${homeworkItems.length} assigned` : 'Assign selected work'}</small></div>
       <div data-session-step="save" data-complete="${!homeworkItems.length || !homeworkNeedsSave}"><span>4</span><strong>Save</strong><small>${homeworkItems.length ? (homeworkNeedsSave ? 'Save homework' : 'Saved') : 'No homework'}</small></div>
     </div>
+    <div data-view="today-lesson-focus" aria-label="Today lesson focus">
+      <div data-view="today-lesson-focus-header"><strong>Today’s focus</strong><span>Derived from this week’s programme and this lesson</span></div>
+      <div data-view="today-lesson-focus-grid">
+        <div><span>Pending</span><strong>${state.todayLessonFocus?.pending?.length ?? 0}</strong></div>
+        <div><span>Reviewed</span><strong>${state.todayLessonFocus?.reviewed?.length ?? 0}</strong></div>
+        <div><span>Next</span><strong>${state.todayLessonFocus?.next?.length ?? 0}</strong></div>
+      </div>
+      ${state.todayLessonFocus?.next?.length ? `<p data-view="today-lesson-focus-note">Select the next items in Week View to review them.</p>` : '<p data-view="today-lesson-focus-note">No pending core item remains for this lesson week.</p>'}
+    </div>
     <div data-view="lesson-next-action" aria-live="polite">
       <span>${!state.reviewedItemIds.length ? 'Next action' : !homeworkItems.length ? 'Next action' : !practicePlan ? 'Next action' : homeworkNeedsSave ? 'Next action' : 'Session ready'}</span>
       <strong>${!state.reviewedItemIds.length ? 'Select and review today’s work in Week View' : !homeworkItems.length ? 'Add reviewed work to Homework' : !practicePlan ? 'Create a Practice Plan for the assigned work' : homeworkNeedsSave ? 'Review the plan, then Save Homework' : 'Lesson record is complete · ready for the next student'}</strong>
