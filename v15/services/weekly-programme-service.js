@@ -40,7 +40,7 @@ export class WeeklyProgrammeService {
   }
 
   async summary(termId, week) {
-    const items = await this.listForTerm(termId, week);
+    const items = await this.listForTeachingWeek(termId, week);
     const byDomain = {};
     for (const item of items) {
       byDomain[item.curriculumDomain] ??= { total: 0, completed: 0 };
