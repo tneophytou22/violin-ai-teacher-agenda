@@ -232,3 +232,15 @@ Locked rules:
 - Completed visibility does not make the item selectable for review or completion again.
 - Scale items remain on the Scale Mastery workflow and are excluded from automatic core carry-forward.
 - Manual weekly planning remains available through the existing term-scoped targetWeek control.
+
+### Phase 49 — Today Focus Direct Selection
+
+The Today Lesson Focus exposes the next pending core ProgrammeItems as direct selection controls.
+
+Locked rules:
+- The Focus list is derived only from the current teaching week's pending core items.
+- Selecting an item only changes the controller's existing UI selection state.
+- Selection does not review, complete, move, or otherwise mutate the ProgrammeItem.
+- Review remains an explicit Lesson action.
+- Completion remains an explicit teacher action.
+- The Focus list is a convenience projection over the existing Weekly Programme; it is not a second planning or progress model.
