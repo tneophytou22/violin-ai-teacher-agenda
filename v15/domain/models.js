@@ -74,6 +74,8 @@ export function createTerm({ studentId, name, startDate, endDate, level = null, 
   return {
     id: id('term'), studentId, name: name.trim(), startDate, endDate, level, termNumber,
     readinessDecision, readinessDecisionNote: readinessDecisionNote.trim(), readinessDecisionAt, version: 1,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 }
 
