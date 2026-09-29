@@ -14,7 +14,7 @@ import { TeacherAgendaService } from '../services/teacher-agenda-service.js';
 import { TeacherAgendaViewModel } from './teacher-agenda-view-model.js';
 import { TeacherAgendaController } from './teacher-agenda-controller.js';
 import { TeacherAgendaShell } from './teacher-agenda-shell.js';
-import { CloudSyncService } from '../services/cloud-sync-service.js';
+import { CloudSyncService } from '../services/cloud-sync-service-v2.js';
 
 export function createTeacherAgendaApp({ root, dbName, repository } = {}) {
   if (!root) throw new Error('Teacher Agenda app requires a root element');
