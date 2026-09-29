@@ -3369,26 +3369,27 @@
 }
 
 
-/* Practice Plan readability — give teacher-facing prescription fields enough width. */
+/* Practice Plan readability — keep the teacher-facing prescription readable
+   inside the fixed side rail. Goal gets a full row; Tempo and Rhythm share
+   the second row so neither field is squeezed into a narrow third column. */
 [data-v15="teacher-agenda"] [data-view="practice-task-detail"] {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(82px, .45fr) minmax(120px, .7fr);
+  grid-template-columns: minmax(88px, .45fr) minmax(0, 1fr);
+  gap: 6px;
   align-items: start;
 }
 [data-v15="teacher-agenda"] [data-view="practice-task-detail"] span {
   min-width: 0;
   line-height: 1.35;
 }
-@media (max-width: 1080px) {
+[data-v15="teacher-agenda"] [data-view="practice-task-detail"] span:first-child {
+  grid-column: 1 / -1;
+}
+@media (max-width: 620px) {
   [data-v15="teacher-agenda"] [data-view="practice-task-detail"] {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
   [data-v15="teacher-agenda"] [data-view="practice-task-detail"] span:first-child {
-    grid-column: 1 / -1;
-  }
-}
-@media (max-width: 820px) {
-  [data-v15="teacher-agenda"] [data-view="practice-task-detail"] {
-    grid-template-columns: 1fr 1fr;
+    grid-column: auto;
   }
 }
