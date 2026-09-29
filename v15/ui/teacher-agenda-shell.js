@@ -679,7 +679,7 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
     ];
     for (const [selector, handler] of bindings) {
       const button = this.root.querySelector(selector);
-      if (button) button.addEventListener('click', async event => {
+      if (button && typeof button.addEventListener === 'function') button.addEventListener('click', async event => {
         event.stopPropagation();
         try {
           await handler();
