@@ -274,7 +274,20 @@ export class TeacherAgendaShell {
                 <span>${lesson ? `${esc(lesson.date)} · ${esc(lesson.attendance)} · ${lesson.mark ?? 'No mark'} · ${state.reviewedItemIds.length} reviewed` : 'No lesson started'}</span>
               </div>
             </section>
-          <section data-view="agenda-workspace" aria-label="Weekly teaching workspace">
+          \${state.termContext?.card ? \`
+          <details data-view="teacher-unit-card" open>
+            <summary><strong>Teaching Unit · \${esc(state.termContext.card.id)}</strong><span>\${esc(state.termContext.card.technicalIntent)}</span></summary>
+            <div data-view="teacher-unit-card-grid">
+              <div><strong>Technical focus</strong><p>\${esc(state.termContext.card.technicalIntent)}</p></div>
+              <div><strong>Prerequisites</strong><p>\${state.termContext.card.prerequisites.map(esc).join(' · ')}</p></div>
+              <div><strong>Teacher decision logic</strong><p>\${state.termContext.card.teacherDecisionLogic.map(esc).join(' · ')}</p></div>
+              <div><strong>Readiness</strong><p>\${state.termContext.card.readinessCriteria.map(esc).join(' · ')}</p></div>
+              <div><strong>Next-term dependency</strong><p>\${esc(state.termContext.card.nextTermDependency)}</p></div>
+              <div><strong>Curriculum pools</strong><p>Pure Technical 5 · Etudes 5 · Repertoire 5</p></div>
+            </div>
+          </details>
+        \` : ''}
+        <section data-view="agenda-workspace" aria-label="Weekly teaching workspace">
             <div data-view="weekly-column">
 <section id="weekly-agenda" data-view="weekly-agenda">
             <h2>Weekly Agenda</h2>
