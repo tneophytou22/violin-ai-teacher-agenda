@@ -1979,7 +1979,7 @@ test('shell routes review through the controller boundary for an active lesson',
   assert.equal(state.activeLessonId != null, true);
   assert.deepEqual(state.reviewedItemIds, [item.id]);
   assert.match(root.innerHTML, /Lesson activity: 1 reviewed/);
-  assert.match(root.innerHTML, /\(reviewed\)/);
+  assert.match(root.innerHTML, /Recorded in this lesson/);
 
   const storedLesson = await repo.get('lessons', state.activeLessonId);
   assert.deepEqual(storedLesson.reviewedProgrammeItemIds, [item.id]);
