@@ -194,11 +194,11 @@ test('teacher agenda view model exposes intelligence and readiness services with
   const before = await agenda.loadTeacherReadinessReview(student.id, term.id);
   assert.equal(before.checklist[0].decision, null);
 
-  const saved = await agenda.saveTeacherReadinessDecision(term.id, 'READY', '  Proceed to next term  ');
-  assert.equal(saved.readinessDecision, 'READY');
+  const saved = await agenda.saveTeacherReadinessDecision(term.id, 'ADVANCE_TO_NEXT_TERM', '  Proceed to next term  ');
+  assert.equal(saved.readinessDecision, 'ADVANCE_TO_NEXT_TERM');
 
   const after = await agenda.loadTeacherReadinessReview(student.id, term.id);
-  assert.equal(after.checklist[0].decision, 'READY');
+  assert.equal(after.checklist[0].decision, 'ADVANCE_TO_NEXT_TERM');
   assert.equal(after.checklist[0].decisionNote, 'Proceed to next term');
 });
 
