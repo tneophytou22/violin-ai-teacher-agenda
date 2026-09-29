@@ -365,7 +365,18 @@ export class TeacherAgendaShell {
         <div><span>Reviewed</span><strong>${state.todayLessonFocus?.reviewed?.length ?? 0}</strong></div>
         <div><span>Next</span><strong>${state.todayLessonFocus?.next?.length ?? 0}</strong></div>
       </div>
-      ${state.todayLessonFocus?.next?.length ? `<p data-view="today-lesson-focus-note">Select the next items in Week View to review them.</p>` : '<p data-view="today-lesson-focus-note">No pending core item remains for this lesson week.</p>'}
+      ${state.todayLessonFocus?.next?.length ? `
+        <p data-view="today-lesson-focus-note">Next work for this lesson:</p>
+        <ul data-view="today-lesson-focus-items">
+          ${state.todayLessonFocus.next.slice(0, 5).map(itemId => {
+            const item = (state.weekly?.items ?? []).find(candidate => candidate.id === itemId);
+            if (!item) return '';
+            const selected = state.selectedItemIds.includes(item.id);
+            return `<li><button type="button" data-action="focus-select-item" data-item-id="${esc(item.id)}" class="${selected ? 'is-selected' : ''}">${esc(item.title)}</button></li>`;
+          }).join('')}
+        </ul>
+        ${state.todayLessonFocus.next.length > 5 ? `<small data-view="today-lesson-focus-more">+${state.todayLessonFocus.next.length - 5} more in Week View</small>` : ''}
+      ` : '<p data-view="today-lesson-focus-note">No pending core item remains for this lesson week.</p>'}
     </div>
     <div data-view="lesson-next-action" aria-live="polite">
       <span>${!state.reviewedItemIds.length ? 'Next action' : !homeworkItems.length ? 'Next action' : !practicePlan ? 'Next action' : homeworkNeedsSave ? 'Next action' : 'Session ready'}</span>
@@ -786,6 +797,9 @@ export class TeacherAgendaShell {
           const teacherNote = this.root.querySelector('[data-action="teacher-note"]')?.value ?? '';
           await this.controller.updateLessonDetails({ attendance, mark, teacherNote });
           await this.controller.endLesson();
+        } else if (action === 'focus-select-item') {
+          this.controller.toggleItemSelection(target.dataset.itemId);
+          this.render();
         } else if (action === 'review') {
           await this.controller.reviewItems(this.controller.snapshot().selectedItemIds);
         } else if (action === 'complete-selected') {
