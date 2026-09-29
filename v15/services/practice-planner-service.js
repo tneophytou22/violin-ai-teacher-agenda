@@ -16,7 +16,18 @@ const FOCUS_BY_DOMAIN = Object.freeze({
 const fallbackFocus = 'Start at a controlled tempo, isolate the difficult movement, then increase tempo only when accurate.';
 
 const TARGET_TEMPO_BY_DOMAIN = Object.freeze({ SCALES: 60, PURE_TECHNICAL: 56, ETUDE: 52, REPERTOIRE: 48 });
-const RHYTHM_BY_DOMAIN = Object.freeze({ SCALES: 'Long-short / short-long', PURE_TECHNICAL: 'Dotted / reverse-dotted', ETUDE: '2+1 / 1+2 accents', REPERTOIRE: 'Long-short, then even rhythm' });
+const RHYTHM_BY_DOMAIN = Object.freeze({
+  SCALES: ['Long-short / short-long', 'Μακρύ-κοντό / κοντό-μακρύ'],
+  PURE_TECHNICAL: ['Dotted / reverse-dotted', 'Παρεστιγμένο / αντίστροφα παρεστιγμένο'],
+  ETUDE: ['2+1 / 1+2 accents', 'Τονισμοί 2+1 / 1+2'],
+  REPERTOIRE: ['Long-short, then even rhythm', 'Μακρύ-κοντό και μετά ίσος ρυθμός'],
+});
+const GOAL_BY_DOMAIN = Object.freeze({
+  SCALES: ['Intonation + evenness', 'Καθαρότητα + ομοιομορφία'],
+  PURE_TECHNICAL: ['Movement coordination + relaxation', 'Συντονισμός κίνησης + χαλάρωση'],
+  ETUDE: ['Passage security + articulation', 'Σταθερότητα περάσματος + άρθρωση'],
+  REPERTOIRE: ['Musical intention + technical control', 'Μουσική πρόθεση + τεχνικός έλεγχος'],
+});
 const languageText = (language, en, el) => language === 'EL' ? el : en;
 
 
@@ -24,12 +35,20 @@ const domainForItem = item => item.curriculumDomain ?? item.domain ?? null;
 
 const asText = value => Array.isArray(value) ? value.join('; ') : String(value ?? '').trim();
 
-const focusForItem = item => {
-  const base = FOCUS_BY_DOMAIN[domainForItem(item)] ?? fallbackFocus;
+const focusForItem = (item, language) => {
+  const domain = domainForItem(item);
+  const base = FOCUS_BY_DOMAIN[domain] ?? fallbackFocus;
   const requirement = asText(item.requirements);
   const objective = asText(item.objective);
-  const detail = requirement ? `Assigned requirement: ${requirement}` : objective ? `Lesson objective: ${objective}` : '';
-  return detail ? `${base} ${detail}.` : base;
+  const detail = requirement
+    ? languageText(language, `Assigned requirement: ${requirement}`, `Ανάθεση/απαίτηση: ${requirement}`)
+    : objective
+      ? languageText(language, `Lesson objective: ${objective}`, `Στόχος μαθήματος: ${objective}`)
+      : base;
+  if (detail !== base) return language === 'EL' ? `${detail}. Δούλεψε σε μικρές φράσεις και κράτησε σταθερή ποιότητα ήχου.` : `${detail}. Work in small phrases and keep the sound quality stable.`;
+  return language === 'EL'
+    ? 'Ξεκίνα σε ελεγχόμενο tempo, απομόνωσε το δύσκολο σημείο και αύξησε σταδιακά μόνο όταν είναι σταθερό.'
+    : fallbackFocus;
 };
 
 const targetMinutesForLevel = level => TARGET_MINUTES_BY_LEVEL[level] ?? 35;
@@ -75,9 +94,10 @@ export class PracticePlannerService {
         homeworkItemId: item.id ?? null,
         homeworkItemIndex: index,
         minutes: minutes[taskIndex],
-        focus: focusForItem(item),
+        focus: focusForItem(item, language),
+        goal: (GOAL_BY_DOMAIN[domainForItem(item)] ?? ['Accuracy + control', 'Ακρίβεια + έλεγχος'])[language === 'EL' ? 1 : 0],
         tempo: TARGET_TEMPO_BY_DOMAIN[domainForItem(item)] ?? 52,
-        rhythmPattern: RHYTHM_BY_DOMAIN[domainForItem(item)] ?? 'Long-short / short-long',
+        rhythmPattern: (RHYTHM_BY_DOMAIN[domainForItem(item)] ?? ['Long-short / short-long', 'Μακρύ-κοντό / κοντό-μακρύ'])[language === 'EL' ? 1 : 0],
         steps: [
           languageText(language, 'Isolate the difficult passage', 'Απομόνωσε το δύσκολο πέρασμα'),
           languageText(language, 'Repeat accurately 3 times', 'Επανάλαβε σωστά 3 φορές'),
