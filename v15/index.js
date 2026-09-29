@@ -2,6 +2,7 @@ export * from './domain/models.js';
 export { InMemoryRepository } from './repository/in-memory-repository.js';
 export { IndexedDBRepository, DB_VERSION, STORE_NAMES } from './repository/indexed-db-repository.js';
 export { StorageService, STORAGE_SCHEMA_VERSION } from './services/storage-service.js';
+export { CloudSyncService, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from './services/cloud-sync-service.js';
 export { BackupService, BACKUP_FORMAT_VERSION } from './services/backup-service.js';
 export { StudentService } from './services/student-service.js';
 export { TermService } from './services/term-service.js';
