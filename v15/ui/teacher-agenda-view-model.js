@@ -84,6 +84,7 @@ export class TeacherAgendaViewModel {
   }
 
   async loadWeek(termId, week) {
+    await this.weekly.carryForwardPendingToWeek(termId, week);
     const [items, summary] = await Promise.all([
       this.weekly.listForTeachingWeek(termId, week),
       this.weekly.summary(termId, week),
