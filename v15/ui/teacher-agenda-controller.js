@@ -179,12 +179,26 @@ export class TeacherAgendaController {
     });
   }
 
+  #termWeekForDate(term, date) {
+    const start = String(term?.startDate ?? '').slice(0, 10);
+    const target = String(date ?? '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(target)) return 1;
+    const [sy, sm, sd] = start.split('-').map(Number);
+    const [ty, tm, td] = target.split('-').map(Number);
+    const startUtc = Date.UTC(sy, sm - 1, sd);
+    const targetUtc = Date.UTC(ty, tm - 1, td);
+    if (targetUtc <= startUtc) return 1;
+    return Math.floor((targetUtc - startUtc) / 86400000 / 7) + 1;
+  }
+
   async openAgendaEntry(entry) {
     return this.#run(async () => {
       if (!entry?.studentId) throw new Error('Agenda entry has no student');
       await this.#selectStudent(entry.studentId);
       if (entry.termId && this.state.terms.some(term => term.id === entry.termId)) {
         this.state.selectedTermId = entry.termId;
+        const selectedTerm = this.state.terms.find(term => term.id === entry.termId);
+        this.state.week = this.#termWeekForDate(selectedTerm, entry.date);
         await this.#loadSelectedTerm();
       }
       if (entry.lessonId) {
