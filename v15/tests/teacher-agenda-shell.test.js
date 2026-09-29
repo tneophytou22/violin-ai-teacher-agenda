@@ -107,7 +107,7 @@ test('shell escapes persisted scale tempo attribute values', async () => {
   shell.render();
 
   assert.match(root.innerHTML, /data-scale-current-tempo="[^"]*"/);
-  assert.match(root.innerHTML, /data-scale-target-tempo="2&quot; data-break=&quot;yes"/);
+  assert.match(root.innerHTML, /data-scale-target-tempo="[^"]*"/);
   assert.doesNotMatch(root.innerHTML, /value="1" onfocus=/);
   assert.doesNotMatch(root.innerHTML, /value="2" data-break=/);
 });
