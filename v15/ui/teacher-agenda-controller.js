@@ -385,6 +385,7 @@ export class TeacherAgendaController {
         completed: completedItems.map(item => ({ id: item.id, title: item.title, domain: item.curriculumDomain })),
         remaining: pendingItems.map(item => ({ id: item.id, title: item.title, domain: item.curriculumDomain })),
         homework: homeworkItems.map(item => ({ title: item.title ?? item.text ?? 'Homework task', domain: item.curriculumDomain ?? 'Custom' })),
+        nextLesson: this.#nextScheduledLesson(this.state.students.find(student => student.id === this.state.selectedStudentId), lesson?.date ?? this.today()),
       };
       await this.viewModel.updateLessonDetails(this.state.activeLessonId, {
         mark: lesson?.mark ?? null,
@@ -420,6 +421,33 @@ export class TeacherAgendaController {
       this.#deriveTodayLessonFocus();
       return this.snapshot();
     });
+  }
+
+  #nextScheduledLesson(student, fromDate) {
+    const schedule = Array.isArray(student?.lessonSchedule) ? student.lessonSchedule : [];
+    if (!schedule.length) return null;
+    const dayIndex = Object.freeze({
+      MONDAY: 0, TUESDAY: 1, WEDNESDAY: 2, THURSDAY: 3,
+      FRIDAY: 4, SATURDAY: 5, SUNDAY: 6,
+    });
+    const base = String(fromDate ?? '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(base)) return null;
+    const [year, month, day] = base.split('-').map(Number);
+    const start = new Date(year, month - 1, day);
+    let best = null;
+    for (const slot of schedule) {
+      const target = dayIndex[slot.day];
+      if (target === undefined) continue;
+      const delta = (target - ((start.getDay() + 6) % 7) + 7) % 7 || 7;
+      const date = new Date(start);
+      date.setDate(start.getDate() + delta);
+      const dateString = this.viewModel.agenda.localDateString
+        ? this.viewModel.agenda.localDateString(date)
+        : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const candidate = { date: dateString, time: slot.time, day: slot.day };
+      if (!best || `${candidate.date}T${candidate.time}` < `${best.date}T${best.time}`) best = candidate;
+    }
+    return best;
   }
 
   #deriveTodayLessonFocus() {
