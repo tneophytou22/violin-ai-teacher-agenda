@@ -483,7 +483,7 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
               '<div data-view="practice-task-title"><span>' + (index + 1) + '</span><strong>' + esc(title) + '</strong></div>' +
               '<label>Min <input type="number" min="0" max="180" data-plan-minutes="' + index + '" value="' + esc(task.minutes) + '" aria-label="Minutes for ' + esc(title) + '"></label>' +
               '<label>Focus <input type="text" data-plan-focus="' + index + '" value="' + esc(task.focus) + '" aria-label="Practice focus for ' + esc(title) + '"></label>' + 
-              '<div data-view="practice-task-detail"><span>Tempo ' + esc(task.tempo ?? '—') + ' BPM</span><span>Rhythm: ' + esc(task.rhythmPattern ?? '—') + '</span></div>' +
+              '<div data-view="practice-task-detail"><span>Goal: ' + esc(task.goal ?? '—') + '</span><span>Tempo ' + esc(task.tempo ?? '—') + ' BPM</span><span>Rhythm: ' + esc(task.rhythmPattern ?? '—') + '</span></div>' +
               '<ol data-view="practice-task-steps">' + (task.steps ?? []).map(step => '<li>' + esc(step) + '</li>').join('') + '</ol>' +
             '</article>';
           }).join('') +
