@@ -296,6 +296,11 @@ export class TeacherAgendaShell {
               <strong>${weekly.summary.completed}/${weekly.summary.total} completed</strong>
               <span data-view="weekly-selection-count"> · ${Math.max(weekly.summary.total - weekly.summary.completed, 0)} pending · ${state.selectedItemIds.length} selected</span>
               <span data-view="weekly-plan-hint">Plan each core item for its teaching week. Moving an item does not complete it.</span>
+              <div data-view="weekly-lesson-coverage" aria-label="Lesson coverage">
+                <span><strong>${weekly.items.filter(item => item.curriculumDomain !== 'SCALES' && item.status !== 'COMPLETED').length}</strong> pending core</span>
+                <span><strong>${weekly.items.filter(item => item.curriculumDomain !== 'SCALES' && state.reviewedItemIds.includes(item.id)).length}</strong> reviewed in lesson</span>
+                <span><strong>${weekly.items.filter(item => item.curriculumDomain !== 'SCALES' && item.status !== 'COMPLETED' && !state.reviewedItemIds.includes(item.id)).length}</strong> pending review</span>
+              </div>
               <div data-view="domain-progress">
                 ${['SCALES', 'PURE_TECHNICAL', 'ETUDE', 'REPERTOIRE'].map(domain => {
                   const summary = weekly.summary.byDomain?.[domain] ?? { completed: 0, total: 0 };
