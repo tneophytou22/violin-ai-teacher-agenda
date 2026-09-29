@@ -3153,3 +3153,41 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+/* TKTL Teacher Unit Card — teacher-facing context, not a second curriculum source. */
+[data-v15="teacher-agenda"] [data-view="teacher-unit-card"] {
+  margin: 0 0 14px;
+  padding: 14px;
+  border: 1px solid var(--border, #d7dce2);
+  border-radius: 12px;
+  background: var(--surface, #fff);
+}
+[data-v15="teacher-agenda"] [data-view="teacher-unit-card"] summary {
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  list-style: none;
+}
+[data-v15="teacher-agenda"] [data-view="teacher-unit-card"] summary::-webkit-details-marker { display: none; }
+[data-v15="teacher-agenda"] [data-view="teacher-unit-card"] summary span { opacity: .72; font-size: .88rem; }
+[data-v15="teacher-agenda"] [data-view="teacher-unit-card-grid"] {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+[data-v15="teacher-agenda"] [data-view="teacher-unit-card-grid"] > div {
+  padding: 10px;
+  border-radius: 9px;
+  background: var(--surface-muted, #f6f7f9);
+}
+[data-v15="teacher-agenda"] [data-view="teacher-unit-card-grid"] p { margin: 5px 0 0; font-size: .82rem; line-height: 1.4; }
+@media (max-width: 820px) {
+  [data-v15="teacher-agenda"] [data-view="teacher-unit-card-grid"] { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 620px) {
+  [data-v15="teacher-agenda"] [data-view="teacher-unit-card-grid"] { grid-template-columns: 1fr; }
+  [data-v15="teacher-agenda"] [data-view="teacher-unit-card"] summary { align-items: flex-start; flex-direction: column; gap: 4px; }
+}
