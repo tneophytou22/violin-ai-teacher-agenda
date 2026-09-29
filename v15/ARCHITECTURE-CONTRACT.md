@@ -279,3 +279,13 @@ Locked rules:
 - The projection does not create a Lesson record.
 - It does not alter Agenda dates, ProgrammeItems, term state, or attendance.
 - If no lessonSchedule exists, the summary reports that no weekly lesson slot is recorded.
+
+### Phase 53 — Homework Handoff in Completion Summary
+
+The post-lesson summary displays the saved homework items assigned in the ended Lesson.
+
+Locked rules:
+- Homework shown is the saved Lesson homework, not the unsaved draft.
+- The projection is read-only and does not create or modify homework.
+- It is displayed alongside completed and carrying-forward programme work.
+- Starting another student or lesson clears the previous completion summary.
