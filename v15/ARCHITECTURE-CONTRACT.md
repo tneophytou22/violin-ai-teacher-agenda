@@ -255,3 +255,16 @@ Locked rules:
 - It does not automatically select work, change ProgrammeItem status, change readiness decisions, or mutate student data.
 - The full Teacher Decision Support layer remains available for all prompts.
 - This cockpit projection does not create a second decision-support model.
+
+### Phase 51 — Post-Lesson Completion Summary
+
+After a Lesson is ended, the cockpit preserves a read-only summary of the just-completed session.
+
+Locked rules:
+- Taught/reviewed = ProgrammeItems recorded on the ended Lesson.
+- Completed = reviewed items whose current ProgrammeItem status is COMPLETED at lesson end.
+- Carrying forward = current-week pending core ProgrammeItems at lesson end.
+- Homework = saved homework items for the ended Lesson.
+- The summary is a UI projection only; it does not create a second lesson or programme state.
+- Pending core work is expected to carry forward under Phase 48 when a later teaching week is loaded.
+- Starting/selecting another student or lesson clears the previous completion summary.
