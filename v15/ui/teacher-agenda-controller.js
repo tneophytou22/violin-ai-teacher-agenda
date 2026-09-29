@@ -385,6 +385,11 @@ export class TeacherAgendaController {
         completed: completedItems.map(item => ({ id: item.id, title: item.title, domain: item.curriculumDomain })),
         remaining: pendingItems.map(item => ({ id: item.id, title: item.title, domain: item.curriculumDomain })),
         homework: homeworkItems.map(item => ({ title: item.title ?? item.text ?? 'Homework task', domain: item.curriculumDomain ?? 'Custom' })),
+        practicePlan: savedPlan ? {
+          totalMinutes: savedPlan.totalMinutes ?? null,
+          tasks: (savedPlan.tasks ?? []).map(task => ({ ...task })),
+        } : null,
+        teacherNote: lesson?.teacherNote ?? '',
         nextLesson: this.#nextScheduledLesson(this.state.students.find(student => student.id === this.state.selectedStudentId), lesson?.date ?? this.today()),
       };
       await this.viewModel.updateLessonDetails(this.state.activeLessonId, {
