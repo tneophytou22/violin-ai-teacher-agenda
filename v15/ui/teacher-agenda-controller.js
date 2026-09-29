@@ -447,9 +447,7 @@ export class TeacherAgendaController {
       const delta = (target - ((start.getDay() + 6) % 7) + 7) % 7 || 7;
       const date = new Date(start);
       date.setDate(start.getDate() + delta);
-      const dateString = this.viewModel.agenda.localDateString
-        ? this.viewModel.agenda.localDateString(date)
-        : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
       const candidate = { date: dateString, time: slot.time, day: slot.day };
       if (!best || `${candidate.date}T${candidate.time}` < `${best.date}T${best.time}`) best = candidate;
     }
