@@ -96,13 +96,17 @@ export class CloudSyncService {
         streak: remote?.streak ?? 0,
         readiness: remote?.readiness ?? 0,
         recurring_rcs: remote?.recurring_rcs ?? [],
-        phone: student.phone ?? remote?.phone ?? '',
-        school_type: student.schoolType ?? remote?.school_type ?? 'OTHER',
-        school_name: student.schoolName ?? remote?.school_name ?? '',
-        instrument: student.instrument ?? remote?.instrument ?? 'VIOLIN',
-        lesson_day: student.lessonDay ?? remote?.lesson_day ?? '',
-        lesson_time: student.lessonTime ?? remote?.lesson_time ?? '',
-        lesson_schedule: Array.isArray(student.lessonSchedule)
+        phone: student.phone?.trim() ? student.phone : (remote?.phone ?? ''),
+        school_type: student.schoolType && student.schoolType !== 'OTHER'
+          ? student.schoolType
+          : (remote?.school_type ?? 'OTHER'),
+        school_name: student.schoolName?.trim() ? student.schoolName : (remote?.school_name ?? ''),
+        instrument: student.instrument && student.instrument !== 'VIOLIN'
+          ? student.instrument
+          : (remote?.instrument ?? 'VIOLIN'),
+        lesson_day: student.lessonDay?.trim() ? student.lessonDay : (remote?.lesson_day ?? ''),
+        lesson_time: student.lessonTime?.trim() ? student.lessonTime : (remote?.lesson_time ?? ''),
+        lesson_schedule: Array.isArray(student.lessonSchedule) && student.lessonSchedule.length
           ? student.lessonSchedule
           : (remote?.lesson_schedule ?? []),
       };
@@ -144,13 +148,19 @@ export class CloudSyncService {
       byId.set(localId, {
         id: localId,
         name: remote.name,
-        phone: existing?.phone ?? remote.phone ?? '',
-        schoolType: existing?.schoolType ?? remote.school_type ?? 'OTHER',
-        schoolName: existing?.schoolName ?? remote.school_name ?? '',
-        instrument: existing?.instrument ?? remote.instrument ?? 'VIOLIN',
-        lessonDay: existing?.lessonDay ?? remote.lesson_day ?? '',
-        lessonTime: existing?.lessonTime ?? remote.lesson_time ?? '',
-        lessonSchedule: existing?.lessonSchedule ?? remote.lesson_schedule ?? [],
+        phone: existing?.phone?.trim() ? existing.phone : (remote.phone ?? ''),
+        schoolType: existing?.schoolType && existing.schoolType !== 'OTHER'
+          ? existing.schoolType
+          : (remote.school_type ?? 'OTHER'),
+        schoolName: existing?.schoolName?.trim() ? existing.schoolName : (remote.school_name ?? ''),
+        instrument: existing?.instrument && existing.instrument !== 'VIOLIN'
+          ? existing.instrument
+          : (remote.instrument ?? 'VIOLIN'),
+        lessonDay: existing?.lessonDay?.trim() ? existing.lessonDay : (remote.lesson_day ?? ''),
+        lessonTime: existing?.lessonTime?.trim() ? existing.lessonTime : (remote.lesson_time ?? ''),
+        lessonSchedule: Array.isArray(existing?.lessonSchedule) && existing.lessonSchedule.length
+          ? existing.lessonSchedule
+          : (remote.lesson_schedule ?? []),
         createdAt: existing?.createdAt ?? remote.created_at ?? new Date().toISOString(),
       });
     }
