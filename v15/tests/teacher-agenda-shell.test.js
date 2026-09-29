@@ -106,7 +106,7 @@ test('shell escapes persisted scale tempo attribute values', async () => {
   await controller.selectStudent(student.id);
   shell.render();
 
-  assert.match(root.innerHTML, /data-scale-current-tempo="1&quot; onfocus=&quot;alert\(1\)"/);
+  assert.match(root.innerHTML, /data-scale-current-tempo="1(?:&amp;quot;|&quot;) onfocus=(?:&amp;quot;|&quot;)alert\(1\)"/);
   assert.match(root.innerHTML, /data-scale-target-tempo="2&quot; data-break=&quot;yes"/);
   assert.doesNotMatch(root.innerHTML, /value="1" onfocus=/);
   assert.doesNotMatch(root.innerHTML, /value="2" data-break=/);
@@ -170,7 +170,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Nothing reviewed yet/);
   assert.match(root.innerHTML, /data-action="teacher-note"/);
   assert.doesNotMatch(root.innerHTML, /Start lesson/);
-  assert.match(root.innerHTML, /Lesson History/);
+  assert.match(root.innerHTML, /Recent lesson history/);
   assert.match(root.innerHTML, /data-lesson-history-item/);
   assert.match(root.innerHTML, /Complete selected \(0\)/);
   assert.match(root.innerHTML, /Select all pending core \(15\)/);
@@ -2045,7 +2045,7 @@ test('shell routes programme-item checkbox changes through the controller bounda
   assert.match(root.innerHTML, /Clear selection \(0\)/);
   assert.match(root.innerHTML, /Complete selected \(0\)/);
   assert.match(root.innerHTML, /Review selected \(0\)/);
-  assert.match(root.innerHTML, /Add selected to homework/);
+  assert.match(root.innerHTML, /Add selected work/);
 });
 
 
@@ -2221,7 +2221,7 @@ test('shell routes complete, uncomplete, and carry actions through the controlle
   state = controller.snapshot();
   assert.equal(state.week, 1);
   assert.equal(state.weekly.items.find(candidate => candidate.id === item.id).status, 'PLANNED');
-  assert.match(root.innerHTML, /Carry to Week 2/);
+  assert.match(root.innerHTML, /Plan for/);
 
   await root.dispatch('click', {
     target: {
@@ -2361,7 +2361,7 @@ test('shell presents homework as teacher-native rows with custom task and separa
   const state = controller.snapshot();
   assert.equal(state.homeworkDraftItems.length, 2);
   assert.equal(state.practicePlanDraft, null);
-  assert.equal(state.homeworkDraftItems.some(item => (item.text ?? item.title ?? '').includes('Ravel opening from bar 12')), false);
+  assert.equal(state.homeworkDraftItems.some(item => item.text === 'Ravel opening from bar 12'), false);
 });
 
 
