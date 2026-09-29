@@ -20,6 +20,15 @@ export class WeeklyProgrammeService {
     return this.repo.put('programmeItems', item);
   }
 
+  async assignWeekForTerm(termId, itemId, targetWeek) {
+    const term = await this.repo.get('terms', termId);
+    if (!term) throw new Error('Term not found');
+    const item = await this.repo.get('programmeItems', itemId);
+    if (!item) throw new Error('ProgrammeItem not found');
+    if (item.termId !== termId) throw new Error('ProgrammeItem does not belong to the selected term');
+    return this.assignWeek(itemId, targetWeek);
+  }
+
   async summary(termId, week) {
     const items = await this.listForTerm(termId, week);
     const byDomain = {};
