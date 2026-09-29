@@ -77,7 +77,7 @@ export class TeacherAgendaShell {
           <section data-view="cloud-panel" aria-label="Cloud sync">
             <div data-view="backup-panel-header">
               <div><strong>Cloud sync</strong><small>Use the same teacher account on Mac and tablet.</small></div>
-              <span data-view="cloud-status">Cloud sync</span>
+              <span data-view="cloud-status">${this.#cloudStatusMarkup()}</span>
             </div>
             <div data-view="cloud-auth">
               <label>Email <input type="email" data-action="cloud-email" autocomplete="username" placeholder="teacher@email.com"></label>
@@ -1065,9 +1065,17 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
     URL.revokeObjectURL(url);
   }
 
-  #showError() {
-    // Controller operations record their own error state and rollback before rejecting.
-    // The Shell only re-renders that state; it must not mutate Controller state directly.
+  #cloudStatusMarkup() {
+    const result = this.cloudSync?.lastSyncResult;
+    const error = this.cloudSync?.lastError;
+    if (error) return `Sync error: ${esc(error?.message ?? String(error))}`;
+    if (result?.status === 'synced') return `Synced · ${result.studentCount} students`;
+    if (result?.status === 'signed-out') return 'Not signed in';
+    return 'Cloud sync';
+  }
+
+  #showError(error) {
+    if (this.cloudSync) this.cloudSync.lastError = error;
     this.render();
   }
 }
