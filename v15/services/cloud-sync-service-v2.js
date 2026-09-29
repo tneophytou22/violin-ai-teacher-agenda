@@ -205,16 +205,28 @@ export class CloudSyncService {
           : (remote?.lesson_schedule ?? []),
       };
 
-      // Only send the UUID when this local student already exists remotely.
-      // For a new student, omitting id lets Postgres generate its UUID.
+      // IMPORTANT: PostgREST builds one INSERT column set from the whole
+      // request body. Mixing rows with an "id" field and rows without it
+      // causes omitted ids to become explicit nulls. Split new and existing
+      // students into separate upserts so new rows can use the DB UUID default.
       if (remote?.id) row.id = remote.id;
       return row;
     });
 
-    if (rows.length) {
+    const existingRows = rows.filter(row => row.id);
+    const newRows = rows.filter(row => !row.id);
+
+    if (existingRows.length) {
       const { error } = await this.client
         .from('students')
-        .upsert(rows, { onConflict: 'teacher_id,slug' });
+        .upsert(existingRows, { onConflict: 'teacher_id,slug' });
+      if (error) throw error;
+    }
+
+    if (newRows.length) {
+      const { error } = await this.client
+        .from('students')
+        .upsert(newRows, { onConflict: 'teacher_id,slug' });
       if (error) throw error;
     }
 
