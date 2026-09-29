@@ -171,3 +171,18 @@ Locked rules:
 Additional Phase 45 resilience rule:
 - Initial student loading is not rolled back merely because the derived Agenda read fails. Student persistence remains visible while the Agenda error is surfaced separately.
 - This prevents a derived scheduling/view failure from appearing as student data loss.
+
+
+### Phase 46 — Weekly Programme Planning Cockpit
+
+The Weekly Programme is the teacher's planning surface for assigning the active TKTL programme items to teaching weeks.
+
+Locked rules:
+- Each persisted ProgrammeItem has one authoritative `targetWeek`; planning changes that field rather than creating a second schedule record.
+- A teacher may move a pending core ProgrammeItem directly to any positive teaching week exposed by the UI.
+- Moving an item between weeks does not mark it completed and does not alter lesson-review or homework records.
+- Planning from the current term is term-scoped: a ProgrammeItem may only be reassigned when it belongs to the selected Term.
+- The teacher remains on the current week after a planning change; the item simply leaves or enters the corresponding weekly view.
+- The existing carry-forward workflow remains available as a convenience for moving an item to the next week.
+- Scale items remain governed by the separate scale mastery workflow and are not converted into core planning actions.
+- The Weekly Programme remains a projection of persisted ProgrammeItems; no duplicate planning state is introduced into the UI.
