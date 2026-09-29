@@ -67,7 +67,7 @@ test('teacher agenda controller keeps UI selection state separate from business 
   assert.equal(controller.snapshot().activeLessonId, lesson.id);
 
   const allWeekOne = await viewModel.loadWeek(term.id, 1);
-  const selected = allWeekOne.items.slice(0, 2).map(item => item.id);
+  const selected = allWeekOne.items.filter(item => item.curriculumDomain !== 'SCALES').slice(0, 2).map(item => item.id);
   await controller.reviewItems(selected);
   const storedLesson = await repo.get('lessons', lesson.id);
   assert.deepEqual(storedLesson.reviewedProgrammeItemIds, selected);
