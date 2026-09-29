@@ -186,3 +186,15 @@ Locked rules:
 - The existing carry-forward workflow remains available as a convenience for moving an item to the next week.
 - Scale items remain governed by the separate scale mastery workflow and are not converted into core planning actions.
 - The Weekly Programme remains a projection of persisted ProgrammeItems; no duplicate planning state is introduced into the UI.
+
+
+### Phase 46A — Agenda-to-Programme Week Alignment
+
+When a Teacher Agenda scheduled occurrence is opened, the controller derives the corresponding teaching week from the selected Term start date and the scheduled occurrence date.
+
+Locked rules:
+- The derived week is `1` on or before the Term start date.
+- Each complete seven-day interval from the Term start advances the derived teaching week by one.
+- Opening an Agenda entry loads that derived week into the Weekly Programme before the lesson workflow is activated.
+- This is a UI navigation projection only; it does not rewrite ProgrammeItem.targetWeek or create a second week field.
+- Manually selecting a Programme week remains available after the Agenda entry is opened.
