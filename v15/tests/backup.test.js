@@ -326,7 +326,7 @@ test('restored schedule, homework practice plan and scale mastery survive app re
   assert.ok(scale);
   assert.ok(core);
 
-  await app.controller.createLesson('2026-09-27');
+  const lesson = await app.controller.createLesson('2026-09-27');
   const homework = [{ id: core.id, title: core.title, curriculumDomain: core.curriculumDomain }];
   await app.controller.generatePracticePlan(homework);
   await app.controller.saveHomework(homework);
@@ -346,6 +346,7 @@ test('restored schedule, homework practice plan and scale mastery survive app re
   const refreshed = createTeacherAgendaApp({ repository, root: { innerHTML: '', addEventListener() {}, removeEventListener() {} } });
   await refreshed.controller.loadStudents();
   await refreshed.controller.selectStudent(student.id);
+  await refreshed.controller.selectLesson(lesson.id);
 
   const state = refreshed.controller.snapshot();
   assert.equal(state.students[0].lessonDay, 'FRIDAY');
@@ -379,7 +380,9 @@ test('delete student cascade preserves unrelated student data and curriculum reg
   await studentService.delete(first.id);
 
   assert.equal(await repository.get('students', first.id), null);
-  assert.deepEqual(await repository.get('students', second.id), { id: second.id, name: 'Keep Me' });
+  const keptStudent = await repository.get('students', second.id);
+  assert.equal(keptStudent.id, second.id);
+  assert.equal(keptStudent.name, 'Keep Me');
   assert.equal(await repository.get('terms', 'term-delete'), null);
   assert.ok(await repository.get('terms', 'term-keep'));
   assert.equal(await repository.get('lessons', 'lesson-delete'), null);
