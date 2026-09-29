@@ -1069,7 +1069,7 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
     const result = this.cloudSync?.lastSyncResult;
     const error = this.cloudSync?.lastError;
     if (error) return `Sync error: ${esc(error?.message ?? String(error))}`;
-    if (result?.status === 'synced') return `Synced · ${result.studentCount} students`;
+    if (result?.status === 'synced') return `Synced · ${result.studentCount} students · ${result.termCount ?? 0} terms`;
     if (result?.status === 'signed-out') return 'Not signed in';
     return 'Cloud sync';
   }
