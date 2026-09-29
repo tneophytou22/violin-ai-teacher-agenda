@@ -3240,3 +3240,28 @@
 [data-v15="teacher-agenda"] [data-view="weekly-lesson-coverage"] { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:10px 0; }
 [data-v15="teacher-agenda"] [data-view="weekly-lesson-coverage"] span { display:flex; flex-direction:column; gap:2px; padding:8px 10px; border-radius:8px; background:var(--surface-muted,#f6f7f9); font-size:.72rem; }
 [data-v15="teacher-agenda"] [data-view="weekly-lesson-coverage"] strong { font-size:1rem; }
+
+/* Today Lesson Focus cockpit */
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus"] {
+  margin: 12px 0; padding: 12px; border: 1px solid var(--border, #ddd);
+  border-radius: 10px; background: var(--surface-muted, #f6f7f9);
+}
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-header"] {
+  display:flex; justify-content:space-between; gap:10px; align-items:baseline;
+}
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-header"] span {
+  font-size:.72rem; opacity:.68;
+}
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-grid"] {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:10px;
+}
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-grid"] div {
+  padding:8px; border-radius:8px; background:var(--surface, #fff);
+}
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-grid"] span,
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-grid"] strong {
+  display:block;
+}
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-grid"] span { font-size:.72rem; opacity:.7; }
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-grid"] strong { font-size:1.15rem; }
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-note"] { margin:8px 0 0; font-size:.76rem; opacity:.75; }
