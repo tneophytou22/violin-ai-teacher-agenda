@@ -359,6 +359,7 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
     </div>
     ${state.lastLessonSummary.completed.length ? `<div data-view="lesson-summary-list"><strong>Completed</strong><ul>${state.lastLessonSummary.completed.map(item => `<li>${esc(item.title)}</li>`).join('')}</ul></div>` : ''}
     ${state.lastLessonSummary.remaining.length ? `<div data-view="lesson-summary-list"><strong>Continues next week</strong><ul>${state.lastLessonSummary.remaining.slice(0, 6).map(item => `<li>${esc(item.title)}</li>`).join('')}${state.lastLessonSummary.remaining.length > 6 ? `<li>+${state.lastLessonSummary.remaining.length - 6} more</li>` : ''}</ul></div>` : '<p data-view="lesson-summary-clear">All pending core work for this teaching week was completed.</p>'}
+    ${state.lastLessonSummary.homework.length ? `<div data-view="lesson-summary-list"><strong>Homework assigned</strong><ul>${state.lastLessonSummary.homework.slice(0, 6).map(item => `<li>${esc(item.title)}</li>`).join('')}${state.lastLessonSummary.homework.length > 6 ? `<li>+${state.lastLessonSummary.homework.length - 6} more</li>` : ''}</ul></div>` : ''}
   </section>
 ` : ''}
 <section data-view="lesson">
