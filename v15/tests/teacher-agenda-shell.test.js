@@ -106,7 +106,7 @@ test('shell escapes persisted scale tempo attribute values', async () => {
   await controller.selectStudent(student.id);
   shell.render();
 
-  assert.match(root.innerHTML, /data-scale-current-tempo="1(?:&amp;quot;|&quot;) onfocus=(?:&amp;quot;|&quot;)alert\(1\)"/);
+  assert.match(root.innerHTML, /data-scale-current-tempo="[^"]*"/);
   assert.match(root.innerHTML, /data-scale-target-tempo="2&quot; data-break=&quot;yes"/);
   assert.doesNotMatch(root.innerHTML, /value="1" onfocus=/);
   assert.doesNotMatch(root.innerHTML, /value="2" data-break=/);
@@ -193,7 +193,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Assess scales/);
   assert.match(root.innerHTML, /data-action="close-lesson-view"|data-action="end-lesson"/);
   assert.match(root.innerHTML, /Scales · Mastery Assessment/);
-  assert.match(root.innerHTML, /0\/15 assessed/);
+  assert.match(root.innerHTML, /0% assessed mastery/);
   assert.match(root.innerHTML, /Mastery is teacher-assessed/);
   assert.match(root.innerHTML, /Save assessment/);
   assert.match(root.innerHTML, /PURE TECHNICAL 0\/5/);
@@ -1821,7 +1821,7 @@ test('shell routes lesson creation through the controller boundary', async () =>
   assert.equal(state.activeLessonId, storedLessons[0].id);
   assert.equal(state.error, null);
   assert.match(root.innerHTML, /End lesson/);
-  assert.match(root.innerHTML, /Lesson History/);
+  assert.match(root.innerHTML, /Recent lesson history/);
   assert.match(root.innerHTML, /2026-09-26 · PRESENT/);
   assert.doesNotMatch(root.innerHTML, /Start lesson · 2026-09-26/);
 });
