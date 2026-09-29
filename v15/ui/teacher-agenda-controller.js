@@ -35,6 +35,7 @@ export class TeacherAgendaController {
       practicePlanDraft: null,
       selectedItemIds: [],
       reviewedItemIds: [],
+      lastLessonSummary: null,
       todayLessonFocus: null,
       error: null,
       loading: false,
@@ -369,6 +370,22 @@ export class TeacherAgendaController {
         throw new Error('Save Homework before ending the lesson');
       }
       const lesson = this.state.activeLesson;
+      const weeklyItems = this.state.weekly?.items ?? [];
+      const reviewedIds = [...new Set(this.state.reviewedItemIds ?? [])];
+      const reviewedItems = weeklyItems.filter(item => reviewedIds.includes(item.id));
+      const completedItems = reviewedItems.filter(item => item.status === 'COMPLETED');
+      const pendingItems = weeklyItems.filter(item =>
+        item.curriculumDomain !== 'SCALES' && item.status !== 'COMPLETED'
+      );
+      const homeworkItems = savedItems.map(item => ({ ...item }));
+      this.state.lastLessonSummary = {
+        lessonId: lesson?.id ?? this.state.activeLessonId,
+        date: lesson?.date ?? this.today(),
+        reviewed: reviewedItems.map(item => ({ id: item.id, title: item.title, domain: item.curriculumDomain })),
+        completed: completedItems.map(item => ({ id: item.id, title: item.title, domain: item.curriculumDomain })),
+        remaining: pendingItems.map(item => ({ id: item.id, title: item.title, domain: item.curriculumDomain })),
+        homework: homeworkItems.map(item => ({ title: item.title ?? item.text ?? 'Homework task', domain: item.curriculumDomain ?? 'Custom' })),
+      };
       await this.viewModel.updateLessonDetails(this.state.activeLessonId, {
         mark: lesson?.mark ?? null,
         attendance: lesson?.attendance ?? 'PRESENT',
@@ -557,6 +574,7 @@ export class TeacherAgendaController {
     this.state.practicePlanDraft = null;
     this.state.selectedItemIds = [];
     this.state.reviewedItemIds = [];
+    this.state.lastLessonSummary = null;
   }
 
   async #activateLesson(lesson) {
