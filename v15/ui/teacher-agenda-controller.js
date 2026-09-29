@@ -35,6 +35,7 @@ export class TeacherAgendaController {
       practicePlanDraft: null,
       selectedItemIds: [],
       reviewedItemIds: [],
+      todayLessonFocus: null,
       error: null,
       loading: false,
     };
@@ -561,6 +562,7 @@ export class TeacherAgendaController {
     this.state.homeworkDraftItems = this.state.homework?.items?.map(item => ({ ...item })) ?? [];
     this.state.practicePlanDraft = this.state.homework?.practicePlan ? structuredClone(this.state.homework.practicePlan) : null;
     this.state.lessonHistory = await this.viewModel.listLessons(this.state.selectedTermId);
+    await this.loadTodayLessonFocus();
   }
 
   async #loadSelectedTerm() {
