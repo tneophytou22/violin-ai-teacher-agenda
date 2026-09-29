@@ -92,7 +92,7 @@ export class TeacherAgendaViewModel {
       this.weekly.listForTeachingWeek(termId, week),
       this.weekly.summary(termId, week),
     ]);
-    return { items, summary };
+    return { week, items, summary };
   }
 
   async loadTermProgress(termId) {
