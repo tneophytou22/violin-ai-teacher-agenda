@@ -342,6 +342,10 @@ export class TeacherAgendaShell {
             <aside data-view="agenda-side-rail" aria-label="Lesson and scale summary">
               <div data-view="lesson-column">
 ${!state.activeLessonId && state.lastLessonSummary ? `
+  <div data-view="lesson-next-lesson" aria-label="Next scheduled lesson">
+    <span>Next scheduled lesson</span>
+    <strong>${state.lastLessonSummary.nextLesson ? `${esc(state.lastLessonSummary.nextLesson.day)} · ${esc(state.lastLessonSummary.nextLesson.date)} · ${esc(state.lastLessonSummary.nextLesson.time)}` : 'No weekly lesson slot recorded'}</strong>
+  </div>
   <section data-view="lesson-completion-summary" aria-label="Last lesson summary">
     <div data-view="lesson-summary-header">
       <div><strong>Lesson completed</strong><span>${esc(state.lastLessonSummary.date)}</span></div>
