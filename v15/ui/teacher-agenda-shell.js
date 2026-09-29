@@ -4,12 +4,13 @@ import { generateViberHomeworkMessage, generateParentHomeworkMessage } from '../
 const esc = value => String(value ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 export class TeacherAgendaShell {
-  constructor({ controller, root, now = localDateString }) {
+  constructor({ controller, root, now = localDateString, cloudSync = null }) {
     if (!controller || !(controller instanceof TeacherAgendaController)) throw new Error('TeacherAgendaShell requires TeacherAgendaController');
     if (!root) throw new Error('TeacherAgendaShell requires a root element');
     this.controller = controller;
     this.root = root;
     this.now = now;
+    this.cloudSync = cloudSync;
     this.bound = false;
   }
 
@@ -69,6 +70,24 @@ export class TeacherAgendaShell {
               </button>`;
             }).join('')}
           </div>
+          <section data-view="cloud-panel" aria-label="Cloud sync">
+            <div data-view="backup-panel-header">
+              <div><strong>Cloud sync</strong><small>Use the same teacher account on Mac and tablet.</small></div>
+              <span data-view="cloud-status">Cloud sync</span>
+            </div>
+            <div data-view="cloud-auth">
+              <label>Email <input type="email" data-action="cloud-email" autocomplete="username" placeholder="teacher@email.com"></label>
+              <label>Password <input type="password" data-action="cloud-password" autocomplete="current-password" placeholder="Password"></label>
+              <div data-view="backup-actions">
+                <button type="button" data-action="cloud-sign-in">Sign in & sync</button>
+                <button type="button" data-action="cloud-sign-up">Create account</button>
+              </div>
+              <div data-view="backup-actions">
+                <button type="button" data-action="cloud-sync">Sync now</button>
+                <button type="button" data-action="cloud-sign-out">Sign out</button>
+              </div>
+            </div>
+          </section>
           <section data-view="backup-panel" aria-label="Backup and restore">
             <div data-view="backup-panel-header">
               <div><strong>Data backup</strong><small>Protect your students, lessons, homework and mastery data.</small></div>
@@ -728,6 +747,8 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
         }
       } catch (error) {
         this.#showError(error);
+      } finally {
+        this.cloudSync?.scheduleSync();
       }
     });
 
@@ -744,6 +765,22 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
           this.#openDialog('[data-view="student-profile-dialog"]');
         } else if (action === 'close-student-profile') {
           this.#closeDialog('[data-view="student-profile-dialog"]');
+        } else if (action === 'cloud-sign-in') {
+          const email = this.root.querySelector('[data-action="cloud-email"]')?.value?.trim() ?? '';
+          const password = this.root.querySelector('[data-action="cloud-password"]')?.value ?? '';
+          await this.cloudSync.signIn(email, password);
+          this.render();
+        } else if (action === 'cloud-sign-up') {
+          const email = this.root.querySelector('[data-action="cloud-email"]')?.value?.trim() ?? '';
+          const password = this.root.querySelector('[data-action="cloud-password"]')?.value ?? '';
+          await this.cloudSync.signUp(email, password);
+          this.render();
+        } else if (action === 'cloud-sync') {
+          await this.cloudSync.sync();
+          this.render();
+        } else if (action === 'cloud-sign-out') {
+          await this.cloudSync.signOut();
+          this.render();
         } else if (action === 'backup-now') {
           const backup = await this.controller.createBackup();
           this.#downloadBackup(backup);
@@ -975,6 +1012,8 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
         this.render();
       } catch (error) {
         this.#showError(error);
+      } finally {
+        this.cloudSync?.scheduleSync();
       }
     });
   }
