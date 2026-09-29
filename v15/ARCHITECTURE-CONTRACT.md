@@ -198,3 +198,13 @@ Locked rules:
 - Opening an Agenda entry loads that derived week into the Weekly Programme before the lesson workflow is activated.
 - This is a UI navigation projection only; it does not rewrite ProgrammeItem.targetWeek or create a second week field.
 - Manually selecting a Programme week remains available after the Agenda entry is opened.
+
+### Phase 46B — Weekly Teaching Coverage Projection
+
+The Weekly Programme summary exposes factual lesson-coverage indicators for the selected week.
+
+Locked rules:
+- pending core = non-scale ProgrammeItems in the selected week whose status is not COMPLETED.
+- reviewed in lesson = selected-week core ProgrammeItems whose IDs are recorded on the active Lesson.
+- pending review = pending core ProgrammeItems not yet recorded as reviewed on the active Lesson.
+- These are read-only UI projections and do not create a second progress model.
