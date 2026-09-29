@@ -244,3 +244,14 @@ Locked rules:
 - Review remains an explicit Lesson action.
 - Completion remains an explicit teacher action.
 - The Focus list is a convenience projection over the existing Weekly Programme; it is not a second planning or progress model.
+
+### Phase 50 — Decision Support in Lesson Cockpit
+
+The active Lesson Session may surface the first existing Teacher Decision Support prompt as contextual guidance.
+
+Locked rules:
+- The signal is read-only and derived from the existing teacherDecisionPrompts state.
+- It displays the existing signal type, evidence, and TKTL teacher decision logic.
+- It does not automatically select work, change ProgrammeItem status, change readiness decisions, or mutate student data.
+- The full Teacher Decision Support layer remains available for all prompts.
+- This cockpit projection does not create a second decision-support model.
