@@ -268,3 +268,14 @@ Locked rules:
 - The summary is a UI projection only; it does not create a second lesson or programme state.
 - Pending core work is expected to carry forward under Phase 48 when a later teaching week is loaded.
 - Starting/selecting another student or lesson clears the previous completion summary.
+
+### Phase 52 — Next Scheduled Lesson Continuity
+
+The post-lesson summary may show the next weekly lesson slot derived from the selected student's existing lessonSchedule.
+
+Locked rules:
+- The next lesson is the earliest scheduled weekly slot strictly after the ended lesson date.
+- It is derived from the student-owned lessonSchedule; no duplicate schedule state is stored.
+- The projection does not create a Lesson record.
+- It does not alter Agenda dates, ProgrammeItems, term state, or attendance.
+- If no lessonSchedule exists, the summary reports that no weekly lesson slot is recorded.
