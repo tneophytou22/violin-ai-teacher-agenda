@@ -221,3 +221,14 @@ Locked rules:
 - Completion uses the existing atomic ProgrammeItem completion path.
 - Scale items remain in Scale Mastery and cannot be completed through this action.
 - No new completion state or duplicate persistence is introduced.
+
+### Phase 48 — Persistent Completed Visibility + Automatic Pending Carry-Forward
+
+Locked rules:
+- A core ProgrammeItem that is not COMPLETED and has a targetWeek earlier than the teaching week is automatically moved to the current teaching week when that week is entered.
+- The same single ProgrammeItem is reused; no duplicate planning record is created.
+- A COMPLETED ProgrammeItem is never carried forward as pending.
+- Completed core ProgrammeItems remain visible in later teaching weeks as COMPLETED historical coverage.
+- Completed visibility does not make the item selectable for review or completion again.
+- Scale items remain on the Scale Mastery workflow and are excluded from automatic core carry-forward.
+- Manual weekly planning remains available through the existing term-scoped targetWeek control.
