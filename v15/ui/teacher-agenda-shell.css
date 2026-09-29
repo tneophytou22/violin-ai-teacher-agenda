@@ -3236,3 +3236,7 @@
     min-height: 40px;
   }
 }
+
+[data-v15="teacher-agenda"] [data-view="weekly-lesson-coverage"] { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:10px 0; }
+[data-v15="teacher-agenda"] [data-view="weekly-lesson-coverage"] span { display:flex; flex-direction:column; gap:2px; padding:8px 10px; border-radius:8px; background:var(--surface-muted,#f6f7f9); font-size:.72rem; }
+[data-v15="teacher-agenda"] [data-view="weekly-lesson-coverage"] strong { font-size:1rem; }
