@@ -675,8 +675,8 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
   #closeDialog(selector) {
     const dialog = this.root.querySelector(selector);
     if (!dialog) return;
-    if (typeof dialog.close === 'function' && dialog.open) dialog.close();
-    else dialog.removeAttribute('open');
+    if (typeof dialog.close === 'function') dialog.close();
+    else if (typeof dialog.removeAttribute === 'function') dialog.removeAttribute('open');
     dialog.setAttribute('aria-hidden', 'true');
   }
 
@@ -724,7 +724,7 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
           this.render();
         } else if (target.matches('[data-item]')) {
           this.controller.toggleItemSelection(target.dataset.item);
-          this.#refreshActionButtons();
+          this.render();
         }
       } catch (error) {
         this.#showError(error);
