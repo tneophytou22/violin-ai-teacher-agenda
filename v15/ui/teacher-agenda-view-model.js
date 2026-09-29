@@ -165,6 +165,10 @@ export class TeacherAgendaViewModel {
     return this.lessonProgramme.carryForwardForTerm(termId, programmeItemId, targetWeek);
   }
 
+  async assignProgrammeItemWeek(termId, programmeItemId, targetWeek) {
+    return this.weekly.assignWeekForTerm(termId, programmeItemId, targetWeek);
+  }
+
   async assessScale(programmeItemId, assessment, termId = null) {
     if (!this.scaleMastery) throw new Error('Scale mastery service is not configured');
     if (termId !== null) {
