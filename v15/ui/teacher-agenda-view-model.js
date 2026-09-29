@@ -81,7 +81,7 @@ export class TeacherAgendaViewModel {
 
   async loadWeek(termId, week) {
     const [items, summary] = await Promise.all([
-      this.weekly.listForTerm(termId, week),
+      this.weekly.listForTeachingWeek(termId, week),
       this.weekly.summary(termId, week),
     ]);
     return { items, summary };
