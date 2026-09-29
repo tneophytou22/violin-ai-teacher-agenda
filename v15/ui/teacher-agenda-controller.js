@@ -474,6 +474,18 @@ export class TeacherAgendaController {
     });
   }
 
+  async assignProgrammeItemWeek(programmeItemId, targetWeek) {
+    return this.#run(async () => {
+      if (!this.state.selectedTermId) throw new Error('No term selected');
+      if (!Number.isInteger(targetWeek) || targetWeek < 1) throw new Error('Week must be a positive integer');
+      await this.viewModel.assignProgrammeItemWeek(this.state.selectedTermId, programmeItemId, targetWeek);
+      this.state.selectedItemIds = this.state.selectedItemIds.filter(id => id !== programmeItemId);
+      await this.#reloadWeek();
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
+      return this.snapshot();
+    });
+  }
+
   #resetLessonState() {
     this.state.activeLessonId = null;
     this.state.activeLesson = null;
