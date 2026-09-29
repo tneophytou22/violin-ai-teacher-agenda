@@ -842,7 +842,7 @@
 
 [data-v15="teacher-agenda"] [data-view="agenda-workspace"] {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr) 410px;
   gap: 12px;
   align-items: start;
   margin: 0;
@@ -1194,7 +1194,7 @@
     padding: 14px;
   }
   [data-v15="teacher-agenda"] [data-view="agenda-workspace"] {
-    grid-template-columns: minmax(0, 1fr) 310px;
+    grid-template-columns: minmax(0, 1fr) 340px;
   }
 }
 @media (max-width: 820px) {
@@ -3366,4 +3366,29 @@
 }
 @media (max-width:620px) {
   [data-v15="teacher-agenda"] [data-view="practice-plan-language"] { align-items:stretch; flex-direction:column; }
+}
+
+
+/* Practice Plan readability — give teacher-facing prescription fields enough width. */
+[data-v15="teacher-agenda"] [data-view="practice-task-detail"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(82px, .45fr) minmax(120px, .7fr);
+  align-items: start;
+}
+[data-v15="teacher-agenda"] [data-view="practice-task-detail"] span {
+  min-width: 0;
+  line-height: 1.35;
+}
+@media (max-width: 1080px) {
+  [data-v15="teacher-agenda"] [data-view="practice-task-detail"] {
+    grid-template-columns: 1fr 1fr;
+  }
+  [data-v15="teacher-agenda"] [data-view="practice-task-detail"] span:first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 820px) {
+  [data-v15="teacher-agenda"] [data-view="practice-task-detail"] {
+    grid-template-columns: 1fr 1fr;
+  }
 }
