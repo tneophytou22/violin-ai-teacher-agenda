@@ -17,8 +17,12 @@ export class TeacherAgendaShell {
   async start() {
     try {
       await this.controller.loadStudents();
+      if (this.cloudSync?.available && await this.cloudSync.session()) {
+        await this.cloudSync.sync();
+        await this.controller.loadStudents();
+      }
     } catch (error) {
-      this.#showError();
+      this.#showError(error);
       return this;
     }
     this.render();
