@@ -41,6 +41,10 @@ export class BackupService {
     }
     const expectedStores = this.#storeNames();
     const actualStores = Object.keys(backup.stores);
+    const missingStores = expectedStores.filter(name => !actualStores.includes(name));
+    if (missingStores.length) {
+      throw new Error(`V15 backup is missing store: ${missingStores[0]}`);
+    }
     if (actualStores.length !== expectedStores.length || actualStores.some(name => !expectedStores.includes(name))) {
       throw new Error('V15 backup contains unexpected data stores');
     }
