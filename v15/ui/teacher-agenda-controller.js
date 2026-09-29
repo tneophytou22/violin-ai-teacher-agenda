@@ -290,6 +290,7 @@ export class TeacherAgendaController {
       if (!this.state.selectedTermId) throw new Error('No term selected');
       this.state.week = week;
       this.state.selectedItemIds = [];
+      await this.viewModel.carryForwardPendingToWeek(this.state.selectedTermId, week);
       this.state.weekly = await this.viewModel.loadWeek(this.state.selectedTermId, week);
       return this.snapshot();
     });
