@@ -160,6 +160,37 @@ test('invalid target week does not mutate a programme item', async () => {
   assert.equal(after.targetWeek, before.targetWeek);
 });
 
+test('assignWeekForTerm enforces term ownership before changing target week', async () => {
+  const { repo, term } = await setup();
+  const weekly = new WeeklyProgrammeService(repo);
+  const otherStudent = await new StudentService(repo).create({ name: 'Other Student' });
+  const otherTerm = await new TermService(repo).create({
+    studentId: otherStudent.id,
+    name: 'Other Term',
+    startDate: '2026-09-01',
+    endDate: '2026-12-31',
+    level: 7,
+    termNumber: 1,
+  });
+  await new TeacherTermService(repo).activateCard(otherTerm.id);
+  const item = (await weekly.listForTerm(otherTerm.id, 1))[0];
+  await assert.rejects(
+    () => weekly.assignWeekForTerm(term.id, item.id, 4),
+    /does not belong to the selected term/
+  );
+  assert.equal((await repo.get('programmeItems', item.id)).targetWeek, 1);
+});
+
+test('assignWeekForTerm updates only the selected term item', async () => {
+  const { repo, term } = await setup();
+  const weekly = new WeeklyProgrammeService(repo);
+  const item = (await weekly.listForTerm(term.id, 1)).find(i => i.curriculumDomain !== 'SCALES');
+  await weekly.assignWeekForTerm(term.id, item.id, 6);
+  assert.equal((await repo.get('programmeItems', item.id)).targetWeek, 6);
+  assert.equal((await weekly.listForTerm(term.id, 1)).some(i => i.id === item.id), false);
+  assert.equal((await weekly.listForTerm(term.id, 6)).some(i => i.id === item.id), true);
+});
+
 test('assigning an unknown programme item is rejected without creating a record', async () => {
   const { repo } = await setup();
   const weekly = new WeeklyProgrammeService(repo);
