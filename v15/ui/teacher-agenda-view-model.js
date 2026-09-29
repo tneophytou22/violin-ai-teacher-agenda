@@ -185,9 +185,9 @@ export class TeacherAgendaViewModel {
     return this.scaleMastery.assess({ programmeItemId, ...assessment });
   }
 
-  generatePracticePlan({ level, items }) {
+  generatePracticePlan({ level, items, language = 'EN' }) {
     if (!this.practicePlanner) throw new Error('Practice Planner service is not configured');
-    return this.practicePlanner.plan({ level, items });
+    return this.practicePlanner.plan({ level, items, language });
   }
 
   async saveHomework(lessonId, items, practicePlan = null) {
