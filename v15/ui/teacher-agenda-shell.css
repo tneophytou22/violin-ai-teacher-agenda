@@ -3343,3 +3343,9 @@
   }
   [data-v15="teacher-agenda"] [data-view="lesson-next-lesson"] strong { text-align:left; }
 }
+
+[data-v15="teacher-agenda"] [data-view="lesson-summary-note"] {
+  margin-top:8px; padding:8px 10px; border-radius:7px; background:var(--ta-surface);
+  font-size:.74rem;
+}
+[data-v15="teacher-agenda"] [data-view="lesson-summary-note"] p { margin:4px 0 0; }
