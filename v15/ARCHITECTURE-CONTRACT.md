@@ -289,3 +289,13 @@ Locked rules:
 - The projection is read-only and does not create or modify homework.
 - It is displayed alongside completed and carrying-forward programme work.
 - Starting another student or lesson clears the previous completion summary.
+
+### Phase 54 — Practice Handoff Continuity
+
+The post-lesson summary preserves the saved practice plan and teacher note from the ended Lesson.
+
+Locked rules:
+- Practice plan shown is the saved Lesson practice plan, never an unsaved draft.
+- Teacher note shown is the persisted Lesson teacherNote.
+- Both are read-only handoff projections.
+- They do not create new Lesson, Homework, ProgrammeItem, or planning state.
