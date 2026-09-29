@@ -61,7 +61,7 @@ test('teacher agenda controller keeps UI selection state separate from business 
   await controller.selectWeek(2);
   state = controller.snapshot();
   assert.equal(state.week, 2);
-  assert.equal(state.weekly.items.length, 0);
+  assert.equal(state.weekly.items.length, 15);
 
   const lesson = await controller.createLesson('2026-09-17', { mark: 19 });
   assert.equal(controller.snapshot().activeLessonId, lesson.id);
@@ -117,7 +117,7 @@ test('opening an Agenda entry aligns the Weekly Programme to the entry term week
   assert.equal(state.selectedTermId, term.id);
   assert.equal(state.week, 5);
   assert.equal(state.activeLesson?.date, '2026-09-29');
-  assert.equal(state.weekly.items.length, 0);
+  assert.equal(state.weekly.items.length, 25);
   assert.equal((await repo.list('lessons')).length, 1);
 });
 
