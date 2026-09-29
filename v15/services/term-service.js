@@ -20,6 +20,7 @@ export class TermService {
       readinessDecisionNote: note.trim(),
       readinessDecisionAt: decision === null ? null : new Date().toISOString(),
       version: (term.version ?? 0) + 1,
+      updatedAt: new Date().toISOString(),
     };
     return this.repo.put('terms', updated);
   }
