@@ -14,6 +14,7 @@ import { TeacherAgendaService } from '../services/teacher-agenda-service.js';
 import { TeacherAgendaViewModel } from './teacher-agenda-view-model.js';
 import { TeacherAgendaController } from './teacher-agenda-controller.js';
 import { TeacherAgendaShell } from './teacher-agenda-shell.js';
+import { CloudSyncService } from '../services/cloud-sync-service.js';
 
 export function createTeacherAgendaApp({ root, dbName, repository } = {}) {
   if (!root) throw new Error('Teacher Agenda app requires a root element');
@@ -34,11 +35,12 @@ export function createTeacherAgendaApp({ root, dbName, repository } = {}) {
   const studentIntelligenceService = new StudentIntelligenceService({
     studentService, termService, weeklyProgrammeService, lessonService, homeworkService, teacherTermService, repository: repo,
   });
+  const cloudSync = new CloudSyncService({ repository: repo });
   const controller = new TeacherAgendaController(new TeacherAgendaViewModel({
     studentService, termService, teacherTermService, weeklyProgrammeService,
     lessonService, lessonProgrammeService, homeworkService, practicePlannerService, scaleMasteryService,
     studentIntelligenceService, backupService, teacherAgendaService,
   }));
-  const shell = new TeacherAgendaShell({ controller, root });
-  return { storage, repository: repo, controller, shell };
+  const shell = new TeacherAgendaShell({ controller, root, cloudSync });
+  return { storage, repository: repo, controller, shell, cloudSync };
 }
