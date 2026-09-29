@@ -2,8 +2,6 @@ const SUPABASE_URL = 'https://ksszbowsqyfgzddecmve.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Szn3gg9chBxy8iTm1SoDTg_smL39oKe';
 const LAST_SYNC_KEY = 'violin-ai-v15-cloud-student-sync-v1';
 
-const clone = value => structuredClone(value);
-
 export class CloudSyncService {
   constructor({ repository, client = null, storage = globalThis.localStorage } = {}) {
     this.repository = repository;
@@ -85,8 +83,7 @@ export class CloudSyncService {
 
     const rows = localStudents.map(student => {
       const remote = remoteBySlug.get(student.id);
-      return {
-        id: remote?.id,
+      const row = {
         teacher_id: userId,
         slug: student.id,
         name: student.name,
@@ -98,6 +95,11 @@ export class CloudSyncService {
         readiness: remote?.readiness ?? 0,
         recurring_rcs: remote?.recurring_rcs ?? [],
       };
+
+      // Only send the UUID when this local student already exists remotely.
+      // For a new student, omitting id lets Postgres generate its UUID.
+      if (remote?.id) row.id = remote.id;
+      return row;
     });
 
     if (rows.length) {
