@@ -400,21 +400,25 @@ export class TeacherAgendaController {
 
   async loadTodayLessonFocus() {
     return this.#run(async () => {
-      if (!this.state.activeLessonId) {
-        this.state.todayLessonFocus = null;
-        return this.snapshot();
-      }
-      const weeklyItems = this.state.weekly?.items ?? [];
-      const reviewed = new Set(this.state.reviewedItemIds ?? []);
-      const pending = weeklyItems.filter(item =>
-        item.curriculumDomain !== 'SCALES' && item.status !== 'COMPLETED'
-      );
-      this.state.todayLessonFocus = Object.freeze({
-        pending: pending.map(item => item.id),
-        reviewed: pending.filter(item => reviewed.has(item.id)).map(item => item.id),
-        next: pending.filter(item => !reviewed.has(item.id)).map(item => item.id),
-      });
+      this.#deriveTodayLessonFocus();
       return this.snapshot();
+    });
+  }
+
+  #deriveTodayLessonFocus() {
+    if (!this.state.activeLessonId) {
+      this.state.todayLessonFocus = null;
+      return;
+    }
+    const weeklyItems = this.state.weekly?.items ?? [];
+    const reviewed = new Set(this.state.reviewedItemIds ?? []);
+    const pending = weeklyItems.filter(item =>
+      item.curriculumDomain !== 'SCALES' && item.status !== 'COMPLETED'
+    );
+    this.state.todayLessonFocus = Object.freeze({
+      pending: pending.map(item => item.id),
+      reviewed: pending.filter(item => reviewed.has(item.id)).map(item => item.id),
+      next: pending.filter(item => !reviewed.has(item.id)).map(item => item.id),
     });
   }
 
@@ -563,7 +567,7 @@ export class TeacherAgendaController {
     this.state.homeworkDraftItems = this.state.homework?.items?.map(item => ({ ...item })) ?? [];
     this.state.practicePlanDraft = this.state.homework?.practicePlan ? structuredClone(this.state.homework.practicePlan) : null;
     this.state.lessonHistory = await this.viewModel.listLessons(this.state.selectedTermId);
-    await this.loadTodayLessonFocus();
+    this.#deriveTodayLessonFocus();
   }
 
   async #loadSelectedTerm() {
