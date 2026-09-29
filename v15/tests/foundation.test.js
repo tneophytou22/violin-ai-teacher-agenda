@@ -312,7 +312,7 @@ test('student weekly lesson schedule supports two distinct lesson slots', async 
 test('student weekly lesson schedule rejects duplicate days and more than two lessons', async () => {
   const service = new StudentService(new InMemoryRepository());
 
-  await assert.rejects(
+  assert.throws(
     () => service.create({
       name: 'Duplicate Day',
       lessonSchedule: [
@@ -323,7 +323,7 @@ test('student weekly lesson schedule rejects duplicate days and more than two le
     /same day twice/
   );
 
-  await assert.rejects(
+  assert.throws(
     () => service.create({
       name: 'Too Many Lessons',
       lessonSchedule: [
