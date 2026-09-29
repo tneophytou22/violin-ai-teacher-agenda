@@ -90,6 +90,7 @@ test('teacher agenda application journey persists core, lesson, homework, scales
   const refreshed = createTeacherAgendaApp({ repository, root: root() });
   await refreshed.controller.loadStudents();
   await refreshed.controller.selectStudent(student.id);
+  await refreshed.controller.selectLesson(lesson.id);
 
   state = refreshed.controller.snapshot();
   assert.equal(state.selectedTermId, term.id);
