@@ -1,11 +1,8 @@
 const SUPABASE_URL = 'https://ksszbowsqyfgzddecmve.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Szn3gg9chBxy8iTm1SoDTg_smL39oKe';
-const SESSION_STORAGE_KEY = 'violin-ai-v15-cloud-last-sync-v1';
-const STORE_NAMES = Object.freeze(['students', 'terms', 'lessons', 'programmeItems', 'homework']);
+const LAST_SYNC_KEY = 'violin-ai-v15-cloud-student-sync-v1';
 
 const clone = value => structuredClone(value);
-
-const snapshotEqual = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 export class CloudSyncService {
   constructor({ repository, client = null, storage = globalThis.localStorage } = {}) {
@@ -26,13 +23,6 @@ export class CloudSyncService {
     const { data, error } = await this.client.auth.getSession();
     if (error) throw error;
     return data.session ?? null;
-  }
-
-  async user() {
-    if (!this.client) return null;
-    const { data, error } = await this.client.auth.getUser();
-    if (error) return null;
-    return data.user ?? null;
   }
 
   async signIn(email, password) {
@@ -62,76 +52,97 @@ export class CloudSyncService {
     if (error) throw error;
   }
 
-  async localSnapshot() {
-    const stores = {};
-    for (const name of STORE_NAMES) stores[name] = await this.repository.list(name);
-    return stores;
+  async #remoteStudents() {
+    const { data, error } = await this.client
+      .from('students')
+      .select('id,teacher_id,slug,name,level,stage,lesson_number,exam_in_days,streak,readiness,recurring_rcs,created_at,updated_at,archived_at')
+      .is('archived_at', null)
+      .order('name');
+    if (error) throw error;
+    return data ?? [];
   }
 
-  #readLastSync() {
+  #lastSyncIds() {
     try {
-      const raw = this.storage?.getItem(SESSION_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
+      const value = this.storage?.getItem(LAST_SYNC_KEY);
+      return value ? new Set(JSON.parse(value)) : null;
     } catch {
       return null;
     }
   }
 
-  #writeLastSync(snapshot) {
+  #writeLastSyncIds(ids) {
     try {
-      this.storage?.setItem(SESSION_STORAGE_KEY, JSON.stringify(snapshot));
+      this.storage?.setItem(LAST_SYNC_KEY, JSON.stringify([...ids]));
     } catch {
-      // Local cache metadata is optional.
+      // Optional cache metadata only.
     }
   }
 
-  #mergeStore(name, local, remote, lastSynced, tombstones) {
-    const localMap = new Map((local ?? []).map(record => [record.id, record]));
-    const remoteMap = new Map((remote ?? []).map(record => [record.id, record]));
-    const previousMap = new Map((lastSynced?.[name] ?? []).map(record => [record.id, record]));
-    const deleted = tombstones?.[name] ?? new Set();
+  async #pushLocalStudents(localStudents, remoteStudents, userId, previousIds) {
+    const remoteBySlug = new Map(remoteStudents.map(student => [student.slug, student]));
+    const localIds = new Set(localStudents.map(student => student.id));
 
-    for (const id of previousMap.keys()) {
-      if (!localMap.has(id)) deleted.add(id);
+    const rows = localStudents.map(student => {
+      const remote = remoteBySlug.get(student.id);
+      return {
+        id: remote?.id,
+        teacher_id: userId,
+        slug: student.id,
+        name: student.name,
+        level: remote?.level ?? null,
+        stage: remote?.stage ?? null,
+        lesson_number: remote?.lesson_number ?? 0,
+        exam_in_days: remote?.exam_in_days ?? null,
+        streak: remote?.streak ?? 0,
+        readiness: remote?.readiness ?? 0,
+        recurring_rcs: remote?.recurring_rcs ?? [],
+      };
+    });
+
+    if (rows.length) {
+      const { error } = await this.client
+        .from('students')
+        .upsert(rows, { onConflict: 'teacher_id,slug' });
+      if (error) throw error;
     }
 
-    const merged = new Map();
-
-    for (const [id, record] of remoteMap) {
-      if (!deleted.has(id)) merged.set(id, clone(record));
-    }
-
-    for (const [id, record] of localMap) {
-      if (deleted.has(id)) continue;
-      const previous = previousMap.get(id);
-      const remoteRecord = remoteMap.get(id);
-      if (!remoteRecord) {
-        merged.set(id, clone(record));
-      } else if (previous && !snapshotEqual(record, previous) && snapshotEqual(remoteRecord, previous)) {
-        merged.set(id, clone(record));
-      } else if (!previous || snapshotEqual(record, previous)) {
-        merged.set(id, clone(remoteRecord));
-      } else {
-        merged.set(id, clone(record));
+    // Only propagate deletions for IDs that were already present at the previous
+    // successful sync. This prevents a second device from deleting a remote
+    // student merely because it has not pulled it yet.
+    if (previousIds) {
+      const deletedIds = [...previousIds].filter(id => !localIds.has(id));
+      for (const slug of deletedIds) {
+        const { error } = await this.client
+          .from('students')
+          .delete()
+          .eq('teacher_id', userId)
+          .eq('slug', slug);
+        if (error) throw error;
       }
     }
-
-    return [...merged.values()];
   }
 
-  async #loadWorkspace() {
-    const { data, error } = await this.client.rpc('get_or_create_teacher_workspace');
-    if (error) throw error;
-    const workspace = Array.isArray(data) ? data[0] : data;
-    return workspace ?? { id: null, data: {} };
-  }
-
-  async #saveWorkspace(workspaceId, data) {
-    const { error } = await this.client
-      .from('teacher_workspaces')
-      .update({ data, updated_at: new Date().toISOString() })
-      .eq('id', workspaceId);
-    if (error) throw error;
+  async #replaceLocalStudents(localStudents, remoteStudents) {
+    const byId = new Map(localStudents.map(student => [student.id, student]));
+    for (const remote of remoteStudents) {
+      const localId = remote.slug || remote.id;
+      const existing = byId.get(localId);
+      byId.set(localId, {
+        id: localId,
+        name: remote.name,
+        phone: existing?.phone ?? '',
+        schoolType: existing?.schoolType ?? 'OTHER',
+        schoolName: existing?.schoolName ?? '',
+        instrument: existing?.instrument ?? 'VIOLIN',
+        lessonDay: existing?.lessonDay ?? '',
+        lessonTime: existing?.lessonTime ?? '',
+        lessonSchedule: existing?.lessonSchedule ?? [],
+        createdAt: existing?.createdAt ?? remote.created_at ?? new Date().toISOString(),
+      });
+    }
+    await this.repository.putRecords({ students: [...byId.values()] });
+    return [...byId.values()];
   }
 
   async sync() {
@@ -141,24 +152,20 @@ export class CloudSyncService {
       const session = await this.session();
       if (!session) return { status: 'signed-out' };
 
-      const local = await this.localSnapshot();
-      const workspace = await this.#loadWorkspace();
-      const remote = workspace.data && typeof workspace.data === 'object' ? workspace.data : {};
-      const lastSynced = this.#readLastSync();
+      const localStudents = await this.repository.list('students');
+      const remoteStudents = await this.#remoteStudents();
+      const previousIds = this.#lastSyncIds();
 
-      const tombstones = {};
-      for (const name of STORE_NAMES) tombstones[name] = new Set();
+      await this.#pushLocalStudents(localStudents, remoteStudents, session.user.id, previousIds);
+      const refreshedRemoteStudents = await this.#remoteStudents();
+      const merged = await this.#replaceLocalStudents(localStudents, refreshedRemoteStudents);
 
-      const merged = {};
-      for (const name of STORE_NAMES) {
-        merged[name] = this.#mergeStore(name, local[name], remote[name], lastSynced, tombstones);
-      }
-
-      await this.repository.replaceAll(merged);
-      await this.#saveWorkspace(workspace.id, merged);
-      this.#writeLastSync(merged);
-
-      return { status: 'synced', user: session.user, counts: Object.fromEntries(STORE_NAMES.map(name => [name, merged[name].length])) };
+      this.#writeLastSyncIds(new Set(merged.map(student => student.id)));
+      return {
+        status: 'synced',
+        studentCount: merged.length,
+        userEmail: session.user.email ?? '',
+      };
     }).catch(error => {
       this.lastError = error;
       throw error;
