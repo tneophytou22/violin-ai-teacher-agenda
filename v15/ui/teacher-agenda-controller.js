@@ -446,6 +446,28 @@ export class TeacherAgendaController {
     });
   }
 
+  async completeReviewedItems() {
+    return this.#run(async () => {
+      if (!this.state.selectedTermId) throw new Error('No term selected');
+      if (!this.state.activeLessonId) throw new Error('No lesson selected');
+      const reviewed = [...new Set(this.state.reviewedItemIds ?? [])];
+      if (!reviewed.length) throw new Error('No reviewed programme items to complete');
+      const items = (this.state.weekly?.items ?? []).filter(item =>
+        reviewed.includes(item.id)
+        && item.curriculumDomain !== 'SCALES'
+        && item.status !== 'COMPLETED'
+      );
+      if (!items.length) throw new Error('No pending reviewed programme items to complete');
+      await this.viewModel.completeProgrammeItems(this.state.selectedTermId, items.map(item => item.id));
+      this.state.selectedItemIds = [];
+      await this.#reloadWeek();
+      this.state.termProgress = await this.viewModel.loadTermProgress(this.state.selectedTermId);
+      this.state.scaleProgress = await this.viewModel.loadScaleProgress(this.state.selectedTermId);
+      this.state.studentIntelligence = await this.viewModel.loadStudentIntelligence(this.state.selectedStudentId);
+      return this.snapshot();
+    });
+  }
+
   async completeItems(programmeItemIds) {
     return this.#run(async () => {
       if (!this.state.selectedTermId) throw new Error('No term selected');
