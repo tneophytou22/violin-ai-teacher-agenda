@@ -1,4 +1,4 @@
-import { createTeacherAgendaApp, registerV1Curricula } from '../../index.js?v=173041';
+import { createTeacherAgendaApp, registerV1Curricula } from '../../index.js?v=173042';
 import { ensureDemoData } from './seed-demo.js';
 
 registerV1Curricula();
