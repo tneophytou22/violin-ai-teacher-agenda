@@ -540,6 +540,7 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
                 </div>`;
               }).join('');
               const deltaText = value => value === null || value === undefined ? '—' : value > 0 ? `+${value}` : String(value);
+              const timeline = Array.isArray(profile.timeline) ? profile.timeline : [];
               const termHistory = longitudinal.slice(-4).map(entry => {
                 const progressTotal = entry.metrics.pureTechnicalCompleted + entry.metrics.etudeCompleted + entry.metrics.repertoireCompleted;
                 const scale = entry.metrics.scaleMasteryPercent ?? 0;
@@ -585,6 +586,15 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
                   <div data-view="progress-term-list">${termHistory}</div>
                 </details>` : ''}
                 ${current.tktl ? `<details data-view="intelligence-tktl"><summary>Current TKTL context · ${esc(current.tktl.cardId)}</summary><p>${esc(current.tktl.technicalIntent ?? 'No technical intent recorded.')}</p></details>` : ''}
+                <details data-view="student-timeline" aria-label="Student timeline">
+                  <summary>Student timeline · ${timeline.length} event(s)</summary>
+                  ${timeline.length ? `<ul>${timeline.slice(0, 12).map(event => {
+                    const type = event.type ?? 'EVENT';
+                    const note = event.teacherNote ? ` · Teacher note: ${esc(event.teacherNote)}` : '';
+                    const mark = event.mark !== null && event.mark !== undefined ? ` · Mark ${esc(event.mark)}` : '';
+                    return `<li><strong>${esc(event.date ?? '')}</strong> · ${esc(type)}${mark}${note}</li>`;
+                  }).join('')}</ul>` : '<p>No timeline events recorded.</p>'}
+                </details>
               </section>`;
             })() : ''}
             <details data-view="teacher-readiness-review" aria-label="Teacher Readiness Review">
