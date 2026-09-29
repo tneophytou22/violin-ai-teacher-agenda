@@ -2017,7 +2017,7 @@ test('ending a lesson preserves a factual completion summary for the next teache
     homeworkService: new HomeworkService(repo),
   }));
 
-  const student = await studentService.create({ name: 'Completion Summary Test' });
+  const student = await studentService.create({ name: 'Completion Summary Test', lessonSchedule: [{ day: 'TUESDAY', time: '16:00' }, { day: 'FRIDAY', time: '16:00' }] });
   const term = await termService.create({
     studentId: student.id, name: 'L7T1', startDate: '2026-09-01',
     endDate: '2026-12-31', level: 7, termNumber: 1,
@@ -2037,4 +2037,7 @@ test('ending a lesson preserves a factual completion summary for the next teache
   assert.equal(state.lastLessonSummary.completed.length, 1);
   assert.ok(state.lastLessonSummary.remaining.length >= 0);
   assert.deepEqual(state.lastLessonSummary.homework, []);
+  assert.equal(state.lastLessonSummary.nextLesson.day, 'FRIDAY');
+  assert.equal(state.lastLessonSummary.nextLesson.date, '2026-10-02');
+  assert.equal(state.lastLessonSummary.nextLesson.time, '16:00');
 });
