@@ -45,10 +45,19 @@ const focusForItem = (item, language) => {
     : objective
       ? languageText(language, `Lesson objective: ${objective}`, `Στόχος μαθήματος: ${objective}`)
       : base;
-  if (detail !== base) return language === 'EL' ? `${detail}. Δούλεψε σε μικρές φράσεις και κράτησε σταθερή ποιότητα ήχου.` : `${detail}. Work in small phrases and keep the sound quality stable.`;
+  if (detail !== base) return language === 'EL'
+    ? `${detail}. Δούλεψε σε μικρές φράσεις και κράτησε σταθερή ποιότητα ήχου.`
+    : `${detail}. Work in small phrases and keep the sound quality stable.`;
   return language === 'EL'
-    ? 'Ξεκίνα σε ελεγχόμενο tempo, απομόνωσε το δύσκολο σημείο και αύξησε σταδιακά μόνο όταν είναι σταθερό.'
-    : fallbackFocus;
+    ? base === fallbackFocus
+      ? 'Ξεκίνα σε ελεγχόμενο tempo, απομόνωσε το δύσκολο σημείο και αύξησε σταδιακά μόνο όταν είναι σταθερό.'
+      : ({
+          SCALES: 'Δούλεψε την καθαρότητα και την ομοιομορφία της κλίμακας, με σταθερό bow και καθαρή ακρίβεια.',
+          PURE_TECHNICAL: 'Δούλεψε τον συντονισμό της κίνησης και τη χαλάρωση χωρίς να χάνεις τον ήχο.',
+          ETUDE: 'Δούλεψε μικρά τμήματα, σταθεροποίησε το δύσκολο πέρασμα και μετά σύνδεσέ τα.',
+          REPERTOIRE: 'Δούλεψε μουσική πρόθεση μαζί με τεχνικό έλεγχο και σταθερότητα.',
+        }[domain] ?? 'Δούλεψε σε ελεγχόμενο tempo και αύξησε σταδιακά μόνο όταν είναι σταθερό.')
+    : base;
 };
 
 const targetMinutesForLevel = level => TARGET_MINUTES_BY_LEVEL[level] ?? 35;
