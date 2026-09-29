@@ -33,6 +33,7 @@ export class TeacherAgendaController {
       homework: null,
       homeworkDraftItems: [],
       practicePlanDraft: null,
+      practicePlanLanguage: 'EN',
       selectedItemIds: [],
       reviewedItemIds: [],
       lastLessonSummary: null,
@@ -484,12 +485,13 @@ export class TeacherAgendaController {
     });
   }
 
-  async generatePracticePlan(items = this.state.homeworkDraftItems) {
+  async generatePracticePlan(items = this.state.homeworkDraftItems, language = this.state.practicePlanLanguage) {
     return this.#run(async () => {
       if (!this.state.activeLessonId) throw new Error('No lesson selected');
       const level = this.state.termContext?.term?.level;
       if (!Number.isInteger(level)) throw new Error('Practice Planner requires the selected term to have a level');
-      const plan = this.viewModel.generatePracticePlan({ level, items });
+      this.state.practicePlanLanguage = language === 'EL' ? 'EL' : 'EN';
+      const plan = this.viewModel.generatePracticePlan({ level, items, language: this.state.practicePlanLanguage });
       this.state.homeworkDraftItems = items.map(item => ({ ...item }));
       this.state.practicePlanDraft = structuredClone(plan);
       return this.snapshot();
