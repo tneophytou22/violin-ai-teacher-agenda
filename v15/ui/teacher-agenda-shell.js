@@ -781,6 +781,8 @@ export class TeacherAgendaShell {
           await this.controller.reviewItems(this.controller.snapshot().selectedItemIds);
         } else if (action === 'complete-selected') {
           await this.controller.completeItems(this.controller.snapshot().selectedItemIds);
+        } else if (action === 'complete-reviewed') {
+          await this.controller.completeReviewedItems();
         } else if (action === 'save-details') {
           const attendance = this.root.querySelector('[data-action="attendance"]')?.value ?? 'PRESENT';
           const rawMark = this.root.querySelector('[data-action="mark"]')?.value ?? '';
