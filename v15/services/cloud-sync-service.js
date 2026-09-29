@@ -53,7 +53,7 @@ export class CloudSyncService {
   async #remoteStudents() {
     const { data, error } = await this.client
       .from('students')
-      .select('id,teacher_id,slug,name,level,stage,lesson_number,exam_in_days,streak,readiness,recurring_rcs,created_at,updated_at,archived_at')
+      .select('id,teacher_id,slug,name,level,stage,lesson_number,exam_in_days,streak,readiness,recurring_rcs,phone,school_type,school_name,instrument,lesson_day,lesson_time,lesson_schedule,created_at,updated_at,archived_at')
       .is('archived_at', null)
       .order('name');
     if (error) throw error;
@@ -94,6 +94,15 @@ export class CloudSyncService {
         streak: remote?.streak ?? 0,
         readiness: remote?.readiness ?? 0,
         recurring_rcs: remote?.recurring_rcs ?? [],
+        phone: student.phone ?? remote?.phone ?? '',
+        school_type: student.schoolType ?? remote?.school_type ?? 'OTHER',
+        school_name: student.schoolName ?? remote?.school_name ?? '',
+        instrument: student.instrument ?? remote?.instrument ?? 'VIOLIN',
+        lesson_day: student.lessonDay ?? remote?.lesson_day ?? '',
+        lesson_time: student.lessonTime ?? remote?.lesson_time ?? '',
+        lesson_schedule: Array.isArray(student.lessonSchedule)
+          ? student.lessonSchedule
+          : (remote?.lesson_schedule ?? []),
       };
 
       // Only send the UUID when this local student already exists remotely.
@@ -133,13 +142,13 @@ export class CloudSyncService {
       byId.set(localId, {
         id: localId,
         name: remote.name,
-        phone: existing?.phone ?? '',
-        schoolType: existing?.schoolType ?? 'OTHER',
-        schoolName: existing?.schoolName ?? '',
-        instrument: existing?.instrument ?? 'VIOLIN',
-        lessonDay: existing?.lessonDay ?? '',
-        lessonTime: existing?.lessonTime ?? '',
-        lessonSchedule: existing?.lessonSchedule ?? [],
+        phone: existing?.phone ?? remote.phone ?? '',
+        schoolType: existing?.schoolType ?? remote.school_type ?? 'OTHER',
+        schoolName: existing?.schoolName ?? remote.school_name ?? '',
+        instrument: existing?.instrument ?? remote.instrument ?? 'VIOLIN',
+        lessonDay: existing?.lessonDay ?? remote.lesson_day ?? '',
+        lessonTime: existing?.lessonTime ?? remote.lesson_time ?? '',
+        lessonSchedule: existing?.lessonSchedule ?? remote.lesson_schedule ?? [],
         createdAt: existing?.createdAt ?? remote.created_at ?? new Date().toISOString(),
       });
     }
