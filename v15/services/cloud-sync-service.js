@@ -1,6 +1,7 @@
 const SUPABASE_URL = 'https://ksszbowsqyfgzddecmve.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Szn3gg9chBxy8iTm1SoDTg_smL39oKe';
 const LAST_SYNC_KEY = 'violin-ai-v15-cloud-student-sync-v1';
+const LAST_TERM_SYNC_KEY = 'violin-ai-v15-cloud-term-sync-v1';
 
 export class CloudSyncService {
   constructor({ repository, client = null, storage = globalThis.localStorage } = {}) {
@@ -60,6 +61,99 @@ export class CloudSyncService {
       .order('name');
     if (error) throw error;
     return data ?? [];
+  }
+
+  async #remoteTerms() {
+    const { data, error } = await this.client
+      .from('terms')
+      .select('id,teacher_id,student_slug,name,start_date,end_date,level,term_number,readiness_decision,readiness_decision_note,readiness_decision_at,version,created_at,updated_at')
+      .order('name');
+    if (error) throw error;
+    return data ?? [];
+  }
+
+  #lastTermSyncIds() {
+    try {
+      const value = this.storage?.getItem(LAST_TERM_SYNC_KEY);
+      return value ? new Set(JSON.parse(value)) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  #writeLastTermSyncIds(ids) {
+    try {
+      this.storage?.setItem(LAST_TERM_SYNC_KEY, JSON.stringify([...ids]));
+    } catch {
+      // Optional cache metadata only.
+    }
+  }
+
+  async #pushLocalTerms(localTerms, remoteTerms, userId, previousIds) {
+    const remoteById = new Map(remoteTerms.map(term => [term.id, term]));
+    const localIds = new Set(localTerms.map(term => term.id));
+    const rows = localTerms.map(term => {
+      const remote = remoteById.get(term.id);
+      return {
+        id: term.id,
+        teacher_id: userId,
+        student_slug: term.studentId,
+        name: term.name,
+        start_date: term.startDate ?? null,
+        end_date: term.endDate ?? null,
+        level: term.level ?? null,
+        term_number: term.termNumber ?? 1,
+        readiness_decision: term.readinessDecision ?? null,
+        readiness_decision_note: term.readinessDecisionNote ?? '',
+        readiness_decision_at: term.readinessDecisionAt ?? null,
+        version: term.version ?? 1,
+        created_at: term.createdAt ?? remote?.created_at ?? new Date().toISOString(),
+        updated_at: term.updatedAt ?? remote?.updated_at ?? term.createdAt ?? new Date().toISOString(),
+      };
+    });
+
+    if (rows.length) {
+      const { error } = await this.client
+        .from('terms')
+        .upsert(rows, { onConflict: 'id' });
+      if (error) throw error;
+    }
+
+    if (previousIds) {
+      const deletedIds = [...previousIds].filter(id => !localIds.has(id));
+      for (const id of deletedIds) {
+        const { error } = await this.client
+          .from('terms')
+          .delete()
+          .eq('id', id)
+          .eq('teacher_id', userId);
+        if (error) throw error;
+      }
+    }
+  }
+
+  async #replaceLocalTerms(localTerms, remoteTerms) {
+    const byId = new Map(localTerms.map(term => [term.id, term]));
+    for (const remote of remoteTerms) {
+      byId.set(remote.id, {
+        id: remote.id,
+        studentId: remote.student_slug,
+        name: remote.name,
+        startDate: remote.start_date ?? null,
+        endDate: remote.end_date ?? null,
+        level: remote.level ?? null,
+        termNumber: remote.term_number ?? 1,
+        readinessDecision: remote.readiness_decision ?? null,
+        readinessDecisionNote: remote.readiness_decision_note ?? '',
+        readinessDecisionAt: remote.readiness_decision_at ?? null,
+        version: remote.version ?? 1,
+        createdAt: localTerms.find(term => term.id === remote.id)?.createdAt ?? remote.created_at ?? new Date().toISOString(),
+        updatedAt: remote.updated_at ?? remote.created_at ?? new Date().toISOString(),
+      });
+    }
+    const merged = [...byId.values()];
+    await this.repository.putRecords({ terms: merged });
+    return merged;
   }
 
   #lastSyncIds() {
@@ -174,30 +268,41 @@ export class CloudSyncService {
     this.syncTail = this.syncTail.then(async () => {
       const session = await this.session();
       if (!session) {
-        this.lastSyncResult = { status: 'signed-out', studentCount: 0, userEmail: '' };
+        this.lastSyncResult = { status: 'signed-out', studentCount: 0, termCount: 0, userEmail: '' };
         this.lastError = null;
         return this.lastSyncResult;
       }
 
       const localStudents = await this.repository.list('students');
+      const localTerms = await this.repository.list('terms');
       const remoteStudents = await this.#remoteStudents();
       const previousIds = this.#lastSyncIds();
+      const previousTermIds = this.#lastTermSyncIds();
 
+      // Students must be pushed first because cloud Terms reference
+      // (teacher_id, student_slug).
       await this.#pushLocalStudents(localStudents, remoteStudents, session.user.id, previousIds);
       const refreshedRemoteStudents = await this.#remoteStudents();
-      const merged = await this.#replaceLocalStudents(localStudents, refreshedRemoteStudents);
+      const mergedStudents = await this.#replaceLocalStudents(localStudents, refreshedRemoteStudents);
 
-      this.#writeLastSyncIds(new Set(merged.map(student => student.id)));
+      const remoteTerms = await this.#remoteTerms();
+      await this.#pushLocalTerms(localTerms, remoteTerms, session.user.id, previousTermIds);
+      const refreshedRemoteTerms = await this.#remoteTerms();
+      const mergedTerms = await this.#replaceLocalTerms(localTerms, refreshedRemoteTerms);
+
+      this.#writeLastSyncIds(new Set(mergedStudents.map(student => student.id)));
+      this.#writeLastTermSyncIds(new Set(mergedTerms.map(term => term.id)));
       this.lastError = null;
       this.lastSyncResult = {
         status: 'synced',
-        studentCount: merged.length,
+        studentCount: mergedStudents.length,
+        termCount: mergedTerms.length,
         userEmail: session.user.email ?? '',
       };
       return this.lastSyncResult;
     }).catch(error => {
       this.lastError = error;
-      this.lastSyncResult = { status: 'error', studentCount: 0, userEmail: '', message: error?.message ?? String(error) };
+      this.lastSyncResult = { status: 'error', studentCount: 0, termCount: 0, userEmail: '', message: error?.message ?? String(error) };
       throw error;
     });
 
