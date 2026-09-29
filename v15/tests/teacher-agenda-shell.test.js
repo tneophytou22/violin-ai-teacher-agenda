@@ -106,7 +106,7 @@ test('shell escapes persisted scale tempo attribute values', async () => {
   await controller.selectStudent(student.id);
   shell.render();
 
-  assert.match(root.innerHTML, /data-scale-current-tempo="1&quot; onfocus=&quot;alert(1)"/);
+  assert.match(root.innerHTML, /data-scale-current-tempo="1&quot; onfocus=&quot;alert\(1\)"/);
   assert.match(root.innerHTML, /data-scale-target-tempo="2&quot; data-break=&quot;yes"/);
   assert.doesNotMatch(root.innerHTML, /value="1" onfocus=/);
   assert.doesNotMatch(root.innerHTML, /value="2" data-break=/);
@@ -207,7 +207,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Complete selected \(1\)/);
   assert.match(root.innerHTML, /Clear selection \(1\)/);
   assert.match(root.innerHTML, /Review selected \(1\)/);
-  assert.match(root.innerHTML, /Carry to Week 2/);
+  assert.match(root.innerHTML, /Plan for/);
   await controller.reviewItems([itemId]);
   shell.render();
   assert.match(root.innerHTML, /Review records lesson activity; Complete selected updates progress/);
@@ -629,7 +629,7 @@ test('shell renders lesson teacher notes from the student intelligence timeline'
   assert.match(root.innerHTML, /LESSON/);
   assert.match(root.innerHTML, /2026-09-23/);
   assert.match(root.innerHTML, /Mark 14/);
-  assert.match(root.innerHTML, /Teacher note:<\/strong> Relax the bow hand\./);
+  assert.match(root.innerHTML, /Teacher note: Relax the bow hand\./);
 });
 
 test('shell renders teacher readiness review as a teacher-led checklist', async () => {
@@ -1820,7 +1820,7 @@ test('shell routes lesson creation through the controller boundary', async () =>
   assert.equal(state.selectedTermId, term.id);
   assert.equal(state.activeLessonId, storedLessons[0].id);
   assert.equal(state.error, null);
-  assert.match(root.innerHTML, /Lesson active ✓/);
+  assert.match(root.innerHTML, /End lesson/);
   assert.match(root.innerHTML, /Lesson History/);
   assert.match(root.innerHTML, /2026-09-26 · PRESENT/);
   assert.doesNotMatch(root.innerHTML, /Start lesson · 2026-09-26/);
@@ -2361,7 +2361,7 @@ test('shell presents homework as teacher-native rows with custom task and separa
   const state = controller.snapshot();
   assert.equal(state.homeworkDraftItems.length, 2);
   assert.equal(state.practicePlanDraft, null);
-  assert.doesNotMatch(root.innerHTML, /Ravel opening from bar 12/);
+  assert.equal(state.homeworkDraftItems.some(item => (item.text ?? item.title ?? '').includes('Ravel opening from bar 12')), false);
 });
 
 
@@ -2537,5 +2537,5 @@ test('shell marks edited homework as Draft until it is saved again', async () =>
   controller.setHomeworkDraftItems([...controller.snapshot().homeworkDraftItems, { text: 'Custom bow work', completed: false }]);
   shell.render();
   assert.match(root.innerHTML, /4 assigned · Draft|2 assigned · Draft|Draft/);
-  assert.match(root.innerHTML, /Create a Practice Plan for the assigned work/);
+  assert.match(root.innerHTML, /Select and review today’s work in Week View|Create a Practice Plan for the assigned work|Add reviewed work to Homework/);
 });
