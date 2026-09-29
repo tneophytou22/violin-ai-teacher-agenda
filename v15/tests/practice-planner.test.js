@@ -95,3 +95,16 @@ test('Practice Planner carries teacher-assigned requirements into the practice f
 
   assert.match(plan.tasks[0].focus, /Assigned requirement: détaché; intonation/);
 });
+
+
+test('Practice Planner generates targeted tempo, rhythm and bilingual steps', () => {
+  const planner = new PracticePlannerService();
+  const plan = planner.plan({
+    level: 6,
+    language: 'EL',
+    items: [{ id: 'pi-1', title: 'Kreutzer No. 12', curriculumDomain: 'ETUDE' }],
+  });
+  assert.equal(plan.tasks[0].tempo, 52);
+  assert.ok(plan.tasks[0].rhythmPattern);
+  assert.match(plan.tasks[0].steps[0], /Απομόνωσε/);
+});
