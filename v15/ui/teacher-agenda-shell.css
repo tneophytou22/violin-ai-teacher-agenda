@@ -3265,3 +3265,15 @@
 [data-v15="teacher-agenda"] [data-view="today-lesson-focus-grid"] span { font-size:.72rem; opacity:.7; }
 [data-v15="teacher-agenda"] [data-view="today-lesson-focus-grid"] strong { font-size:1.15rem; }
 [data-v15="teacher-agenda"] [data-view="today-lesson-focus-note"] { margin:8px 0 0; font-size:.76rem; opacity:.75; }
+
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-items"] {
+  display:grid; gap:5px; margin:6px 0 0; padding:0; list-style:none;
+}
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-items"] button {
+  width:100%; padding:8px 10px; text-align:left; border:1px solid var(--ta-border);
+  border-radius:7px; background:var(--ta-surface); font-size:.76rem;
+}
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-items"] button.is-selected {
+  border-color:var(--ta-border-strong); background:var(--ta-surface-soft); font-weight:700;
+}
+[data-v15="teacher-agenda"] [data-view="today-lesson-focus-more"] { display:block; margin-top:5px; opacity:.65; }
