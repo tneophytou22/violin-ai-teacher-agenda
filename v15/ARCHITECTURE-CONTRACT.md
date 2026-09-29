@@ -208,3 +208,16 @@ Locked rules:
 - reviewed in lesson = selected-week core ProgrammeItems whose IDs are recorded on the active Lesson.
 - pending review = pending core ProgrammeItems not yet recorded as reviewed on the active Lesson.
 - These are read-only UI projections and do not create a second progress model.
+
+### Phase 46C — Explicit Reviewed-Work Completion
+
+The Lesson Session may explicitly promote reviewed core ProgrammeItems to COMPLETED.
+
+Locked rules:
+- Review and completion remain distinct states.
+- Recording an item as reviewed never automatically completes it.
+- The teacher may explicitly invoke “Complete reviewed” from the active lesson.
+- Only reviewed, non-scale, currently pending items from the selected week's loaded ProgrammeItems are eligible.
+- Completion uses the existing atomic ProgrammeItem completion path.
+- Scale items remain in Scale Mastery and cannot be completed through this action.
+- No new completion state or duplicate persistence is introduced.
