@@ -29,6 +29,16 @@ export class WeeklyProgrammeService {
     return this.assignWeek(itemId, targetWeek);
   }
 
+  async listForTeachingWeek(termId, week) {
+    const items = await this.listForTerm(termId);
+    if (!Number.isInteger(week) || week < 1) throw new Error('Week must be a positive integer');
+    return items.filter(item =>
+      item.curriculumDomain === 'SCALES'
+        ? item.targetWeek === week
+        : item.targetWeek === week || (item.status === 'COMPLETED' && item.targetWeek < week)
+    );
+  }
+
   async summary(termId, week) {
     const items = await this.listForTerm(termId, week);
     const byDomain = {};
