@@ -953,7 +953,7 @@ ${!state.activeLessonId && state.lastLessonSummary ? `
             consistency,
             note,
           });
-        } else if (target.matches('[data-programme-week]')) {
+        } else if (typeof target.matches === 'function' && target.matches('[data-programme-week]')) {
           await this.controller.assignProgrammeItemWeek(target.dataset.programmeWeek, Number(target.value));
         } else if (target.dataset.uncomplete) {
           await this.controller.uncompleteItem(target.dataset.uncomplete);
