@@ -73,10 +73,13 @@ test('teacher agenda controller keeps UI selection state separate from business 
   assert.deepEqual(storedLesson.reviewedProgrammeItemIds, selected);
 
   await controller.selectWeek(1);
-  await controller.completeItems([selected[0]]);
+  await controller.completeReviewedItems();
   state = controller.snapshot();
-  assert.equal(state.weekly.summary.completed, 1);
-  assert.equal(state.termProgress.completed, 1);
+  assert.equal(state.weekly.summary.completed, 2);
+  assert.equal(state.termProgress.completed, 2);
+
+  const storedAfterReviewedCompletion = await repo.get('lessons', lesson.id);
+  assert.deepEqual(storedAfterReviewedCompletion.reviewedProgrammeItemIds, selected);
 });
 
 
