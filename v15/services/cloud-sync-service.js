@@ -10,6 +10,8 @@ export class CloudSyncService {
       auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
     }) ?? null;
     this.syncTail = Promise.resolve();
+    this.lastSyncResult = null;
+    this.lastError = null;
   }
 
   get available() {
@@ -161,7 +163,11 @@ export class CloudSyncService {
 
     this.syncTail = this.syncTail.then(async () => {
       const session = await this.session();
-      if (!session) return { status: 'signed-out' };
+      if (!session) {
+        this.lastSyncResult = { status: 'signed-out', studentCount: 0, userEmail: '' };
+        this.lastError = null;
+        return this.lastSyncResult;
+      }
 
       const localStudents = await this.repository.list('students');
       const remoteStudents = await this.#remoteStudents();
@@ -172,13 +178,16 @@ export class CloudSyncService {
       const merged = await this.#replaceLocalStudents(localStudents, refreshedRemoteStudents);
 
       this.#writeLastSyncIds(new Set(merged.map(student => student.id)));
-      return {
+      this.lastError = null;
+      this.lastSyncResult = {
         status: 'synced',
         studentCount: merged.length,
         userEmail: session.user.email ?? '',
       };
+      return this.lastSyncResult;
     }).catch(error => {
       this.lastError = error;
+      this.lastSyncResult = { status: 'error', studentCount: 0, userEmail: '', message: error?.message ?? String(error) };
       throw error;
     });
 
