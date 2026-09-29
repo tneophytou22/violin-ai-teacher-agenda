@@ -79,6 +79,45 @@ test('teacher agenda controller keeps UI selection state separate from business 
   assert.equal(state.termProgress.completed, 1);
 });
 
+
+
+test('opening an Agenda entry aligns the Weekly Programme to the entry term week', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const weeklyProgrammeService = new WeeklyProgrammeService(repo);
+  const lessonService = new LessonService(repo);
+  const lessonProgrammeService = new LessonProgrammeService(repo);
+  const homeworkService = new HomeworkService(repo);
+  const viewModel = new TeacherAgendaViewModel({
+    studentService, termService, teacherTermService, weeklyProgrammeService,
+    lessonService, lessonProgrammeService, homeworkService,
+  });
+  const controller = new TeacherAgendaController(viewModel);
+
+  const student = await studentService.create({ name: 'Agenda Week Alignment' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L7T1',
+    startDate: '2026-09-01', endDate: '2026-12-31',
+    level: 7, termNumber: 1,
+  });
+  await controller.loadStudents();
+
+  await controller.openAgendaEntry({
+    id: 'scheduled-entry', studentId: student.id, termId: term.id,
+    date: '2026-09-29', lessonId: null,
+  });
+
+  const state = controller.snapshot();
+  assert.equal(state.selectedTermId, term.id);
+  assert.equal(state.week, 5);
+  assert.equal(state.activeLesson?.date, '2026-09-29');
+  assert.equal(state.weekly.items.length, 0);
+  assert.equal((await repo.list('lessons')).length, 1);
+});
+
 test('controller rejects an unknown student without mutating the selected student state', async () => {
   const repo = new InMemoryRepository();
   registerV1Curricula();
