@@ -3349,3 +3349,21 @@
   font-size:.74rem;
 }
 [data-v15="teacher-agenda"] [data-view="lesson-summary-note"] p { margin:4px 0 0; }
+
+[data-v15="teacher-agenda"] [data-view="practice-plan-language"] {
+  display:flex; align-items:center; justify-content:space-between; gap:10px; margin:8px 0;
+}
+[data-v15="teacher-agenda"] [data-view="practice-plan-language"] label { font-size:.72rem; }
+[data-v15="teacher-agenda"] [data-view="practice-plan-language"] select { margin-left:5px; min-height:34px; }
+[data-v15="teacher-agenda"] [data-view="practice-task-detail"] {
+  display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; font-size:.7rem;
+}
+[data-v15="teacher-agenda"] [data-view="practice-task-detail"] span {
+  padding:4px 6px; border-radius:6px; background:var(--ta-surface-soft);
+}
+[data-v15="teacher-agenda"] [data-view="practice-task-steps"] {
+  margin:6px 0 0 20px; padding:0; font-size:.7rem;
+}
+@media (max-width:620px) {
+  [data-v15="teacher-agenda"] [data-view="practice-plan-language"] { align-items:stretch; flex-direction:column; }
+}
