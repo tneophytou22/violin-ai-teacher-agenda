@@ -341,6 +341,22 @@ export class TeacherAgendaShell {
             </div>
             <aside data-view="agenda-side-rail" aria-label="Lesson and scale summary">
               <div data-view="lesson-column">
+${!state.activeLessonId && state.lastLessonSummary ? `
+  <section data-view="lesson-completion-summary" aria-label="Last lesson summary">
+    <div data-view="lesson-summary-header">
+      <div><strong>Lesson completed</strong><span>${esc(state.lastLessonSummary.date)}</span></div>
+      <span data-view="lesson-summary-badge">Ready for next lesson</span>
+    </div>
+    <div data-view="lesson-summary-grid">
+      <div><span>Taught / reviewed</span><strong>${state.lastLessonSummary.reviewed.length}</strong></div>
+      <div><span>Completed</span><strong>${state.lastLessonSummary.completed.length}</strong></div>
+      <div><span>Carrying forward</span><strong>${state.lastLessonSummary.remaining.length}</strong></div>
+      <div><span>Homework</span><strong>${state.lastLessonSummary.homework.length}</strong></div>
+    </div>
+    ${state.lastLessonSummary.completed.length ? `<div data-view="lesson-summary-list"><strong>Completed</strong><ul>${state.lastLessonSummary.completed.map(item => `<li>${esc(item.title)}</li>`).join('')}</ul></div>` : ''}
+    ${state.lastLessonSummary.remaining.length ? `<div data-view="lesson-summary-list"><strong>Continues next week</strong><ul>${state.lastLessonSummary.remaining.slice(0, 6).map(item => `<li>${esc(item.title)}</li>`).join('')}${state.lastLessonSummary.remaining.length > 6 ? `<li>+${state.lastLessonSummary.remaining.length - 6} more</li>` : ''}</ul></div>` : '<p data-view="lesson-summary-clear">All pending core work for this teaching week was completed.</p>'}
+  </section>
+` : ''}
 <section data-view="lesson">
   <div data-view="lesson-header">
     <div><h2>Lesson Session</h2><p>Record the lesson, review work and assign focused practice.</p></div>
