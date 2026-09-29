@@ -202,3 +202,37 @@ test('assigning an unknown programme item is rejected without creating a record'
 
   assert.equal(await repo.get('programmeItems', 'missing-programme-item'), null);
 });
+
+
+test('teaching week carries pending core items forward while preserving completed history', async () => {
+  const repo = new InMemoryRepository();
+  registerV1Curricula();
+  const studentService = new StudentService(repo);
+  const termService = new TermService(repo);
+  const teacherTermService = new TeacherTermService(repo);
+  const student = await studentService.create({ name: 'Carry Forward Test' });
+  const term = await termService.create({
+    studentId: student.id, name: 'L7T1', startDate: '2026-09-01',
+    endDate: '2026-12-31', level: 7, termNumber: 1,
+  });
+  const service = new WeeklyProgrammeService(repo);
+  await teacherTermService.activateCard(term.id);
+  const items = await service.listForTerm(term.id);
+  const pending = items.find(item => item.curriculumDomain === 'ETUDE');
+  const completed = items.find(item => item.curriculumDomain === 'PURE_TECHNICAL');
+  await service.assignWeekForTerm(term.id, pending.id, 1);
+  await repo.put('programmeItems', { ...completed, status: 'COMPLETED', completedAt: new Date().toISOString(), targetWeek: 1 });
+
+  await service.carryForwardPendingToWeek(term.id, 3);
+
+  const storedPending = await repo.get('programmeItems', pending.id);
+  const storedCompleted = await repo.get('programmeItems', completed.id);
+  assert.equal(storedPending.targetWeek, 3);
+  assert.equal(storedCompleted.status, 'COMPLETED');
+  assert.equal(storedCompleted.targetWeek, 1);
+
+  const week3 = await service.listForTeachingWeek(term.id, 3);
+  assert.ok(week3.some(item => item.id === pending.id));
+  assert.ok(week3.some(item => item.id === completed.id));
+  assert.ok(week3.find(item => item.id === completed.id).status === 'COMPLETED');
+});
