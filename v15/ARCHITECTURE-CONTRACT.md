@@ -299,3 +299,16 @@ Locked rules:
 - Teacher note shown is the persisted Lesson teacherNote.
 - Both are read-only handoff projections.
 - They do not create new Lesson, Homework, ProgrammeItem, or planning state.
+
+### Phase 55 — Targeted Bilingual Practice Planner
+
+The Practice Planner generates more specific practice guidance for each teacher-assigned homework item.
+
+Locked rules:
+- Each task may include a starting tempo, a rhythmic practice pattern, and concrete practice steps.
+- Guidance is derived from the assigned curriculum domain and teacher-assigned requirements/objective when available.
+- The planner remains a suggestion; teacher approval/editing is required before homework is saved.
+- The teacher may generate the plan in English or Greek.
+- The teacher may copy the generated plan as plain text for sending to the student.
+- Copying is local clipboard output only; V15 does not send messages automatically.
+- Language selection and copied text are UI concerns and do not create duplicate homework state.
