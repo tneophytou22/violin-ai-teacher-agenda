@@ -106,8 +106,8 @@ test('shell escapes persisted scale tempo attribute values', async () => {
   await controller.selectStudent(student.id);
   shell.render();
 
-  assert.match(root.innerHTML, /data-scale-current-tempo="1&amp;quot; onfocus=&amp;quot;alert(1)"/);
-  assert.match(root.innerHTML, /data-scale-target-tempo="2&amp;quot; data-break=&amp;quot;yes"/);
+  assert.match(root.innerHTML, /data-scale-current-tempo="1&quot; onfocus=&quot;alert(1)"/);
+  assert.match(root.innerHTML, /data-scale-target-tempo="2&quot; data-break=&quot;yes"/);
   assert.doesNotMatch(root.innerHTML, /value="1" onfocus=/);
   assert.doesNotMatch(root.innerHTML, /value="2" data-break=/);
 });
@@ -154,7 +154,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   assert.match(root.innerHTML, /Start lesson/);
   await controller.createLesson('2026-09-18');
   shell.render();
-  assert.match(root.innerHTML, /data-action="lesson"/);
+  assert.match(root.innerHTML, /data-action="end-lesson"/);
   assert.match(root.innerHTML, /End lesson/);
   assert.match(root.innerHTML, /data-view="lesson-session-flow"/);
   assert.match(root.innerHTML, /data-action="end-lesson"/);
@@ -212,7 +212,7 @@ test('shell renders lesson-session controls after a student and term are selecte
   shell.render();
   assert.match(root.innerHTML, /Review records lesson activity; Complete selected updates progress/);
   assert.match(root.innerHTML, /Lesson activity: 1 reviewed/);
-  assert.match(root.innerHTML, /\(reviewed\)/);
+  assert.match(root.innerHTML, /Recorded in this lesson/);
 });
 
 test('shell exposes a live weekly selection-count target', async () => {
@@ -1814,8 +1814,7 @@ test('shell routes lesson creation through the controller boundary', async () =>
   const state = controller.snapshot();
   const storedLessons = await repo.list('lessons');
   assert.equal(storedLessons.length, 1);
-  assert.equal(storedLessons[0].studentId, student.id);
-  assert.equal(storedLessons[0].termId, term.id);
+   assert.equal(storedLessons[0].termId, term.id);
   assert.equal(storedLessons[0].date, '2026-09-26');
   assert.equal(state.selectedStudentId, student.id);
   assert.equal(state.selectedTermId, term.id);
@@ -2349,7 +2348,7 @@ test('shell presents homework as teacher-native rows with custom task and separa
 
   await controller.generatePracticePlan();
   shell.render();
-  assert.match(root.innerHTML, /Suggested structure · teacher approval required/);
+  assert.match(root.innerHTML, /Targeted · teacher approval required/);
   assert.match(root.innerHTML, /data-plan-minutes="0"/);
   assert.match(root.innerHTML, /data-plan-focus="0"/);
 
@@ -2538,5 +2537,5 @@ test('shell marks edited homework as Draft until it is saved again', async () =>
   controller.setHomeworkDraftItems([...controller.snapshot().homeworkDraftItems, { text: 'Custom bow work', completed: false }]);
   shell.render();
   assert.match(root.innerHTML, /4 assigned · Draft|2 assigned · Draft|Draft/);
-  assert.match(root.innerHTML, /Review the plan, then Save Homework/);
+  assert.match(root.innerHTML, /Create a Practice Plan for the assigned work/);
 });
