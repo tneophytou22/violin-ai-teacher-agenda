@@ -15,8 +15,10 @@ export class CloudSyncService {
     this.lastError = null;
   }
 
+  // Cloud sync is intentionally disabled at the service boundary.
+  // Local IndexedDB data remains untouched; no cloud reads, writes, or deletes run.
   get available() {
-    return Boolean(this.client && this.repository);
+    return false;
   }
 
   async session() {
